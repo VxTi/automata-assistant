@@ -3,10 +3,10 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 18:38
  */
-import { useContext, useEffect, useRef, useState } from "react";
-import { ChatContext, ConversationTopic }          from "./Conversation";
-import { CreateSequence, useAnimationSequence }    from "../../util/AnimationSequence";
-import { BaseStyles }                              from "../../util/BaseStyles";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { ChatContext, ConversationTopic }                       from "./Conversation";
+import { CreateSequence, useAnimationSequence }                 from "../../util/AnimationSequence";
+import { BaseStyles }                                           from "../../util/BaseStyles";
 
 /**
  * The conversation history wrapper.
@@ -20,12 +20,25 @@ export function ConversationHistoryContainer() {
               setMessages, historyVisible, setConversationTopic, setHistoryVisible
           }                                             = useContext(ChatContext);
 
+    const inputRef     = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     useAnimationSequence({ containerRef: containerRef, intervalType: 'absolute' },
                          [ conversationTopics, historyVisible ]);
 
-    // Load the conversation topics.
+    const debounce = useCallback((func: Function, delay: number) => {
+        let timeout: NodeJS.Timeout;
+        return function (...args: any[]) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func(...args), delay);
+        };
+    }, []);
+
+    /**
+     * Load the conversation topics from the main process.
+     */
     useEffect(() => {
+        if ( !historyVisible )
+            return;
         // @ts-ignore
         window.api.getTopicHistory()
               .then((topics: ConversationTopic[]) => {
@@ -40,6 +53,31 @@ export function ConversationHistoryContainer() {
                   }
                   setConversationTopics(finalizedTopics);
               });
+    }, [ historyVisible ]);
+
+    /**
+     * Filter the conversation topics based on the input value.
+     * This function is debounced to prevent unnecessary filtering,
+     * which makes it just a slight bit more efficient.
+     */
+    useEffect(() => {
+        if ( !inputRef.current )
+            return;
+        const initialTopics = conversationTopics;
+        const input         = inputRef.current;
+        const handleInput   = debounce(() => {
+            const value = input.value.toLowerCase();
+            if ( value === '' ) {
+                setConversationTopics(initialTopics);
+                return;
+            }
+            const filteredTopics = conversationTopics.filter(topic => {
+                return topic.topic.toLowerCase().includes(value);
+            });
+            setConversationTopics(filteredTopics);
+        }, 300);
+        input.addEventListener('input', handleInput);
+        return () => input.removeEventListener('input', handleInput);
     }, []);
 
     return (
@@ -47,10 +85,22 @@ export function ConversationHistoryContainer() {
             className={`absolute transition-all duration-300 flex z-20 flex-col transition-all justify-start items-stretch w-full h-full left-0 top-0 backdrop-blur-md 
             ${historyVisible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}>
             <div className="flex flex-col justify-start items-stretch">
-                <div className="flex justify-end items-center m-4">
+                <div className="header-grid items-center m-4">
+                    <div
+                        className="bg-gray-800 col-start-2 col-end-3 flex items-center justify-start overflow-hidden text-white grow p-2 rounded-xl mx-4">
+                        <svg fill="none" strokeWidth={1.5} stroke="currentColor" viewBox="0 0 24 24"
+                             className="w-6 h-6 mr-2"
+                             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
+                        </svg>
+                        <input type="text" placeholder="Search conversation topics"
+                               ref={inputRef}
+                               className="bg-gray-800 col-start-2 col-end-3 focus:outline-none mx-1 px-1 text-white grow rounded-xl"/>
+                    </div>
                     <svg fill="none" strokeWidth="1.5" stroke="currentColor" viewBox="0 0 24 24"
                          onClick={() => setHistoryVisible( !historyVisible)}
-                         className={`ml-auto my-2 ${BaseStyles.ICON}`}
+                         className={`my-2 ${BaseStyles.ICON}`}
                          xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12"></path>
                     </svg>

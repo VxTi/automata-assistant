@@ -41,7 +41,7 @@ export function NavigationHeader() {
                 {conversationTopic}
             </h1>
             <div className="flex flex-row items-center justify-end">
-                <AnnotatedIcon path="M4 6h16M4 12h16m-7 6h7" annotation="History" side='left'
+                <AnnotatedIcon path="M4 6h16M4 12h16m-7 6h7" annotation="Chat history" side='left'
                                onClick={() => setHistoryVisible( !historyVisible)}/>
             </div>
         </div>
@@ -58,7 +58,7 @@ function AnnotatedIcon(props: { path: string, annotation: string, side: 'left' |
         <div
             className={`group flex items-center justify-start ${props.side === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
         <span
-            className="group-hover:max-w-[120px] text-nowrap group-hover:px-2 group-hover:py-1 group-hover:opacity-100 opacity-0 bg-stone-950 rounded-xl max-w-[0px] transition-all duration-500 ease-in-out overflow-hidden">
+            className="group-hover:max-w-[120px] text-sm text-nowrap group-hover:px-2 group-hover:py-1 group-hover:opacity-100 opacity-0 bg-stone-950 rounded-xl max-w-[0px] transition-all duration-500 ease-in-out overflow-hidden">
             {props.annotation}
         </span>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
