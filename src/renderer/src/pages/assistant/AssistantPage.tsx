@@ -9,8 +9,8 @@ import { ApplicationContext }                  from "../../util/ApplicationConte
 import { BaseStyles }                          from "../../util/BaseStyles";
 import { InteractiveField }                    from "./InteractionField";
 import { ChatContext, ChatContextMessageType } from "./Conversation";
+import { ConversationHistoryWrapper }          from "./ConversationTopicHistory";
 import '../../styles/animations.css'
-import { ConversationTopicHistory }            from "./ConversationTopicHistory";
 
 /**
  * The assistant page.
@@ -26,23 +26,7 @@ export function AssistantPage() {
     return (
         <ChatContext.Provider value={{ messages: chatMessages, setMessages: setChatMessages, }}>
             <div className="flex flex-col relative justify-start items-stretch grow max-w-screen-md w-full mx-auto">
-                <div
-                    className={`absolute flex flex-col transition-all justify-start items-stretch w-full h-full left-0 top-0 backdrop-blur-md ${!historyVisible ? 'hidden' +
-                        ' pointer-events-none' : ''}`}>
-                    {historyVisible && (
-                        <div className="flex flex-col justify-start items-stretch">
-                            <div className="flex justify-end items-center m-4">
-                                <svg fill="none" strokeWidth="1.5" stroke="currentColor" viewBox="0 0 24 24"
-                                     onClick={() => setHistoryVisible( !historyVisible)}
-                                     className={`ml-auto my-2 ${BaseStyles.ICON}`}
-                                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-                                </svg>
-                            </div>
-                            <ConversationTopicHistory/>
-                        </div>
-                    )}
-                </div>
+                <ConversationHistoryWrapper historyShown={historyVisible} setHistoryShown={setHistoryVisible}/>
                 <div className="flex justify-between items-center m-4 text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                          className={BaseStyles.ICON}
@@ -72,14 +56,17 @@ export function AssistantPage() {
  */
 function ChatHistory() {
     const { messages } = useContext(ChatContext);
-    console.log(messages)
     return (
         messages.map((entry, index) => {
             return entry.representation ? entry.representation : (
                 <div key={index}
                      className="flex flex-row justify-start items-start bg-gray-700 rounded-md py-2 px-4 my-2">
                     <div className="flex flex-col justify-center items-start">
-                        <div className="text-white text-xs">{entry.message.content}</div>
+                        <span
+                            className="text-white font-bold font-sans text-md">{entry.message.role === 'user' ? 'You' : 'Assistant'}</span>
+                        <div className="text-white text-sm my-2">
+                            <span>{entry.message.content}</span>
+                        </div>
                     </div>
                 </div>
             );

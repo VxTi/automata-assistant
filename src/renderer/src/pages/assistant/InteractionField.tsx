@@ -5,9 +5,9 @@
  */
 
 
-import { useContext, useRef, useState } from "react";
-import { BaseStyles }                   from "../../util/BaseStyles";
-import { requestMicrophoneAccess }      from "../../util/Audio";
+import { useContext, useRef, useState }        from "react";
+import { BaseStyles }                          from "../../util/BaseStyles";
+import { requestMicrophoneAccess }             from "../../util/Audio";
 import { AIModels, CompletionMessage }         from "../../util/Model";
 import { ChatContext, ChatContextMessageType } from "./Conversation";
 
@@ -30,7 +30,7 @@ export function InteractiveField() {
 
     return (
         <div className="flex flex-col justify-center items-center my-3 mx-1">
-            <div className="flex justify-start items-center flex-wrap max-w-screen-sm my-1">
+            <div className="flex justify-start w-full items-center flex-wrap max-w-screen-sm my-1">
                 {selectedDirectory && (
                     <InteractionFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
                                      directory/>
@@ -214,14 +214,14 @@ function InteractionOption(props: { path: string, text: string, onClick: () => v
     return (
         <div
             onClick={props.onClick}
-            className="flex flex-col justify-center items-center mx-0.5 p-1 my-1 basis-24 shrink-0 bg-gray-700 rounded-xl hover:brightness-125 hover:cursor-pointer duration-500 transition-all"
+            className="flex flex-row justify-center items-center mx-1 py-1 px-2 my-1 basis-24 shrink-0 bg-gray-700 rounded-xl hover:brightness-125 hover:cursor-pointer duration-500 transition-all"
             style={{ backgroundColor: props.color! }}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                  className="w-6 h-6 mb-1 stroke-white shrink-0 transition-colors duration-500 rounded-full">
                 <path strokeLinecap="round" strokeLinejoin="round"
                       d={props.path}/>
             </svg>
-            <div className="text-white text-xs">{props.text}</div>
+            <div className="text-white ml-1 text-xs text-nowrap">{props.text}</div>
         </div>
     )
 }
@@ -236,7 +236,7 @@ function InteractionFile(props: { filePath: string, onDelete: () => void, direct
     const fileName = props.filePath.substring(props.filePath.lastIndexOf(window.api.separator) + 1);
     return (
         <div
-            className="flex flex-row justify-between items-center bg-gray-700 p-1 mx-2 my-1 rounded-3xl">
+            className="flex flex-row justify-between items-center bg-gray-700 p-1 mx-0.5 my-1 rounded-3xl">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                  className={BaseStyles.ICON + ' m-0'}
                  onClick={props.onDelete}>
@@ -250,7 +250,7 @@ function InteractionFile(props: { filePath: string, onDelete: () => void, direct
                              " 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0" +
                              " 0 0-9-9Z"}/>
             </svg>
-            <div className="text-white truncate text-xs mx-1">{fileName}</div>
+            <div className="text-white truncate text-xs mx-0.5">{fileName}</div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                  className={BaseStyles.ICON + ' m-0'}
                  onClick={props.onDelete}>
