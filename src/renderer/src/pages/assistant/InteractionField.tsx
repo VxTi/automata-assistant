@@ -29,7 +29,7 @@ export function InteractiveField() {
     const { messages, setMessages } = useContext(ChatContext);
 
     return (
-        <div className="flex flex-col justify-center items-center my-3 mx-1">
+        <div className="flex flex-col justify-center items-center mb-3 mt-1 mx-1">
             <div className="flex justify-start w-full items-center flex-wrap max-w-screen-sm my-1">
                 {selectedDirectory && (
                     <InteractionFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
@@ -45,7 +45,6 @@ export function InteractiveField() {
                 <div
                     className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <InteractionOption
-                        color="#116cc0"
                         path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
                         text="Add file" onClick={() => {
                         // @ts-ignore
@@ -56,7 +55,6 @@ export function InteractiveField() {
                               });
                     }}/>
                     <InteractionOption
-                        color="#820079"
                         path="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
                         text="Add directory" onClick={() => {
                         // @ts-ignore
@@ -70,7 +68,7 @@ export function InteractiveField() {
                 <div
                     className="flex justify-center items-center text-white mx-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                         className={BaseStyles.ICON + ` ${optionsShown ? 'bg-gray-500' : ''}`}
+                         className={BaseStyles.ICON + ` ${optionsShown ? 'bg-gray-600' : ''}`}
                          onClick={() => setOptionsShown( !optionsShown)}>
                         <path strokeLinecap="round" strokeLinejoin="round"
                               d="m19.5 8.25-7.5 7.5-7.5-7.5"
@@ -82,7 +80,7 @@ export function InteractiveField() {
                     <textarea
                         placeholder="Ask me anything..."
                         rows={1} cols={50} ref={inputContentRef}
-                        className="resize-none mx-2 w-full grow focus:outline-none bg-transparent text-white p-2"/>
+                        className="resize-none mx-2 w-full font-helvetica-neue grow focus:outline-none bg-transparent text-white p-2"/>
                     <svg xmlns="http://www.w3.org/2000/svg" fill={recording ? '#fff' : 'none'} viewBox="0 0 24 24"
                          strokeWidth={recording ? 0 : 1.5}
                          onClick={async () => {
@@ -210,12 +208,11 @@ export function InteractiveField() {
  * These options reside above the input field.
  * @param props The properties of the interaction option.
  */
-function InteractionOption(props: { path: string, text: string, onClick: () => void, color?: string }) {
+function InteractionOption(props: { path: string, text: string, onClick: () => void }) {
     return (
         <div
             onClick={props.onClick}
-            className="flex flex-row justify-center items-center mx-1 py-1 px-2 my-1 basis-24 shrink-0 bg-gray-700 rounded-xl hover:brightness-125 hover:cursor-pointer duration-500 transition-all"
-            style={{ backgroundColor: props.color! }}>
+            className="flex flex-row justify-center items-center mx-1 py-1 px-2 my-1 basis-24 shrink-0 bg-gray-700 rounded-xl hover:brightness-125 hover:cursor-pointer duration-500 transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                  className="w-6 h-6 mb-1 stroke-white shrink-0 transition-colors duration-500 rounded-full">
                 <path strokeLinecap="round" strokeLinejoin="round"

@@ -1,5 +1,6 @@
 import { contextBridge }     from 'electron'
 import { electronAPI }       from '@electron-toolkit/preload'
+// @ts-ignore
 import { ConversationTopic } from "../renderer/src/pages/assistant/Conversation";
 
 // Custom APIs for renderer

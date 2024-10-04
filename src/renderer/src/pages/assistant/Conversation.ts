@@ -28,4 +28,13 @@ export type ChatContextMessageType = { message: CompletionMessage, representatio
 export const ChatContext = createContext<{
     messages: ChatContextMessageType[],
     setMessages: (messages: ChatContextMessageType[]) => void,
-}>({ messages: [], setMessages: () => void 0 });
+    conversationTopic: string,
+    setConversationTopic: (topic: string) => void,
+    historyVisible: boolean,
+    setHistoryVisible: (visible: boolean) => void
+}>({
+       messages: [],
+       setMessages: () => void 0,
+       conversationTopic: 'New conversation',
+       setConversationTopic: () => void 0,
+       historyVisible: false, setHistoryVisible: () => void 0 });

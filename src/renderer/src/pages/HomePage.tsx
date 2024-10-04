@@ -113,7 +113,7 @@ vec3 cppn(vec2 pos, float time) {
 
     // Smooth gradient using positional coordinates instead of radial focus
     float red   = 0.5 + 0.5 * sin(x * 5.0 + time * 0.1);    // Smooth gradient across x-axis
-    float green = 0.5 + 0.5 * cos(y * 5.0 + time * 0.2);    // Smooth gradient across y-axis
+    float green = 0.3 + 0.9 * cos(y * 4.0 + time * 0.2);    // Smooth gradient across y-axis
     float blue  = 0.5 + 0.5 * sin((x + y) * 5.0 + time * 0.3); // Combined x-y gradient
 
     // Return the combined color

@@ -4,7 +4,7 @@
  * @date Created on Friday, October 04 - 12:05
  */
 import { createContext, ReactNode, useState } from "react";
-import { HomePage }                           from "../pages/HomePage.tsx";
+import { HomePage }                           from "../pages/HomePage";
 
 export const ApplicationContext = createContext<{
     content: ReactNode,

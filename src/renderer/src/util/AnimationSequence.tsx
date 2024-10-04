@@ -39,18 +39,23 @@ export function useAnimationSequence(config: AnimationSequenceConfig, dependenci
         if ( !config.containerRef.current )
             return;
 
+        console.log('Animating sequence');
+
         const animatableElements = config.containerRef.current.querySelectorAll('*[data-sequence-animation]');
         animatableElements.forEach((element) => {
-            element.classList.add((element as HTMLElement).dataset.sequenceAnimation ?? '');
-            (element as HTMLElement).style.animationPlayState = 'paused';
+            const target = element as HTMLElement;
+            element.classList.add(target.dataset.sequenceAnimation ?? '');
+            target.style.animationPlayState = 'paused';
         });
 
         let interval = 0;
 
         const observer = new IntersectionObserver((entries) => {
 
-            if ( !config.containerRef.current || !entries[ 0 ].isIntersecting )
+            if ( !config.containerRef.current || !entries[ 0 ].isIntersecting || !entries[ 0 ].target.checkVisibility())
                 return;
+
+            console.log('Starting animation sequence');
 
             animatableElements.forEach((element) => {
 
@@ -62,7 +67,6 @@ export function useAnimationSequence(config: AnimationSequenceConfig, dependenci
                 interval = config.intervalType === 'absolute' ? sequenceDelay : interval + sequenceDelay;
 
                 hElement.style.animationFillMode = 'forwards';
-                hElement.style.webkitAnimationFillMode = 'forwards';
                 hElement.style.animationPlayState = 'running';
                 hElement.style.animationDuration = sequenceDuration + 'ms';
                 hElement.style.animationDelay = `${interval}ms`;
