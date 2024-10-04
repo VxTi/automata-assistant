@@ -1,6 +1,6 @@
-import { contextBridge } from 'electron'
+import { contextBridge }     from 'electron'
 import { electronAPI }       from '@electron-toolkit/preload'
-import { ConversationTopic } from "../renderer/src/pages/assistant/AssistantPage";
+import { ConversationTopic } from "../renderer/src/pages/assistant/Conversation";
 
 // Custom APIs for renderer
 const api = {

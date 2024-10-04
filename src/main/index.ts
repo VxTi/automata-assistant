@@ -3,8 +3,7 @@ import { join }                                       from 'path'
 import { electronApp, is, optimizer }                 from '@electron-toolkit/utils'
 import icon                                           from '../../resources/icon.png?asset'
 import dotenv                                         from 'dotenv';
-import * as fs               from "node:fs";
-import { ConversationTopic }                          from "../renderer/src/pages/assistant/Conversation";
+import * as fs                                        from "node:fs";
 
 dotenv.config({ path: join(__dirname, '../../.env') });
 
@@ -116,7 +115,7 @@ function ensureTopicHistoryFileExists() {
     }
 }
 
-ipcMain.handle('save-topic-history', async (_, topics: ConversationTopic[]) => {
+ipcMain.handle('save-topic-history', async (_, topics: any[]) => {
     ensureTopicHistoryFileExists();
     await fs.promises.writeFile(join(app.getPath('userData'), 'topic-history.json'), JSON.stringify(topics));
 });
