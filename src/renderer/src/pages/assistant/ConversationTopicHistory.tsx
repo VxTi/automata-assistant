@@ -116,7 +116,7 @@ export function ConversationHistoryContainer() {
                              onClick={() => {
                                  setConversationTopic(entry.topic);
                                  setHistoryVisible(false);
-                                 setMessages(entry.messages.map(messageEntry => {
+                                 setMessages((_) => entry.messages.map(messageEntry => {
                                      return { message: messageEntry };
                                  }))
                              }}

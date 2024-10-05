@@ -3,13 +3,14 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 12:11
  */
-import { useState }                            from "react";
+import { useEffect, useRef, useState }         from "react";
 import { ChatInputField }                      from "./InputField";
 import { ChatContext, ChatContextMessageType } from "./Conversation";
 import { ConversationHistoryContainer }        from "./ConversationTopicHistory";
 import { NavigationHeader }                    from "./NavigationHeader";
 import '../../styles/animations.css'
 import { ChatMessage }                         from "./ChatMessage";
+import { useAnimationSequence }                from "../../util/AnimationSequence";
 
 /**
  * The assistant page.
@@ -22,6 +23,18 @@ export function AssistantPage() {
     const [ historyVisible, setHistoryVisible ]         = useState(false);
     const [ conversationTopics, setConversationTopics ] = useState<string>('New conversation');
     const [ spokenResponse, setSpokenResponse ]         = useState(false);
+
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+
+    // Scroll down to the bottom of the chat
+    // when the chat messages change.
+    useEffect(() => {
+        if ( !chatContainerRef.current ) return;
+
+        chatContainerRef.current!.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, [ chatMessages, chatContainerRef ]);
+
+    useAnimationSequence({ containerRef: chatContainerRef }, [ chatMessages ]);
 
     return (
         <ChatContext.Provider value={{
@@ -36,8 +49,10 @@ export function AssistantPage() {
                 <div
                     className="grow relative flex flex-col w-[80%] mx-auto my-auto items-stretch overflow-hidden justify-start">
                     <div
+                        ref={chatContainerRef}
                         className="absolute left-0 top-0 h-full w-full flex flex-col justify-start items-stretch grow shrink overflow-x-hidden no-scrollbar">
-                        {chatMessages.map((entry, index) => <ChatMessage key={index} entry={entry}/>)}
+                        {chatMessages.map((entry, index) =>
+                                              <ChatMessage key={index} entry={entry}/>)}
                     </div>
                 </div>
                 <ChatInputField/>

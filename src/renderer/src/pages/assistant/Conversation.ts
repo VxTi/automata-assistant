@@ -23,7 +23,7 @@ export type ChatContextMessageType = { message: CompletionMessage, representatio
 
 export interface ChatContextType {
     messages: ChatContextMessageType[],
-    setMessages: (messages: ChatContextMessageType[]) => void,
+    setMessages: (messages: (previous: ChatContextMessageType[]) => (ChatContextMessageType)[]) => void,
     conversationTopic: string,
     setConversationTopic: (topic: string) => void,
     historyVisible: boolean,

@@ -6,6 +6,7 @@
 import { ChatContextMessageType } from "./Conversation";
 import { BaseStyles }             from "../../util/BaseStyles";
 import { useCallback, useState }  from "react";
+import { CreateSequence }         from "../../util/AnimationSequence";
 
 /**
  * The chat message.
@@ -24,7 +25,8 @@ export function ChatMessage(props: { entry: ChatContextMessageType }) {
     }, []);
 
     return (
-        <div className="group flex flex-row justify-between items-start bg-gray-800 rounded-md py-2 px-4 my-1">
+        <div className="group flex flex-row justify-between items-start bg-gray-800 rounded-md py-2 px-4 my-1"
+             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start">
                         <span
                             className="text-white font-bold font-sans text-md">{props.entry.message.role === 'user' ? 'You' : 'Assistant'}</span>

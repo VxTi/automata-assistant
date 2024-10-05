@@ -34,14 +34,17 @@ export function ChatInputField() {
      * and will send the message to the AI model for a response.
      */
     const handleSend = useCallback(async () => {
+        const elementValue = inputContentRef.current!.value.trim() || '';
         // Prevent empty messages
-        if ( !inputContentRef.current || inputContentRef.current!.value.trim() === '' )
+        if ( !inputContentRef.current || !elementValue )
             return;
 
-        const myMessage: ChatContextMessageType = { message: { role: 'user', content: inputContentRef.current!.value } }
-        setMessages([ ...messages, myMessage ]);
+        inputContentRef.current!.value = '';
 
-        const response = await AIModels.chat.generate(inputContentRef.current!.value, messages.map(message => message.message));
+        const myMessage: ChatContextMessageType = { message: { role: 'user', content: elementValue } };
+        setMessages((previous: ChatContextMessageType[]) => [ ...previous, myMessage ]);
+
+        const response = await AIModels.chat.generate(elementValue, messages.map(message => message.message));
         if ( !('choices' in response) )
             return;
 
@@ -51,8 +54,7 @@ export function ChatInputField() {
                 content: response.choices[ 0 ][ 'message' ][ 'content' ]
             } as CompletionMessage
         };
-        setMessages([ ...messages, responseMessage ]);
-        inputContentRef.current!.value = '';
+        setMessages((previous: ChatContextMessageType[]) => [ ...previous, responseMessage ]);
         if ( spokenResponse ) {
             await AIModels.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);
         }
@@ -96,7 +98,7 @@ export function ChatInputField() {
                         temperature: 0.5
                     });
                 const myMessage: ChatContextMessageType = { message: { role: 'user', content: transcription } };
-                setMessages([ ...messages, myMessage ]);
+                setMessages((previous: ChatContextMessageType[]) => [ ...previous, myMessage ]);
                 const response = await AIModels.chat.generate(transcription, [ ...messages, myMessage ].map(message => message.message));
 
                 if ( !('choices' in response) )
@@ -109,7 +111,7 @@ export function ChatInputField() {
                     } as CompletionMessage
                 };
 
-                setMessages([ ...messages, responseMessage ]);
+                setMessages((previous) => [ ...previous, responseMessage ]);
 
                 if ( spokenResponse ) {
                     await AIModels.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);

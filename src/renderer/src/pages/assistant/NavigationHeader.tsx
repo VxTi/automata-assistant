@@ -34,7 +34,7 @@ export function NavigationHeader() {
                         annotation="New topic" side='right' onClick={() => {
                         setHistoryVisible(false);
                         setConversationTopic('New conversation');
-                        setMessages([]);
+                        setMessages(() => []);
                     }}/>
                 )}
             </div>
