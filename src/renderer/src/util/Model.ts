@@ -71,12 +71,20 @@ export interface SpeechGenerationConfig {
     speed?: number;
 }
 
+/**
+ * Model interface.
+ * This interface is used to define the structure of an AI model.
+ */
 interface Model {
     generate: (...props: any[]) => any;
     url: string;
     defaultConfiguration: any;
 }
 
+/**
+ * AI models object.
+ * This object contains all the AI models that can be used in the application.
+ */
 export const AIModels = {
     baseUrl: 'https://api.openai.com/v1/',
     /* @ts-ignore */
@@ -91,7 +99,7 @@ export const AIModels = {
             defaultConfiguration: {
                 model: 'tts-1',
                 voice: 'nova',
-                speed: 1.1
+                speed: 1.0
             } as SpeechGenerationConfig,
             /**
              * Generate speech from the given input text using the specified voice and model.
@@ -125,6 +133,12 @@ export const AIModels = {
                 model: 'whisper-1',
                 language: 'en',//'en',
             } as TranscriptionConfig,
+
+            /**
+             * Generate a transcription from the given audio file using the specified model.
+             * This function returns a promise that resolves to the generated transcription
+             * @param config The configuration object for the transcription.
+             */
             generate: async function (config: TranscriptionConfig) {
                 const formData = new FormData();
                 formData.append('file', config.file, config.fileName);
@@ -157,6 +171,13 @@ export const AIModels = {
             temperature: 0.5,
             messages: []
         } as TextCompletionConfig,
+
+        // see https://help.openai.com/en/articles/8555545-file-uploads-faq
+        maxFileCount: 20,
+        fileSizeHardLimit: 512 * (1 << 20), // 512MB
+        imageFileSizeLimit: 20 * (1 << 20), // 20MB
+        spreadsheetFileSizeLimit: 50 * (1 << 20), // 50MB
+
         /**
          * Generate a response to the given messages using the specified model.
          * This function returns a promise that resolves to the generated response

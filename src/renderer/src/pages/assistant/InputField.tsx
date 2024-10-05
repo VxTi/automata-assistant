@@ -10,6 +10,23 @@ import { BaseStyles }                                from "../../util/BaseStyles
 import { requestMicrophoneAccess }                   from "../../util/Audio";
 import { AIModels, CompletionMessage }               from "../../util/Model";
 import { ChatContext, ChatContextMessageType }       from "./Conversation";
+import { Marked }                                    from '../../include/marked';
+import { markedHighlight }                           from 'marked-highlight';
+import hljs                                          from 'highlight.js';
+import '../../styles/code-highlighting.css';
+
+const marked = new Marked();
+marked.use(
+    markedHighlight(
+        {
+            langPrefix: 'hljs language-',
+            highlight(code: string, lang: string) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            }
+        })
+);
+
 
 /**
  * The interactive field where the user can input text or voice.
@@ -51,7 +68,7 @@ export function ChatInputField() {
         const responseMessage: ChatContextMessageType = {
             message: {
                 role: response.choices[ 0 ][ 'message' ][ 'role' ],
-                content: response.choices[ 0 ][ 'message' ][ 'content' ]
+                content: marked.parse(response.choices[ 0 ][ 'message' ][ 'content' ])
             } as CompletionMessage
         };
         setMessages((previous: ChatContextMessageType[]) => [ ...previous, responseMessage ]);
@@ -107,7 +124,7 @@ export function ChatInputField() {
                 const responseMessage: ChatContextMessageType = {
                     message: {
                         role: response.choices[ 0 ][ 'message' ][ 'role' ],
-                        content: response.choices[ 0 ][ 'message' ][ 'content' ]
+                        content: (response.choices[ 0 ][ 'message' ][ 'content' ])
                     } as CompletionMessage
                 };
 
@@ -130,7 +147,7 @@ export function ChatInputField() {
             audioDevice.current!.stop();
         }
         setRecording( !recording);
-    }, [ spokenResponse, messages ]);
+    }, [ spokenResponse, messages, recording ]);
 
     return (
         <div className="flex flex-col justify-center items-center mb-3 mt-1 mx-1">

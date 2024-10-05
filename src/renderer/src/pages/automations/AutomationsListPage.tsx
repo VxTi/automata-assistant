@@ -12,6 +12,7 @@ import { AnnotatedIcon }      from "../assistant/AnnotatedIcon";
 
 export function AutomationsListPage() {
     const { setContent } = useContext(ApplicationContext);
+
     return (
         <div className="mx-auto max-w-screen-md w-full flex flex-col justify-start">
             <div className="grid grid-cols-3 m-4 items-center">
@@ -20,11 +21,11 @@ export function AutomationsListPage() {
                                    annotation="Return to menu" side='right'
                                    onClick={() => setContent(<HomePage/>)}/>
                 </div>
-                <h1 className="text-white text-center text-2xl font-sans">Automations</h1>
+                <h1 className="text-white text-center text-2xl font-helvetica-neue">Automations</h1>
+                <span className="text-white text-md font-helvetica-neue text-right">
+                    {Automations.reduce((acc, prev) => acc + (prev.enabled ? 1 : 0), 0)} active
+                </span>
             </div>
-            <p className="text-white text-md text-center">
-                Automations will be available in a future update.
-            </p>
             <div className="grid grid-cols-3 gap-4 m-4">
                 {Automations.map(automation => (
                     <AutomationCard key={automation.id} {...automation}/>))}

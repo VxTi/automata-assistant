@@ -22,7 +22,7 @@ export function AnnotatedIcon(props: {
         <div
             className={`group flex items-center justify-start ${props.side === 'right' ? 'flex-row-reverse' : 'flex-row'} ${props.className ?? ''}`}>
         <span
-            className="group-hover:max-w-[140px] text-white select-none text-sm text-nowrap group-hover:px-2 group-hover:py-1 group-hover:opacity-100 opacity-0 bg-stone-950 rounded-xl max-w-[0px] transition-all duration-500 ease-in-out overflow-hidden">
+            className="group-hover:max-w-[150px] text-white select-none text-sm text-nowrap group-hover:px-2 group-hover:py-1 group-hover:opacity-100 opacity-0 bg-stone-950 rounded-xl max-w-[0px] transition-all duration-500 ease-in-out overflow-hidden">
             {props.annotation}
         </span>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}

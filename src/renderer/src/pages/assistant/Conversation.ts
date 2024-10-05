@@ -13,6 +13,7 @@ import { createContext }     from "react";
  * and can be used to store the conversation history.
  */
 export interface ConversationTopic {
+    uuid: string,
     topic: string,
     date: string,
     messages: CompletionMessage[]
