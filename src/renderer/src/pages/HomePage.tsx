@@ -56,7 +56,7 @@ export function HomePage() {
     }, [ canvasRef ]);
 
     return (
-        <div className="relative grow flex flex-col justify-center">
+        <div className="grow flex flex-col justify-center">
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none"/>
             <div className="grid grid-rows-3 place-items-center justify-items-center z-10">
                 <div>

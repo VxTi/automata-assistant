@@ -96,7 +96,7 @@ export function ConversationHistoryContainer() {
             className={`absolute transition-all duration-300 flex z-20 flex-col transition-all justify-start items-stretch w-full h-full left-0 top-0 backdrop-blur-md 
             ${historyVisible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}>
             <div className="flex flex-col justify-start items-stretch">
-                <div className="header-grid items-center m-4">
+                <div className="header-grid">
                     <div
                         className="bg-gray-800 col-start-2 col-end-3 flex items-center justify-start overflow-hidden text-white grow p-2 rounded-xl mx-4">
                         <svg fill="none" strokeWidth={1.5} stroke="currentColor" viewBox="0 0 24 24"

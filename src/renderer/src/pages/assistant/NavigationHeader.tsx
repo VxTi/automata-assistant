@@ -22,10 +22,10 @@ export function NavigationHeader() {
               conversationTopic, setConversationTopic
           }              = useContext(ChatContext);
     return (
-        <div className="grid grid-cols-3 items-center mt-8 mb-1 mx-4 text-white">
+        <div className="grid grid-cols-3 items-center mt-4 mb-1 mx-4 text-white">
             <div className="flex flex-row items-center">
                 <AnnotatedIcon path="M15.75 19.5 8.25 12l7.5-7.5"
-                               annotation="Home" side='right' onClick={() => setContent(<HomePage/>)}
+                               annotation="Back to menu" side='right' onClick={() => setContent(<HomePage/>)}
                 />
                 {messages.length > 0 && (
 
