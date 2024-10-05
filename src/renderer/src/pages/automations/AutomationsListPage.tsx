@@ -1,14 +1,16 @@
 /**
- * @fileoverview AutomationsPage.tsx
+ * @fileoverview AutomationsListPage.tsx
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 12:14
  */
-import { BaseStyles } from "../util/BaseStyles";
-import { HomePage }   from "./HomePage";
-import { ApplicationContext } from "../util/ApplicationContext";
-import { useContext } from "react";
+import { BaseStyles }         from "../../util/BaseStyles";
+import { HomePage }           from "../HomePage";
+import { ApplicationContext } from "../../util/ApplicationContext";
+import { useContext }         from "react";
+import { AutomationCard }     from "./AutomationCard";
+import { Automations }        from "./Automations";
 
-export function AutomationsPage() {
+export function AutomationsListPage() {
     const { setContent } = useContext(ApplicationContext);
     return (
         <div className="mx-auto max-w-screen-md w-full flex flex-col justify-start">
@@ -23,6 +25,10 @@ export function AutomationsPage() {
             <p className="text-white text-md text-center">
                 Automations will be available in a future update.
             </p>
+            <div className="grid grid-cols-3 gap-4 m-4">
+                { Automations.map(automation => (
+                    <AutomationCard key={automation.id} {...automation}/> ))}
+            </div>
         </div>
     )
 }

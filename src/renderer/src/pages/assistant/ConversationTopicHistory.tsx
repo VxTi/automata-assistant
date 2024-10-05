@@ -15,16 +15,21 @@ import { BaseStyles }                                           from "../../util
  * @param props the properties of the component.
  */
 export function ConversationHistoryContainer() {
-    const [ conversationTopics, setConversationTopics ] = useState<ConversationTopic[]>([]);
+    const [ conversationTopics, setConversationTopics ]
+              = useState<ConversationTopic[]>([]);
     const {
-              setMessages, historyVisible, setConversationTopic, setHistoryVisible
-          }                                             = useContext(ChatContext);
+              setMessages, historyVisible,
+              setConversationTopic, setHistoryVisible
+          }   = useContext(ChatContext);
 
     const inputRef     = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     useAnimationSequence({ containerRef: containerRef, intervalType: 'absolute' },
                          [ conversationTopics, historyVisible ]);
 
+    /**
+     * Debounce function for filtering the conversation topics.
+     */
     const debounce = useCallback((func: Function, delay: number) => {
         let timeout: NodeJS.Timeout;
         return function (...args: any[]) {
@@ -39,8 +44,8 @@ export function ConversationHistoryContainer() {
     useEffect(() => {
         if ( !historyVisible )
             return;
-        // @ts-ignore
-        window.api.getTopicHistory()
+
+        (window['api'] as any).getTopicHistory()
               .then((topics: ConversationTopic[]) => {
                   let finalizedTopics = topics;
                   // Fix faulty topic history.
@@ -48,8 +53,8 @@ export function ConversationHistoryContainer() {
                       finalizedTopics = topics.filter(topic => {
                           return 'topic' in topic && 'date' in topic && 'messages' in topic;
                       });
-                      // @ts-ignore
-                      window.api.saveTopicHistory(fixed)
+
+                      (window['api'] as any).saveTopicHistory(finalizedTopics);
                   }
                   setConversationTopics(finalizedTopics);
               });
@@ -65,8 +70,9 @@ export function ConversationHistoryContainer() {
             return;
         const initialTopics = conversationTopics;
         const input         = inputRef.current;
-        const handleInput   = debounce(() => {
-            const value = input.value.toLowerCase();
+
+        const handleInput = debounce(() => {
+            const value = input.value.toLowerCase().trim();
             if ( value === '' ) {
                 setConversationTopics(initialTopics);
                 return;
@@ -78,6 +84,7 @@ export function ConversationHistoryContainer() {
             });
             setConversationTopics(filteredTopics);
         }, 300);
+
         input.addEventListener('input', handleInput);
         return () => {
             input.removeEventListener('input', handleInput);
@@ -120,7 +127,7 @@ export function ConversationHistoryContainer() {
                                      return { message: messageEntry };
                                  }))
                              }}
-                             {...CreateSequence('fadeIn', 700, 500 + 30 * index)}>
+                             {...CreateSequence('fadeIn', 700, 100 + 30 * index)}>
                             <span className="text-white text-sm font-sans">{entry.topic}</span>
                         </div>
                     ))}
