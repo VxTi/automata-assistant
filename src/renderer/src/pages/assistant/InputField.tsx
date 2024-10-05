@@ -5,11 +5,11 @@
  */
 
 
-import { useContext, useRef, useState }        from "react";
-import { BaseStyles }                          from "../../util/BaseStyles";
-import { requestMicrophoneAccess }             from "../../util/Audio";
-import { AIModels, CompletionMessage }         from "../../util/Model";
-import { ChatContext, ChatContextMessageType } from "./Conversation";
+import { useCallback, useContext, useRef, useState } from "react";
+import { BaseStyles }                                from "../../util/BaseStyles";
+import { requestMicrophoneAccess }                   from "../../util/Audio";
+import { AIModels, CompletionMessage }               from "../../util/Model";
+import { ChatContext, ChatContextMessageType }       from "./Conversation";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -26,18 +26,120 @@ export function ChatInputField() {
     const inputContentRef = useRef<HTMLTextAreaElement>(null);
     const audioDevice     = useRef<MediaRecorder | null | undefined>(null);
 
-    const { messages, setMessages } = useContext(ChatContext);
+    const { messages, setMessages, spokenResponse } = useContext(ChatContext);
+
+    /**
+     * Handles the sending of a message.
+     * This function is called when the user clicks on the send icon,
+     * and will send the message to the AI model for a response.
+     */
+    const handleSend = useCallback(async () => {
+        // Prevent empty messages
+        if ( !inputContentRef.current || inputContentRef.current!.value.trim() === '' )
+            return;
+
+        const myMessage: ChatContextMessageType = { message: { role: 'user', content: inputContentRef.current!.value } }
+        setMessages([ ...messages, myMessage ]);
+
+        const response = await AIModels.chat.generate(inputContentRef.current!.value, messages.map(message => message.message));
+        if ( !('choices' in response) )
+            return;
+
+        const responseMessage: ChatContextMessageType = {
+            message: {
+                role: response.choices[ 0 ][ 'message' ][ 'role' ],
+                content: response.choices[ 0 ][ 'message' ][ 'content' ]
+            } as CompletionMessage
+        };
+        setMessages([ ...messages, responseMessage ]);
+        inputContentRef.current!.value = '';
+        if ( spokenResponse ) {
+            await AIModels.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);
+        }
+    }, [ spokenResponse, messages ]);
+
+    /**
+     * Handles the microphone access.
+     * This function is called when the user clicks on the microphone icon,
+     * and will attempt to request microphone access, after which it will start recording.
+     *
+     * Once the recording is stopped, the audio will be sent to the AI model for transcription,
+     * transcription will be sent to the AI model for a response, and the response will be added to the chat.
+     * If the spoken response option is enabled, the response will also be spoken.
+     */
+    const handleMicrophoneAccess = useCallback(async () => {
+        // If we're going to start recording, request microphone access.
+        if ( audioDevice.current === null ) {
+            audioDevice.current = await requestMicrophoneAccess();
+            // If the audio device is still not available, it probably means the user denied access.
+            if ( !audioDevice.current )
+                return;
+
+            const chunks: BlobPart[] = [];
+            let totalBytes           = 0;
+
+            audioDevice.current.ondataavailable = event => {
+                chunks.push(event.data);
+                totalBytes += event.data.size;
+                if ( totalBytes > 25 * 1024 * 1024 ) {
+                    audioDevice.current!.stop();
+                }
+            }
+
+            audioDevice.current.onstop = async () => {
+
+                const transcription                     = await AIModels.audio.transcription.generate(
+                    {
+                        file: new Blob(chunks),
+                        fileName: 'audio.mp4',
+                        model: 'whisper-1',
+                        temperature: 0.5
+                    });
+                const myMessage: ChatContextMessageType = { message: { role: 'user', content: transcription } };
+                setMessages([ ...messages, myMessage ]);
+                const response = await AIModels.chat.generate(transcription, [ ...messages, myMessage ].map(message => message.message));
+
+                if ( !('choices' in response) )
+                    return;
+
+                const responseMessage: ChatContextMessageType = {
+                    message: {
+                        role: response.choices[ 0 ][ 'message' ][ 'role' ],
+                        content: response.choices[ 0 ][ 'message' ][ 'content' ]
+                    } as CompletionMessage
+                };
+
+                setMessages([ ...messages, responseMessage ]);
+
+                if ( spokenResponse ) {
+                    await AIModels.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);
+                }
+            }
+        }
+
+        // If the audio device is not available, return.
+        if ( audioDevice.current === undefined )
+            return;
+
+        if ( !recording ) {
+            audioDevice.current!.start(500);
+        }
+        else {
+            audioDevice.current!.stop();
+        }
+        setRecording( !recording);
+    }, [ spokenResponse, messages ]);
 
     return (
         <div className="flex flex-col justify-center items-center mb-3 mt-1 mx-1">
             <div className="flex justify-start w-full items-center flex-wrap max-w-screen-sm my-1">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
-                                     directory/>
+                                  directory/>
                 )}
                 {selectedFiles.map((file, index) => (
                     <AttachedFile key={index} filePath={file}
-                                     onDelete={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== index))}/>
+                                  onDelete={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== index))}/>
                 ))}
             </div>
             <div
@@ -83,77 +185,7 @@ export function ChatInputField() {
                         className="resize-none mx-2 w-full font-helvetica-neue grow focus:outline-none bg-transparent text-white p-2"/>
                     <svg xmlns="http://www.w3.org/2000/svg" fill={recording ? '#fff' : 'none'} viewBox="0 0 24 24"
                          strokeWidth={recording ? 0 : 1.5}
-                         onClick={async () => {
-
-                             // If we're going to start recording, request microphone access.
-                             if ( audioDevice.current === null ) {
-                                 audioDevice.current = await requestMicrophoneAccess();
-                                 if ( !audioDevice.current )
-                                     return;
-
-                                 const chunks: BlobPart[] = [];
-                                 let totalBytes           = 0;
-
-                                 audioDevice.current.ondataavailable = event => {
-                                     chunks.push(event.data);
-                                     totalBytes += event.data.size;
-                                     if ( totalBytes > 25 * 1024 * 1024 ) {
-                                         audioDevice.current!.stop();
-                                     }
-                                 }
-
-                                 audioDevice.current.onstop = () => {
-                                     AIModels.audio.transcription.generate(
-                                                 {
-                                                     file: new Blob(chunks),
-                                                     fileName: 'audio.mp4',
-                                                     model: 'whisper-1',
-                                                     temperature: 0.5
-                                                 })
-                                             .then((transcription: any) => {
-                                                 if ( !transcription )
-                                                     return;
-
-                                                 const myMessage: ChatContextMessageType = {
-                                                     message: {
-                                                         role: 'user',
-                                                         content: transcription
-                                                     }
-                                                 }
-
-                                                 AIModels.chat.generate(transcription, [ myMessage, ...messages ].map(message => message.message))
-                                                         .then((response: any) => {
-                                                             if ( !('choices' in response) )
-                                                                 return;
-
-                                                             const message: ChatContextMessageType = {
-                                                                 message: {
-                                                                     role: response.choices[ 0 ][ 'message' ][ 'role' ],
-                                                                     content: response.choices[ 0 ][ 'message' ][ 'content' ]
-                                                                 } as CompletionMessage
-                                                             };
-
-                                                             AIModels.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);
-
-                                                             setMessages([ myMessage, ...messages, message ]);
-                                                         })
-
-                                             });
-                                 }
-                             }
-
-                             // If the audio device is not available, return.
-                             if ( audioDevice.current === undefined )
-                                 return;
-
-                             if ( !recording ) {
-                                 audioDevice.current!.start(500);
-                             }
-                             else {
-                                 audioDevice.current!.stop();
-                             }
-                             setRecording( !recording);
-                         }}
+                         onClick={handleMicrophoneAccess}
                          className={BaseStyles.ICON}>
                         {recording ? (
                                        <>
@@ -169,30 +201,7 @@ export function ChatInputField() {
                     </svg>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                          className={BaseStyles.ICON}
-                         onClick={() => {
-                             // Prevent empty messages
-                             if ( !inputContentRef.current || inputContentRef.current!.value.trim() === '' )
-                                 return;
-
-                             const myMessage: ChatContextMessageType = {
-                                 message: { role: 'user', content: inputContentRef.current!.value }
-                             }
-
-                             setMessages([ myMessage, ...messages ]);
-                             AIModels.chat.generate(inputContentRef.current!.value, messages.map(message => message.message))
-                                     .then((response: any) => {
-                                         if ( response[ 'choices' ] ) {
-                                             const message: ChatContextMessageType = {
-                                                 message: {
-                                                     role: response.choices[ 0 ][ 'message' ][ 'role' ],
-                                                     content: response.choices[ 0 ][ 'message' ][ 'content' ]
-                                                 }
-                                             };
-                                             setMessages([ ...messages, message ]);
-                                             inputContentRef.current!.value = '';
-                                         }
-                                     });
-                         }}>
+                         onClick={handleSend}>
                         <path strokeLinecap="round" strokeLinejoin="round"
                               d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"></path>
                     </svg>

@@ -28,8 +28,8 @@ export function HomePage() {
         let time           = 0;
         let lastTimeMillis = Date.now();
 
-        canvas.width  = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width  = window.innerWidth * 2;
+        canvas.height = window.innerHeight * 2;
         const shader  = new Shader(gl, fragmentShader);
         const vbo     = new VBO(gl, shader);
         gl.viewport(0, 0, canvas.width, canvas.height);

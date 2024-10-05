@@ -13,14 +13,22 @@ function createWindow(): void {
         {
             width: 900,
             height: 670,
+            transparent: (process.platform === 'linux' || process.platform === 'darwin'),
             show: false,
             autoHideMenuBar: true,
+            titleBarOverlay: false,
+            titleBarStyle: 'hiddenInset',
             ...(process.platform === 'linux' ? { icon } : {}),
             webPreferences: {
                 preload: join(__dirname, '../preload/index.js'),
+                contextIsolation: true,
                 sandbox: false
             }
         });
+
+    if ( process.platform === 'darwin' ) {
+        mainWindow.setWindowButtonVisibility(true);
+    }
 
     mainWindow.on('ready-to-show', () => {
         mainWindow.show()

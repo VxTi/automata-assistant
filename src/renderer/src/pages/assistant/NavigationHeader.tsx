@@ -3,11 +3,11 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 19:50
  */
-import { BaseStyles }         from "../../util/BaseStyles";
 import { HomePage }           from "../HomePage";
 import { useContext }         from "react";
 import { ApplicationContext } from "../../util/ApplicationContext";
 import { ChatContext }        from "./Conversation";
+import { AnnotatedIcon }      from "./AnnotatedIcon";
 
 /**
  * The navigation header.
@@ -22,7 +22,7 @@ export function NavigationHeader() {
               conversationTopic, setConversationTopic
           }              = useContext(ChatContext);
     return (
-        <div className="grid grid-cols-3 items-center mt-4 mb-1 mx-4 text-white">
+        <div className="grid grid-cols-3 items-center mt-8 mb-1 mx-4 text-white">
             <div className="flex flex-row items-center">
                 <AnnotatedIcon path="M15.75 19.5 8.25 12l7.5-7.5"
                                annotation="Home" side='right' onClick={() => setContent(<HomePage/>)}
@@ -55,28 +55,6 @@ export function NavigationHeader() {
                 <AnnotatedIcon path="M4 6h16M4 12h16m-7 6h7" annotation="Chat history" side='left'
                                onClick={() => setHistoryVisible( !historyVisible)}/>
             </div>
-        </div>
-    )
-}
-
-/**
- * The annotated icon.
- * This icon contains an annotation that will be displayed when hovered.
- * @param props The properties for the annotated icon
- */
-function AnnotatedIcon(props: { path: string, annotation: string, side: 'left' | 'right', onClick: () => void }) {
-    return (
-        <div
-            className={`group flex items-center justify-start ${props.side === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
-        <span
-            className="group-hover:max-w-[120px] select-none text-sm text-nowrap group-hover:px-2 group-hover:py-1 group-hover:opacity-100 opacity-0 bg-stone-950 rounded-xl max-w-[0px] transition-all duration-500 ease-in-out overflow-hidden">
-            {props.annotation}
-        </span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                 onClick={props.onClick}
-                 className={BaseStyles.ICON}>
-                <path strokeLinecap="round" strokeLinejoin="round" d={props.path}/>
-            </svg>
         </div>
     )
 }

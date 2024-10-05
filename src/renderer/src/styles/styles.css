@@ -644,10 +644,6 @@ video {
   grid-column-end: 3;
 }
 
-.m-0 {
-  margin: 0px;
-}
-
 .m-2 {
   margin: 0.5rem;
 }
@@ -733,6 +729,10 @@ video {
   margin-top: 1rem;
 }
 
+.mt-8 {
+  margin-top: 2rem;
+}
+
 .block {
   display: block;
 }
@@ -779,6 +779,18 @@ video {
 
 .max-h-32 {
   max-height: 8rem;
+}
+
+.min-h-16 {
+  min-height: 4rem;
+}
+
+.min-h-8 {
+  min-height: 2rem;
+}
+
+.min-h-7 {
+  min-height: 1.75rem;
 }
 
 .w-12 {
@@ -1175,6 +1187,10 @@ video {
 
 .group:hover .group-hover\:max-w-\[120px\] {
   max-width: 120px;
+}
+
+.group:hover .group-hover\:max-w-\[140px\] {
+  max-width: 140px;
 }
 
 .group:hover .group-hover\:px-2 {
