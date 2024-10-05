@@ -10,10 +10,12 @@ import { BaseStyles }                                from "../../util/BaseStyles
 import { requestMicrophoneAccess }                   from "../../util/Audio";
 import { AIModels, CompletionMessage }               from "../../util/Model";
 import { ChatContext, ChatContextMessageType }       from "./Conversation";
-import { Marked }                                    from '../../include/marked';
+import { Marked }                                    from 'marked';
 import { markedHighlight }                           from 'marked-highlight';
 import hljs                                          from 'highlight.js';
+import markedKatex                                   from "marked-katex-extension";
 import '../../styles/code-highlighting.css';
+import 'katex/dist/katex.min.css';
 
 const marked = new Marked();
 marked.use(
@@ -24,7 +26,8 @@ marked.use(
                 const language = hljs.getLanguage(lang) ? lang : 'plaintext';
                 return hljs.highlight(code, { language }).value;
             }
-        })
+        }),
+    markedKatex({ throwOnError: false })
 );
 
 
