@@ -9,6 +9,7 @@ import { ApplicationContext }                       from "../util/ApplicationCon
 import { AutomationsPage }                          from "./AutomationsPage";
 import { Shader }                                   from "../util/Shader";
 import { VBO }                                      from "../util/VBO";
+import fragmentShader                               from "./home_page_shader.glsl";
 
 export function HomePage() {
 
@@ -59,7 +60,7 @@ export function HomePage() {
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none"/>
             <div className="grid grid-rows-3 place-items-center justify-items-center z-10">
                 <div>
-                    <h1 className="text-white text-4xl my-5 text-center font-sans">Welcome back.</h1>
+                    <h1 className="text-white font-bold text-4xl my-5 text-center font-sans">Welcome back.</h1>
                     <span className="text-white text-sm my-1 text-center font-sans">Select any of the below tasks to get started.</span>
                 </div>
                 <div className="flex flex-row justify-center items-center w-full max-w-screen-md">
@@ -98,36 +99,3 @@ function FeatureCard(props: { title: string, thumbnail: JSX.Element, targetPage:
         </div>
     )
 }
-
-const fragmentShader = `
-precision mediump float;
-
-uniform float time;        // Uniform to pass time from JavaScript
-uniform vec2 iResolution;  // Resolution of the screen
-
-// CPPN function for smoother gradients
-vec3 cppn(vec2 pos, float time) {
-    float x = (pos.x * 2.0 - 1.0) * .2;
-    float y = (pos.y * 2.0 - 1.0) * .2 + sin(time * 0.1) * 0.1;
-    x *= iResolution.x / iResolution.y;  // Correct aspect ratio
-
-    // Smooth gradient using positional coordinates instead of radial focus
-    float red   = 0.5 + 0.5 * sin(x * 5.0 + time * 0.1);    // Smooth gradient across x-axis
-    float green = 0.3 + 0.9 * cos(y * 4.0 + time * 0.2);    // Smooth gradient across y-axis
-    float blue  = 0.5 + 0.5 * sin((x + y) * 5.0 + time * 0.3); // Combined x-y gradient
-
-    // Return the combined color
-    return vec3(red, green, blue);
-}
-
-void main() {
-    // Normalize pixel coordinates and maintain aspect ratio
-    vec2 uv = gl_FragCoord.xy / iResolution;
-
-    // Calculate the gradient color using the CPPN function
-    vec3 color = cppn(uv, time);
-    
-    // Output the final color
-    gl_FragColor = vec4(color, 1.0);
-}
-`;

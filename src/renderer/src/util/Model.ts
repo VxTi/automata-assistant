@@ -90,8 +90,8 @@ export const AIModels = {
             url: 'audio/speech',
             defaultConfiguration: {
                 model: 'tts-1',
-                voice: 'shimmer',
-                speed: 1.0
+                voice: 'nova',
+                speed: 1.3
             } as SpeechGenerationConfig,
             /**
              * Generate speech from the given input text using the specified voice and model.

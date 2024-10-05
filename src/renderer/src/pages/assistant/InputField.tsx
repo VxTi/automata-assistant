@@ -1,5 +1,5 @@
 /**
- * @fileoverview InteractionField.tsx
+ * @fileoverview InputField.tsx
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 18:32
  */
@@ -15,7 +15,7 @@ import { ChatContext, ChatContextMessageType } from "./Conversation";
  * The interactive field where the user can input text or voice.
  * This field allows the user to input text, voice, or files.
  */
-export function InteractiveField() {
+export function ChatInputField() {
 
     const [ recording, setRecording ]       = useState(false);
     const [ optionsShown, setOptionsShown ] = useState(false);
@@ -32,11 +32,11 @@ export function InteractiveField() {
         <div className="flex flex-col justify-center items-center mb-3 mt-1 mx-1">
             <div className="flex justify-start w-full items-center flex-wrap max-w-screen-sm my-1">
                 {selectedDirectory && (
-                    <InteractionFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
+                    <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
                                      directory/>
                 )}
                 {selectedFiles.map((file, index) => (
-                    <InteractionFile key={index} filePath={file}
+                    <AttachedFile key={index} filePath={file}
                                      onDelete={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== index))}/>
                 ))}
             </div>
@@ -44,7 +44,7 @@ export function InteractiveField() {
                 className="flex flex-col justify-end items-center bg-gray-800 rounded-3xl max-w-screen-sm md:max-w-screen-lg overflow-hidden border-[1px] border-solid border-gray-700">
                 <div
                     className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <InteractionOption
+                    <ChatAlternativeOption
                         path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
                         text="Add file" onClick={() => {
                         // @ts-ignore
@@ -54,7 +54,7 @@ export function InteractiveField() {
                                   setOptionsShown(false);
                               });
                     }}/>
-                    <InteractionOption
+                    <ChatAlternativeOption
                         path="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
                         text="Add directory" onClick={() => {
                         // @ts-ignore
@@ -208,7 +208,7 @@ export function InteractiveField() {
  * These options reside above the input field.
  * @param props The properties of the interaction option.
  */
-function InteractionOption(props: { path: string, text: string, onClick: () => void }) {
+function ChatAlternativeOption(props: { path: string, text: string, onClick: () => void }) {
     return (
         <div
             onClick={props.onClick}
@@ -228,14 +228,14 @@ function InteractionOption(props: { path: string, text: string, onClick: () => v
  * This file is used to interact with the assistant.
  * @param props The properties of the interaction file.
  */
-function InteractionFile(props: { filePath: string, onDelete: () => void, directory?: boolean }) {
+function AttachedFile(props: { filePath: string, onDelete: () => void, directory?: boolean }) {
     // @ts-ignore
     const fileName = props.filePath.substring(props.filePath.lastIndexOf(window.api.separator) + 1);
     return (
         <div
             className="flex flex-row justify-between items-center bg-gray-700 p-1 mx-0.5 my-1 rounded-3xl">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                 className={BaseStyles.ICON + ' m-0'}
+                 className={BaseStyles.ICON_NO_MARGIN}
                  onClick={props.onDelete}>
                 <path strokeLinecap="round" strokeLinejoin="round"
                       d={props.directory ?
@@ -249,7 +249,7 @@ function InteractionFile(props: { filePath: string, onDelete: () => void, direct
             </svg>
             <div className="text-white truncate text-xs mx-0.5">{fileName}</div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                 className={BaseStyles.ICON + ' m-0'}
+                 className={BaseStyles.ICON_NO_MARGIN}
                  onClick={props.onDelete}>
                 <path strokeLinecap="round" strokeLinejoin="round"
                       d="M6 6l12 12M6 18l12-12"/>

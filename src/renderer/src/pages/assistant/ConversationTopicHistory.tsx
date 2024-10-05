@@ -71,13 +71,17 @@ export function ConversationHistoryContainer() {
                 setConversationTopics(initialTopics);
                 return;
             }
-            const filteredTopics = conversationTopics.filter(topic => {
-                return topic.topic.toLowerCase().includes(value);
+            const filteredTopics = initialTopics.filter(topic => {
+                return topic.topic.toLowerCase().includes(value) || topic.messages.some(message => {
+                    return message.content.toLowerCase().includes(value);
+                })
             });
             setConversationTopics(filteredTopics);
         }, 300);
         input.addEventListener('input', handleInput);
-        return () => input.removeEventListener('input', handleInput);
+        return () => {
+            input.removeEventListener('input', handleInput);
+        }
     }, []);
 
     return (

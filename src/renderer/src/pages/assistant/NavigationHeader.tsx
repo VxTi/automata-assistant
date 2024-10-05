@@ -18,6 +18,7 @@ export function NavigationHeader() {
     const {
               historyVisible, setHistoryVisible,
               messages, setMessages,
+              spokenResponse, setSpokenResponse,
               conversationTopic, setConversationTopic
           }              = useContext(ChatContext);
     return (
@@ -41,6 +42,16 @@ export function NavigationHeader() {
                 {conversationTopic}
             </h1>
             <div className="flex flex-row items-center justify-end">
+                <AnnotatedIcon
+                    path={!spokenResponse ? "M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25" +
+                        " 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" :
+                          "M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75" +
+                              " 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 " +
+                              "0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"
+                    }
+                    annotation={(spokenResponse ? 'Disable ' : 'Enable ') + " sound"} side="left" onClick={() => {
+                    setSpokenResponse( !spokenResponse);
+                }}/>
                 <AnnotatedIcon path="M4 6h16M4 12h16m-7 6h7" annotation="Chat history" side='left'
                                onClick={() => setHistoryVisible( !historyVisible)}/>
             </div>
@@ -58,7 +69,7 @@ function AnnotatedIcon(props: { path: string, annotation: string, side: 'left' |
         <div
             className={`group flex items-center justify-start ${props.side === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
         <span
-            className="group-hover:max-w-[120px] text-sm text-nowrap group-hover:px-2 group-hover:py-1 group-hover:opacity-100 opacity-0 bg-stone-950 rounded-xl max-w-[0px] transition-all duration-500 ease-in-out overflow-hidden">
+            className="group-hover:max-w-[120px] select-none text-sm text-nowrap group-hover:px-2 group-hover:py-1 group-hover:opacity-100 opacity-0 bg-stone-950 rounded-xl max-w-[0px] transition-all duration-500 ease-in-out overflow-hidden">
             {props.annotation}
         </span>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}

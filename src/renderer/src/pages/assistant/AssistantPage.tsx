@@ -2,9 +2,8 @@
  * @fileoverview AssistantPage.tsx
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 12:11
- */
-import { useContext, useState }                from "react";
-import { InteractiveField }                    from "./InteractionField";
+ */import { useContext, useState }                from "react";
+import { ChatInputField }                      from "./InputField";
 import { ChatContext, ChatContextMessageType } from "./Conversation";
 import { ConversationHistoryContainer }        from "./ConversationTopicHistory";
 import { NavigationHeader }                    from "./NavigationHeader";
@@ -17,15 +16,17 @@ import '../../styles/animations.css'
  */
 export function AssistantPage() {
 
-    const [ chatMessages, setChatMessages ]     = useState<(ChatContextMessageType)[]>([]);
+    const [ chatMessages, setChatMessages ]             = useState<(ChatContextMessageType)[]>([]);
     const [ historyVisible, setHistoryVisible ] = useState(false);
     const [ conversationTopics, setConversationTopics ] = useState<string>('New conversation');
+    const [ spokenResponse, setSpokenResponse ] = useState(false);
 
     return (
         <ChatContext.Provider value={{
             messages: chatMessages, setMessages: setChatMessages,
             conversationTopic: conversationTopics, setConversationTopic: setConversationTopics,
-            historyVisible: historyVisible, setHistoryVisible: setHistoryVisible
+            historyVisible: historyVisible, setHistoryVisible: setHistoryVisible,
+            spokenResponse: spokenResponse, setSpokenResponse: setSpokenResponse
         }}>
             <div className="flex flex-col relative justify-start items-stretch grow max-w-screen-md w-full mx-auto">
                 <ConversationHistoryContainer />
@@ -37,7 +38,7 @@ export function AssistantPage() {
                         <ChatHistory/>
                     </div>
                 </div>
-                <InteractiveField/>
+                <ChatInputField/>
             </div>
         </ChatContext.Provider>
     )

@@ -1,6 +1,7 @@
 import { resolve }                             from 'path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react                                   from '@vitejs/plugin-react'
+import glsl                                    from 'vite-plugin-glsl'
 
 export default defineConfig(
     {
@@ -16,6 +17,6 @@ export default defineConfig(
                     '@renderer': resolve('src/renderer/src')
                 }
             },
-            plugins: [ react() ]
+            plugins: [ react(), glsl() ]
         }
     })

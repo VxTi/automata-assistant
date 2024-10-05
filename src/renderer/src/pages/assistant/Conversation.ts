@@ -21,20 +21,25 @@ export interface ConversationTopic {
 /** The chat context message type. */
 export type ChatContextMessageType = { message: CompletionMessage, representation?: JSX.Element };
 
-/**
- * The chat context.
- * This context is used to store the chat messages.
- */
-export const ChatContext = createContext<{
+export interface ChatContextType {
     messages: ChatContextMessageType[],
     setMessages: (messages: ChatContextMessageType[]) => void,
     conversationTopic: string,
     setConversationTopic: (topic: string) => void,
     historyVisible: boolean,
-    setHistoryVisible: (visible: boolean) => void
-}>({
-       messages: [],
-       setMessages: () => void 0,
-       conversationTopic: 'New conversation',
-       setConversationTopic: () => void 0,
-       historyVisible: false, setHistoryVisible: () => void 0 });
+    setHistoryVisible: (visible: boolean) => void,
+    spokenResponse: boolean,
+    setSpokenResponse: (spoken: boolean) => void
+}
+
+/**
+ * The chat context.
+ * This context is used to store the chat messages.
+ */
+export const ChatContext = createContext<ChatContextType>(
+    {
+        historyVisible: false, setHistoryVisible: () => void 0,
+        spokenResponse: false, setSpokenResponse: () => void 0,
+        conversationTopic: 'New conversation', setConversationTopic: () => void 0,
+        messages: [], setMessages: () => void 0,
+    });
