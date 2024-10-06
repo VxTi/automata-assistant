@@ -7,35 +7,13 @@
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { BaseStyles }                                           from "../../util/BaseStyles";
-import { requestMicrophoneAccess }                   from "../../util/Audio";
-import { openai }                                    from "../../util/Model";
-import { ChatContext, ChatContextMessageType }       from "./Conversation";
-import { Marked }                                    from 'marked';
-import { markedHighlight }                           from 'marked-highlight';
-import hljs                                          from 'highlight.js';
-import markedKatex                                   from 'marked-katex-extension';
-import { CompletionMessage }                         from "declarations";
+import { requestMicrophoneAccess }                              from "../../util/Audio";
+import { openai }                                               from "../../util/Model";
+import { ChatContext, ChatContextMessageType, mdParser }        from "./Conversation";
+import { CompletionMessage }                                    from "declarations";
 import '../../styles/code-highlighting.css';
 import 'katex/dist/katex.min.css';
-
-const mdParser = new Marked();
-mdParser.use(
-    markedKatex(
-        {
-            throwOnError: false,
-            nonStandard: true,
-            displayMode: true,
-            output: 'html',
-        }),
-    markedHighlight(
-        {
-            langPrefix: 'hljs language-',
-            highlight(code: string, lang: string) {
-                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-                return hljs.highlight(code, { language }).value;
-            }
-        }),
-);
+import { ConversationTopic }                                    from "../../../../../declarations";
 
 
 /**
@@ -44,7 +22,11 @@ mdParser.use(
  */
 export function ChatInputField() {
 
-    const { messages, setMessages, spokenResponse }   = useContext(ChatContext);
+    const {
+              messages, setMessages,
+              spokenResponse, conversationTopic,
+              setConversationTopic, setTopicUUID, topicUUID
+          }                                           = useContext(ChatContext);
     const [ selectedDirectory, setSelectedDirectory ] = useState<string | null>(null);
     const [ optionsShown, setOptionsShown ]           = useState(false);
     const [ selectedFiles, setSelectedFiles ]         = useState<string[]>([]);
@@ -53,14 +35,14 @@ export function ChatInputField() {
     const audioDevice                                 = useRef<MediaRecorder | null | undefined>(null);
 
     useEffect(() => {
-        if (!inputContentRef.current) return;
+        if ( !inputContentRef.current ) return;
 
         // Smoothly change the height of the input field.
         inputContentRef.current.addEventListener('input', () => {
             inputContentRef.current!.style.height = 'auto';
             inputContentRef.current!.style.height = `${inputContentRef.current!.scrollHeight}px`;
         });
-    }, []);
+    }, [ inputContentRef ]);
 
     /**
      * Handles the sending of a request.
@@ -69,6 +51,21 @@ export function ChatInputField() {
      */
     const handleSendRequest = useCallback(async (prompt: string) => {
 
+        let topicTitle = conversationTopic;
+        let uuid       = topicUUID;
+
+        /**
+         * Generate a summary of the prompt if no messages are present.
+         */
+        if ( messages.length === 0 ) {
+            topicTitle = (await openai.chat.generate(
+                'Summarize the following question in as little words as possible, at most 4 words: ' + prompt
+            )).choices[ 0 ][ 'message' ][ 'content' ];
+
+            uuid       = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            setTopicUUID(uuid);
+            setConversationTopic(topicTitle);
+        }
         const myMessage: ChatContextMessageType = { message: { role: 'user', content: await mdParser.parse(prompt) } };
         setMessages((previous: ChatContextMessageType[]) => [ ...previous, myMessage ]);
 
@@ -82,11 +79,26 @@ export function ChatInputField() {
                 content: await mdParser.parse(response.choices[ 0 ][ 'message' ][ 'content' ])
             } as CompletionMessage
         };
-        setMessages((previous: ChatContextMessageType[]) => [ ...previous, responseMessage ]);
+
+        // Update the conversation topic with the new message,
+        // and save the conversation to the conversation history.
+        setMessages((previous: ChatContextMessageType[]) => {
+            (window[ 'api' ] as any)
+                .conversations.save(
+                {
+                    topic: topicTitle,
+                    date: new Date().toISOString(),
+                    uuid: uuid,
+                    messages: [ ...previous, responseMessage ]
+                        .map(message => message.message)
+                } as ConversationTopic);
+
+            return [ ...previous, responseMessage ]
+        });
         if ( spokenResponse ) {
             await openai.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);
         }
-    }, []);
+    }, [ spokenResponse, messages, conversationTopic ]);
 
     /**
      * Handles the sending of a message.

@@ -17,8 +17,8 @@ export interface ActionStateProps<T = ActionStateType> {
 
 export function ActionState<T>(props: ActionStateProps<T>) {
     return (
-        <div className="relative w-max p-4 rounded-lg bg-gray-800">
-            <span className="text-white font-helvetica-neue text-sm">{props.title}</span>
+        <div className="flex flex-row justify-start items-center relative w-max p-4 rounded-lg bg-gray-800">
+            <span className="text-white font-helvetica-neue text-sm mr-2">{props.title}</span>
             {
                 props.options.map((_, i) => {
                     return (

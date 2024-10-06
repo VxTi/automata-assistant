@@ -3,11 +3,20 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 18:38
  */
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { ChatContext, ConversationTopic }                       from "./Conversation";
-import { CreateSequence, useAnimationSequence }                 from "../../util/AnimationSequence";
-import { BaseStyles }                                           from "../../util/BaseStyles";
-import { AnnotatedIcon }                                        from "../../components/AnnotatedIcon";
+import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+    CreateSequence,
+    useAnimationSequence
+}                                                                                         from "../../util/AnimationSequence";
+import { BaseStyles }                                                                     from "../../util/BaseStyles";
+import {
+    AnnotatedIcon
+}                                                                                         from "../../components/AnnotatedIcon";
+import {
+    CompletionMessage,
+    ConversationTopic
+}                                                                                         from "../../../../../declarations";
+import { ChatContext }                                                                    from "./Conversation";
 
 /**
  * The conversation history wrapper.
@@ -22,8 +31,9 @@ export function ConversationHistoryContainer() {
               historyVisible, setHistoryVisible
           }   = useContext(ChatContext);
 
-    const inputRef     = useRef<HTMLInputElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
+    const [ _, forceUpdate ] = useState(0);
+    const inputRef           = useRef<HTMLInputElement>(null);
+    const containerRef       = useRef<HTMLDivElement>(null);
     useAnimationSequence({ containerRef: containerRef, intervalType: 'absolute' },
                          [ conversationTopics, historyVisible ]);
 
@@ -48,19 +58,8 @@ export function ConversationHistoryContainer() {
         // Acquire the conversation topics from the main process
         // and filter out any faulty topics.
         (window[ 'api' ] as any)
-            .getTopicHistory()
-            .then((topics: ConversationTopic[]) => {
-                let finalizedTopics = topics;
-                // Fix faulty topic history.
-                if ( topics.some(topic => !('topic' in topic || 'date' in topic || 'messages' in topic || 'uuid' in topic)) ) {
-                    finalizedTopics = topics.filter(topic => {
-                        return 'topic' in topic && 'date' in topic && 'messages' in topic && 'uuid' in topic;
-                    });
-
-                    (window[ 'api' ] as any).saveTopicHistory(finalizedTopics);
-                }
-                setConversationTopics(finalizedTopics);
-            });
+            .conversations.list()
+            .then((topics: ConversationTopic[]) => setConversationTopics(topics));
     }, [ historyVisible ]);
 
     /**
@@ -81,7 +80,8 @@ export function ConversationHistoryContainer() {
                 return;
             }
             const filteredTopics = initialTopics.filter(topic => {
-                return topic.topic.toLowerCase().includes(value) || topic.messages.some(message => {
+                return topic.topic.toLowerCase()
+                            .includes(value) || topic.messages.some((message: CompletionMessage) => {
                     return message.content.toLowerCase().includes(value);
                 })
             });
@@ -121,9 +121,10 @@ export function ConversationHistoryContainer() {
                         </svg>
                     </div>
                     <div className="grow overflow-scroll flex flex-col justify-start items-stretch" ref={containerRef}>
-                        {conversationTopics.length === 0 ? <span className="text-white text-center mt-5 text-md font-helvetica-neue">No previous conversations found.</span> :
+                        {conversationTopics.length === 0 ?
+                         <span className="text-white text-center mt-5 text-md font-helvetica-neue">No previous conversations found.</span> :
                          conversationTopics.map((entry, index) => (
-                            <Topic key={index} topic={entry} index={index}/>))}
+                             <Topic key={index} topic={entry} index={index} forceUpdate={forceUpdate}/>))}
                     </div>
                 </div>
             </div>
@@ -136,29 +137,35 @@ export function ConversationHistoryContainer() {
  * This component is used to display a conversation topic.
  * @param props the properties of the component.
  */
-function Topic(props: { topic: ConversationTopic, index: number }) {
-    const { setConversationTopic, setMessages, setHistoryVisible } = useContext(ChatContext);
-    const { topic: entry }                                         = props;
+function Topic(props: { topic: ConversationTopic, index: number, forceUpdate: Dispatch<SetStateAction<any>> }) {
+    const {
+              setConversationTopic, setMessages,
+              setHistoryVisible, setTopicUUID
+          } = useContext(ChatContext);
+    const { topic: entry } = props;
 
+    // Removes a conversation topic from the conversation directory,
+    // and forces an update to refresh the conversation history.
     const deleteTopic = useCallback(async (event: Event) => {
         event.stopPropagation();
-        const topics = await (window[ 'api' ] as any).getTopicHistory();
-        console.log(topics);
-        const index = topics.findIndex((topic: any) => topic.uuid === entry.uuid);
-        topics.splice(index, 1);
-        (window[ 'api' ] as any).saveTopicHistory(topics);
+        await (window[ 'api' ] as any).conversations.delete(entry.uuid);
+        props.forceUpdate(Math.random());
+    }, []);
+
+    // Load the conversation topic into the chat context.
+    const loadTopic = useCallback(() => {
+        setConversationTopic(entry.topic);
+        setTopicUUID(entry.uuid);
+        setHistoryVisible(false);
+        setMessages((_) => entry.messages.map(messageEntry => {
+            return { message: messageEntry };
+        }))
     }, []);
 
     return (
         <div
             className="flex flex-row my-1 p-2 rounded bg-gray-800 mx-auto w-[80%] hover:bg-gray-700 hover:cursor-pointer duration-200 transition-colors justify-between items-center"
-            onClick={() => {
-                setConversationTopic(entry.topic);
-                setHistoryVisible(false);
-                setMessages((_) => entry.messages.map(messageEntry => {
-                    return { message: messageEntry };
-                }))
-            }}
+            onClick={loadTopic}
             {...CreateSequence('fadeIn', 700, 30 * props.index)}>
             <span className="text-white text-sm font-sans">{entry.topic}</span>
             <AnnotatedIcon

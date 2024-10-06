@@ -4,8 +4,11 @@ import { electronApp, is, optimizer }                 from '@electron-toolkit/ut
 import icon                                           from '../../resources/icon.png?asset'
 import dotenv                                         from 'dotenv';
 import * as fs                                        from "node:fs";
+import { ConversationTopic }                          from "../../declarations";
 
 dotenv.config({ path: join(__dirname, '../../.env') });
+
+const conversationDirectoryPath = join(app.getPath('userData'), 'conversations');
 
 function createWindow(): void {
     // Create the browser window.
@@ -30,6 +33,12 @@ function createWindow(): void {
 
     if ( process.platform === 'darwin' ) {
         mainWindow.setWindowButtonVisibility(true);
+    }
+
+    // Ensure that the conversation directory exists.
+    if ( !fs.existsSync(conversationDirectoryPath) ) {
+        fs.mkdirSync(conversationDirectoryPath);
+        console.log("Created conversation directory at: " + conversationDirectoryPath);
     }
 
     mainWindow.on('ready-to-show', () => {
@@ -119,26 +128,15 @@ ipcMain.handle('open-directory', async (_) => {
 });
 
 /**
- * Ensure that the topic history file exists.
+ * Conversation topic cache.
+ * This cache is used to store conversation topics in memory,
+ * which will prevent excessive reads and writes to the conversation directory.
+ * This map is updated whenever a conversation topic is saved or deleted.
  */
-function ensureTopicHistoryFileExists() {
-    const filePath = join(app.getPath('userData'), 'topic-history.json');
-    if ( !fs.existsSync(filePath) ) {
-        fs.writeFileSync(filePath, '[]');
-    }
-}
+const conversationCache: Map<string, ConversationTopic> = new Map();
 
 /**
- * Save the topic history to the main process.
- * This function takes an array of conversation topics and saves them to the topic history file.
- */
-ipcMain.handle('save-topic-history', async (_, topics: any[]) => {
-    ensureTopicHistoryFileExists();
-    await fs.promises.writeFile(join(app.getPath('userData'), 'topic-history.json'), JSON.stringify(topics));
-});
-
-/**
- * Get the topic history from the main process.
+ * Get the conversation history from the conversation directory.
  * This function returns a promise that resolves to the topic history.
  * The topic history will be an array of conversation topics, in the form of:
  * ```
@@ -152,14 +150,39 @@ ipcMain.handle('save-topic-history', async (_, topics: any[]) => {
  * ]
  * ```
  */
-ipcMain.handle('get-topic-history', async (_) => {
-    const filePath = join(app.getPath('userData'), 'topic-history.json');
-    if ( !fs.existsSync(filePath) ) {
-        console.log("Writing topic history file to: " + filePath);
-        fs.writeFileSync(filePath, '[]');
-        return [];
-    }
-    return JSON.parse(await fs.promises.readFile(filePath, 'utf-8'));
-})
+ipcMain.handle('list-conversations', async (_) => {
+    // If the conversation cache is not empty, return the cached values.
+    if ( conversationCache.size > 0 )
+        return Array.from(conversationCache.values());
 
-//ipcMain.handle('save-conversation', async (_, conversation: any) => {
+    const conversationFiles = fs.readdirSync(conversationDirectoryPath);
+    return conversationFiles
+        .filter(filePath => filePath.startsWith('conversation-') && filePath.endsWith('.json'))
+        .map(file => {
+            const filePath = join(conversationDirectoryPath, file);
+            return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        })
+});
+
+/**
+ * Delete a conversation topic from the conversation history.
+ * This function takes a topic UUID and deletes the corresponding topic from the topic history.
+ */
+ipcMain.handle('delete-conversation', async (_, uuid: string) => {
+    const targetFilePath = join(conversationDirectoryPath, `conversation-${uuid}.json`);
+    if ( fs.existsSync(targetFilePath) ) {
+        fs.rmSync(targetFilePath);
+        conversationCache.delete(uuid);
+    }
+});
+
+/**
+ * Save a conversation topic to the conversation directory.
+ * This function takes a conversation topic and saves it to the conversation directory.
+ * Conversation topics are saved in their own file, with the name `conversation-<uuid>.json`.
+ */
+ipcMain.handle('save-conversation', async (_, conversation: ConversationTopic) => {
+    const targetFilePath = join(conversationDirectoryPath, `conversation-${conversation.uuid}.json`);
+    conversationCache.set(conversation.uuid, conversation);
+    await fs.promises.writeFile(targetFilePath, JSON.stringify(conversation));
+});

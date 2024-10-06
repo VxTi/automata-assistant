@@ -51,7 +51,7 @@ export const openai = {
             url: 'audio/transcriptions',
             defaultConfiguration: {
                 model: 'whisper-1',
-                language: 'en',//'en',
+                language: 'en',
             } as TranscriptionConfig,
 
             /**

@@ -82,6 +82,7 @@
 
 /** Code block styling */
 pre:has(.hljs) {
+    overflow-x: scroll;
     margin: 10px 0 !important;
     width: 100%;
     background-color: #222222;

@@ -36,7 +36,7 @@ export function ChatMessage(props: { entry: ChatContextMessageType }) {
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                  onClick={handleClick}
-                 className={BaseStyles.ICON_NO_MARGIN + ' opacity-0 group-hover:opacity-100 transition-all duration-300'}>
+                 className={BaseStyles.ICON_NO_MARGIN + ' opacity-0 group-hover:opacity-100 transition-all duration-500'}>
                 <path strokeLinecap="round" strokeLinejoin="round"
                       className="transition-all duration-300"
                       d={ copiedToClipboard ? "m4.5 12.75 6 6 9-13.5" : "M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057" +

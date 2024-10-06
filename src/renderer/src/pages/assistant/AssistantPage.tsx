@@ -8,9 +8,9 @@ import { ChatInputField }                      from "./InputField";
 import { ChatContext, ChatContextMessageType } from "./Conversation";
 import { ConversationHistoryContainer }        from "./ConversationTopicHistory";
 import { NavigationHeader }                    from "./NavigationHeader";
-import '../../styles/animations.css'
 import { ChatMessage }                         from "./ChatMessage";
 import { useAnimationSequence }                from "../../util/AnimationSequence";
+import '../../styles/animations.css'
 
 /**
  * The assistant page.
@@ -23,7 +23,7 @@ export function AssistantPage() {
     const [ historyVisible, setHistoryVisible ]         = useState(false);
     const [ conversationTopics, setConversationTopics ] = useState<string>('New conversation');
     const [ spokenResponse, setSpokenResponse ]         = useState(false);
-
+    const [ topicUUID, setTopicUUID ]                   = useState<string | undefined>(undefined);
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
     // Scroll down to the bottom of the chat
@@ -41,7 +41,8 @@ export function AssistantPage() {
             messages: chatMessages, setMessages: setChatMessages,
             conversationTopic: conversationTopics, setConversationTopic: setConversationTopics,
             historyVisible: historyVisible, setHistoryVisible: setHistoryVisible,
-            spokenResponse: spokenResponse, setSpokenResponse: setSpokenResponse
+            spokenResponse: spokenResponse, setSpokenResponse: setSpokenResponse,
+            topicUUID: topicUUID, setTopicUUID: setTopicUUID
         }}>
             <ConversationHistoryContainer/>
             <div className="flex flex-col relative justify-start items-stretch grow max-w-screen-md w-full mx-auto">

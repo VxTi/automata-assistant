@@ -9,8 +9,8 @@ import { ApplicationContext }   from "../../util/ApplicationContext";
 import { AutomationsContext }   from "./Automations";
 import { AutomationCard }       from "./AutomationCard";
 import { AnnotatedIcon }        from "../../components/AnnotatedIcon";
-import { HomePage }             from "../HomePage";
-import { NewAutomationPage }    from "../create-automation/NewAutomationPage";
+import { HomePage }           from "../HomePage";
+import { EditAutomationPage } from "../edit-automations/EditAutomationPage";
 
 /**
  * The automations list page.
@@ -41,7 +41,7 @@ export function AutomationsListPage() {
                     </div>
                     <AnnotatedIcon path="M12 4.5v15m7.5-7.5h-15"
                                       annotation="New automation" side='left'
-                                      onClick={() => setContent(<NewAutomationPage/>)}/>
+                                      onClick={() => setContent(<EditAutomationPage/>)}/>
                 </div>
             </div>
             <div className="grid grid-cols-3 gap-4 m-4" ref={containerRef}>

@@ -4,20 +4,32 @@
  * @date Created on Friday, October 04 - 18:31
  */
 
-import { CompletionMessage } from "../../util/Model";
 import { createContext }     from "react";
+import { CompletionMessage } from "declarations";
+import { Marked }            from "marked";
+import markedKatex           from "marked-katex-extension";
+import hljs                  from "highlight.js";
+import { markedHighlight }   from "marked-highlight";
 
-/**
- * The conversation topic.
- * This interface represents a conversation topic,
- * and can be used to store the conversation history.
- */
-export interface ConversationTopic {
-    uuid: string,
-    topic: string,
-    date: string,
-    messages: CompletionMessage[]
-}
+
+export const mdParser = new Marked();
+mdParser.use(
+    markedKatex(
+        {
+            throwOnError: false,
+            nonStandard: true,
+            displayMode: true,
+            output: 'html',
+        }),
+    markedHighlight(
+        {
+            langPrefix: 'hljs language-',
+            highlight(code: string, lang: string) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            }
+        }),
+);
 
 /** The chat context message type. */
 export type ChatContextMessageType = { message: CompletionMessage, representation?: JSX.Element };
@@ -25,6 +37,8 @@ export type ChatContextMessageType = { message: CompletionMessage, representatio
 export interface ChatContextType {
     messages: ChatContextMessageType[],
     setMessages: (messages: (previous: ChatContextMessageType[]) => (ChatContextMessageType)[]) => void,
+    topicUUID: string | undefined,
+    setTopicUUID: (uuid: string) => void,
     conversationTopic: string,
     setConversationTopic: (topic: string) => void,
     historyVisible: boolean,
@@ -41,6 +55,7 @@ export const ChatContext = createContext<ChatContextType>(
     {
         historyVisible: false, setHistoryVisible: () => void 0,
         spokenResponse: false, setSpokenResponse: () => void 0,
+        topicUUID: undefined, setTopicUUID: () => void 0,
         conversationTopic: 'New conversation', setConversationTopic: () => void 0,
         messages: [], setMessages: () => void 0,
     });
