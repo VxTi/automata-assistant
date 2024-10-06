@@ -77,3 +77,6 @@ export const Automations: Automation[] = [
         )
     }
 ];
+
+export const AutomationRegistry: Map<string, Automation> = new Map<string, Automation>(
+    Automations.map(automation => [ automation.id, automation ]));

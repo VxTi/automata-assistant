@@ -43,8 +43,8 @@ export function AssistantPage() {
             historyVisible: historyVisible, setHistoryVisible: setHistoryVisible,
             spokenResponse: spokenResponse, setSpokenResponse: setSpokenResponse
         }}>
+            <ConversationHistoryContainer/>
             <div className="flex flex-col relative justify-start items-stretch grow max-w-screen-md w-full mx-auto">
-                <ConversationHistoryContainer/>
                 <NavigationHeader/>
                 <div
                     className="grow relative flex flex-col w-[80%] mx-auto my-auto items-stretch overflow-hidden justify-start">

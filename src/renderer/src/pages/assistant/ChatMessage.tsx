@@ -30,7 +30,7 @@ export function ChatMessage(props: { entry: ChatContextMessageType }) {
             <div className="flex flex-col justify-center items-start overflow-x-scroll">
                         <span
                             className="text-white font-bold font-sans text-md">{props.entry.message.role === 'user' ? 'You' : 'Assistant'}</span>
-                <div className="prose prose-code:my-3 text-white font-helvetica-neue text-sm mt-2 mb-1">
+                <div className="not-prose text-white font-helvetica-neue text-sm mt-2 mb-1">
                     <span dangerouslySetInnerHTML={{ __html: props.entry.message.content }}/>
                 </div>
             </div>

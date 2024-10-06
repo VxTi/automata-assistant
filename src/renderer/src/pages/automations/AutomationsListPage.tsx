@@ -7,9 +7,13 @@ import { HomePage }           from "../HomePage";
 import { ApplicationContext } from "../../util/ApplicationContext";
 import { useContext }         from "react";
 import { AutomationCard }     from "./AutomationCard";
-import { Automations }        from "./Automations";
-import { AnnotatedIcon }      from "../assistant/AnnotatedIcon";
+import { Automations }   from "./Automations";
+import { AnnotatedIcon } from "../../components/AnnotatedIcon";
 
+/**
+ * The automations list page.
+ * @constructor
+ */
 export function AutomationsListPage() {
     const { setContent } = useContext(ApplicationContext);
 

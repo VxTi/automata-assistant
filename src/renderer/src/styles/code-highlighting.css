@@ -1,3 +1,10 @@
+@font-face {
+    font-family: 'JetBrains Mono';
+    src: url('../resources/fonts/JetBrainsMono-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 
 .hljs-comment {
     color:#5D636F;
@@ -71,4 +78,21 @@
 }
 .hljs-strong {
     font-weight:700
+}
+
+/** Code block styling */
+pre:has(.hljs) {
+    margin: 10px 0 !important;
+    width: 100%;
+    background-color: #222222;
+    padding: 5px;
+    border-radius: 5px;
+}
+.hljs {
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0 5px;
+}
+
+hljs.language-bash {
+
 }

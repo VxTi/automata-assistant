@@ -6,8 +6,8 @@
 import { HomePage }           from "../HomePage";
 import { useContext }         from "react";
 import { ApplicationContext } from "../../util/ApplicationContext";
-import { ChatContext }        from "./Conversation";
-import { AnnotatedIcon }      from "./AnnotatedIcon";
+import { ChatContext }   from "./Conversation";
+import { AnnotatedIcon } from "../../components/AnnotatedIcon";
 
 /**
  * The navigation header.
@@ -22,7 +22,7 @@ export function NavigationHeader() {
               conversationTopic, setConversationTopic
           }              = useContext(ChatContext);
     return (
-        <div className="grid grid-cols-3 items-center mt-4 mb-1 mx-4 text-white">
+        <div className="grid grid-cols-3 rounded-full bg-gray-800 items-center mt-4 mb-1 mx-4 text-white">
             <div className="flex flex-row items-center">
                 <AnnotatedIcon path="M15.75 19.5 8.25 12l7.5-7.5"
                                annotation="Back to menu" side='right' onClick={() => setContent(<HomePage/>)}

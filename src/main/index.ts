@@ -116,6 +116,9 @@ ipcMain.handle('open-directory', async (_) => {
                        .catch(() => null)
 });
 
+/**
+ * Ensure that the topic history file exists.
+ */
 function ensureTopicHistoryFileExists() {
     const filePath = join(app.getPath('userData'), 'topic-history.json');
     if ( !fs.existsSync(filePath) ) {
@@ -123,11 +126,30 @@ function ensureTopicHistoryFileExists() {
     }
 }
 
+/**
+ * Save the topic history to the main process.
+ * This function takes an array of conversation topics and saves them to the topic history file.
+ */
 ipcMain.handle('save-topic-history', async (_, topics: any[]) => {
     ensureTopicHistoryFileExists();
     await fs.promises.writeFile(join(app.getPath('userData'), 'topic-history.json'), JSON.stringify(topics));
 });
 
+/**
+ * Get the topic history from the main process.
+ * This function returns a promise that resolves to the topic history.
+ * The topic history will be an array of conversation topics, in the form of:
+ * ```
+ * [
+ *   {
+ *      topic: string,
+ *      date: string,
+ *      uuid: string,
+ *      messages: [ { role: string, content: string }, ... ]
+ *   }, ...
+ * ]
+ * ```
+ */
 ipcMain.handle('get-topic-history', async (_) => {
     const filePath = join(app.getPath('userData'), 'topic-history.json');
     if ( !fs.existsSync(filePath) ) {
@@ -137,3 +159,5 @@ ipcMain.handle('get-topic-history', async (_) => {
     }
     return JSON.parse(await fs.promises.readFile(filePath, 'utf-8'));
 })
+
+//ipcMain.handle('save-conversation', async (_, conversation: any) => {

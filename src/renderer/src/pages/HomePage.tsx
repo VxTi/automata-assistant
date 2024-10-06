@@ -59,9 +59,9 @@ export function HomePage() {
         <div className="grow flex flex-col justify-center">
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none"/>
             <div className="grid grid-rows-3 place-items-center justify-items-center z-10">
-                <div>
-                    <h1 className="text-white font-bold text-4xl my-5 text-center font-sans">Welcome back.</h1>
-                    <span className="text-white text-sm my-1 text-center font-sans">Select any of the below tasks to get started.</span>
+                <div className="mb-3">
+                    <h1 className="text-white font-bold text-4xl sm:text-6xl my-5 text-center font-sans">Welcome back</h1>
+                    <span className="text-white text-sm sm:text-2xl my-1 text-center font-sans">Select any of the below tasks to get started.</span>
                 </div>
                 <div className="flex flex-row justify-center items-center w-full max-w-screen-md">
                     <FeatureCard title="Assistant" thumbnail={
@@ -86,16 +86,21 @@ export function HomePage() {
     )
 }
 
+/**
+ * FeatureCard
+ * A card that represents a feature on the home page
+ * @constructor
+ */
 function FeatureCard(props: { title: string, thumbnail: JSX.Element, targetPage: ReactNode }) {
     const { setContent } = useContext(ApplicationContext);
     return (
         <div
-            className="flex flex-col basis-32 justify-center hover:bg-gray-700 hover:cursor-pointer duration-1000 transition-colors items-center rounded-lg border-[1px] border-solid border-gray-700 bg-gray-800 p-4 m-3 select-none"
+            className="flex flex-col basis-40 justify-center hover:bg-gray-700 hover:cursor-pointer duration-500 transition-colors items-center rounded-lg border-[1px] border-solid border-gray-700 bg-gray-800 p-5 m-3 select-none"
             onClick={() => setContent(props.targetPage)}>
-            <div className="text-white w-12 h-12">
+            <div className="text-white w-14 h-14">
                 {props.thumbnail}
             </div>
-            <h2 className="text-white text-md">{props.title}</h2>
+            <h2 className="text-white mt-2 text-md sm:text-lg">{props.title}</h2>
         </div>
     )
 }

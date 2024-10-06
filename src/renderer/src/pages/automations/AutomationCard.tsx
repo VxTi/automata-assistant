@@ -21,6 +21,9 @@ export function AutomationCard(props: Automation)
         <div
             className="group relative text-white flex m-1 p-2 flex-col justify-start items-center rounded-lg bg-gray-800"
             onClick={() => setContent(<AutomationPageWrapper automation={props} />)}>
+            <div className="flex absolute top-0 left-0 w-full h-full justify-end">
+                {props.enabled && <span className="bg-green-600 w-1 h-1 animate-pulse rounded-full p-1 mt-2 mr-2" />}
+            </div>
             <div className="w-16 h-16 flex">{props.icon}</div>
             <p className="text-white text-md">{props.name}</p>
             <span

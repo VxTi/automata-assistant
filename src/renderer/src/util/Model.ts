@@ -1,91 +1,11 @@
 import { playAudio } from "./Audio";
-
-export type TranscriptionModel = 'whisper-1';
-
-export type SpeechVoiceType = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
-export type SpeechModelType = 'tts-1' | 'tts-1-hd';
-
-export type CompletionMessageType = 'user' | 'system' | 'assistant';
-export type CompletionModelType = 'gpt-4o' | 'gpt-3.5-turbo' | 'gpt-3.5-turbo-0125' | 'gpt-3.5-turbo-1106';
-
-/**
- * Completion message interface.
- * This interface represents a message that can be used for completion.
- */
-export interface CompletionMessage {
-    role: CompletionMessageType;
-    content: string;
-}
-
-/**
- * Configuration object for the text completion.
- */
-export interface TextCompletionConfig {
-    messages: CompletionMessage[];
-    model: CompletionModelType;
-    max_tokens?: number;
-    temperature?: number;
-    top_p?: number;
-    tools?: CompletionToolFunction;
-}
-
-/**
- * Interface representing a tool parameter.
- */
-export interface CompletionToolParameter {
-    type: 'object' | 'string' | 'number';
-    description: string;
-}
-
-/**
- * Interface representing a GPT(3.5+) tool.
- * This can be used to call external API's.
- */
-export interface CompletionToolFunction {
-    name: string;
-    description?: string;
-    parameters?: {};
-}
-
-/**
- * Configuration object for the transcription.
- */
-export interface TranscriptionConfig {
-
-    language?: string;
-    file: Blob;
-    fileName: string;
-    model: TranscriptionModel;
-    temperature?: number;
-}
-
-/**
- * @fileoverview Model.ts
- * @author Luca Warmenhoven
- * @date Created on Friday, October 04 - 13:06
- */
-export interface SpeechGenerationConfig {
-    input: string;
-    voice: SpeechVoiceType;
-    model?: SpeechModelType;
-    speed?: number;
-}
-
-/**
- * Model interface.
- * This interface is used to define the structure of an AI model.
- */
-interface Model {
-    generate: (...props: any[]) => any;
-    url: string;
-    defaultConfiguration: any;
-}
+import { CompletionMessage, SpeechGenerationConfig, TextCompletionConfig, TranscriptionConfig } from "declarations";
 
 /**
  * AI models object.
  * This object contains all the AI models that can be used in the application.
  */
-export const AIModels = {
+export const openai = {
     baseUrl: 'https://api.openai.com/v1/',
     /* @ts-ignore */
     apiKey: window.api.openAiKey,
@@ -108,10 +28,10 @@ export const AIModels = {
              * @param input The input text to generate speech from.
              * @param configuration The configuration object for the speech generation.
              */
-            generate: async function (input: string, configuration: SpeechGenerationConfig = AIModels.audio.speech.defaultConfiguration) {
-                return fetch(AIModels.baseUrl + this.url, {
+            generate: async function (input: string, configuration: SpeechGenerationConfig = openai.audio.speech.defaultConfiguration) {
+                return fetch(openai.baseUrl + this.url, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AIModels.apiKey },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + openai.apiKey },
                     body: JSON.stringify({ ...configuration, input: input })
                 })
                     .then(response => response.blob())
@@ -121,7 +41,7 @@ export const AIModels = {
                     })
                     .catch(_ => null)
             }
-        } as Model,
+        },
 
         /**
          * Transcription model.
@@ -150,10 +70,10 @@ export const AIModels = {
                     formData.append('temperature', config.temperature.toString());
                 }
 
-                return fetch(AIModels.baseUrl + this.url, {
+                return fetch(openai.baseUrl + this.url, {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer ' + AIModels.apiKey
+                        'Authorization': 'Bearer ' + openai.apiKey
                     },
                     body: formData
                 })
@@ -161,12 +81,12 @@ export const AIModels = {
                     .then(json => json.text)
                     .catch(_ => "Sorry, something went wrong with the transcription.")
             }
-        } as Model
+        }
     },
     chat: {
         url: 'chat/completions',
         defaultConfiguration: {
-            model: 'gpt-3.5-turbo',
+            model: 'gpt-4o',//'gpt-3.5-turbo',
             max_tokens: 1024,
             temperature: 0.5,
             messages: []
@@ -186,11 +106,20 @@ export const AIModels = {
          * @param messages The messages to generate a response to.
          * @param config The configuration object for the response generation.
          */
-        generate: async function (prompt: string, messages: CompletionMessage[] = [], config: TextCompletionConfig = AIModels.chat.defaultConfiguration): Promise<Object> {
-            return fetch(AIModels.baseUrl + this.url, {
+        generate: async function (prompt: string, messages: CompletionMessage[] = [], config: TextCompletionConfig = openai.chat.defaultConfiguration): Promise<Object> {
+
+            // If there's files to upload, add them to the form data
+            if ( config.files && config.files.length > 0 ) {
+                const formData = new FormData();
+                for ( let i = 0; i < config.files.length; i++ ) {
+                    formData.append('files', config.files[ i ]);
+                }
+            }
+
+            return fetch(openai.baseUrl + this.url, {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer ' + AIModels.apiKey,
+                    'Authorization': 'Bearer ' + openai.apiKey,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(
@@ -209,7 +138,7 @@ export const AIModels = {
                     return null;
                 })
         }
-    } as Model,
+    },
 
     /**
      * Validate the given OpenAI API key.

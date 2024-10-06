@@ -8,17 +8,25 @@
 import { useCallback, useContext, useRef, useState } from "react";
 import { BaseStyles }                                from "../../util/BaseStyles";
 import { requestMicrophoneAccess }                   from "../../util/Audio";
-import { AIModels, CompletionMessage }               from "../../util/Model";
+import { openai }                                    from "../../util/Model";
 import { ChatContext, ChatContextMessageType }       from "./Conversation";
 import { Marked }                                    from 'marked';
 import { markedHighlight }                           from 'marked-highlight';
 import hljs                                          from 'highlight.js';
-import markedKatex                                   from "marked-katex-extension";
+import markedKatex                                   from 'marked-katex-extension';
+import { CompletionMessage }                         from "declarations";
 import '../../styles/code-highlighting.css';
 import 'katex/dist/katex.min.css';
 
-const marked = new Marked();
-marked.use(
+const mdParser = new Marked();
+mdParser.use(
+    markedKatex(
+        {
+            throwOnError: false,
+            nonStandard: true,
+            displayMode: true,
+            output: 'html',
+        }),
     markedHighlight(
         {
             langPrefix: 'hljs language-',
@@ -27,7 +35,6 @@ marked.use(
                 return hljs.highlight(code, { language }).value;
             }
         }),
-    markedKatex({ throwOnError: false })
 );
 
 
@@ -37,16 +44,34 @@ marked.use(
  */
 export function ChatInputField() {
 
-    const [ recording, setRecording ]       = useState(false);
-    const [ optionsShown, setOptionsShown ] = useState(false);
-
-    const [ selectedFiles, setSelectedFiles ]         = useState<string[]>([]);
+    const { messages, setMessages, spokenResponse }   = useContext(ChatContext);
     const [ selectedDirectory, setSelectedDirectory ] = useState<string | null>(null);
+    const [ optionsShown, setOptionsShown ]           = useState(false);
+    const [ selectedFiles, setSelectedFiles ]         = useState<string[]>([]);
+    const [ recording, setRecording ]                 = useState(false);
+    const inputContentRef                             = useRef<HTMLTextAreaElement>(null);
+    const audioDevice                                 = useRef<MediaRecorder | null | undefined>(null);
 
-    const inputContentRef = useRef<HTMLTextAreaElement>(null);
-    const audioDevice     = useRef<MediaRecorder | null | undefined>(null);
+    const handleSendRequest = useCallback(async (prompt: string) => {
 
-    const { messages, setMessages, spokenResponse } = useContext(ChatContext);
+        const myMessage: ChatContextMessageType = { message: { role: 'user', content: await mdParser.parse(prompt) } };
+        setMessages((previous: ChatContextMessageType[]) => [ ...previous, myMessage ]);
+
+        const response = await openai.chat.generate(prompt, messages.map(message => message.message));
+        if ( !('choices' in response) )
+            return;
+
+        const responseMessage: ChatContextMessageType = {
+            message: {
+                role: response.choices[ 0 ][ 'message' ][ 'role' ],
+                content: await mdParser.parse(response.choices[ 0 ][ 'message' ][ 'content' ])
+            } as CompletionMessage
+        };
+        setMessages((previous: ChatContextMessageType[]) => [ ...previous, responseMessage ]);
+        if ( spokenResponse ) {
+            await openai.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);
+        }
+    }, []);
 
     /**
      * Handles the sending of a message.
@@ -60,24 +85,7 @@ export function ChatInputField() {
             return;
 
         inputContentRef.current!.value = '';
-
-        const myMessage: ChatContextMessageType = { message: { role: 'user', content: elementValue } };
-        setMessages((previous: ChatContextMessageType[]) => [ ...previous, myMessage ]);
-
-        const response = await AIModels.chat.generate(elementValue, messages.map(message => message.message));
-        if ( !('choices' in response) )
-            return;
-
-        const responseMessage: ChatContextMessageType = {
-            message: {
-                role: response.choices[ 0 ][ 'message' ][ 'role' ],
-                content: marked.parse(response.choices[ 0 ][ 'message' ][ 'content' ])
-            } as CompletionMessage
-        };
-        setMessages((previous: ChatContextMessageType[]) => [ ...previous, responseMessage ]);
-        if ( spokenResponse ) {
-            await AIModels.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);
-        }
+        await handleSendRequest(elementValue);
     }, [ spokenResponse, messages ]);
 
     /**
@@ -110,32 +118,9 @@ export function ChatInputField() {
 
             audioDevice.current.onstop = async () => {
 
-                const transcription                     = await AIModels.audio.transcription.generate(
-                    {
-                        file: new Blob(chunks),
-                        fileName: 'audio.mp4',
-                        model: 'whisper-1',
-                        temperature: 0.5
-                    });
-                const myMessage: ChatContextMessageType = { message: { role: 'user', content: transcription } };
-                setMessages((previous: ChatContextMessageType[]) => [ ...previous, myMessage ]);
-                const response = await AIModels.chat.generate(transcription, [ ...messages, myMessage ].map(message => message.message));
-
-                if ( !('choices' in response) )
-                    return;
-
-                const responseMessage: ChatContextMessageType = {
-                    message: {
-                        role: response.choices[ 0 ][ 'message' ][ 'role' ],
-                        content: (response.choices[ 0 ][ 'message' ][ 'content' ])
-                    } as CompletionMessage
-                };
-
-                setMessages((previous) => [ ...previous, responseMessage ]);
-
-                if ( spokenResponse ) {
-                    await AIModels.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);
-                }
+                const transcription = await openai.audio.transcription.generate(
+                    { file: new Blob(chunks), fileName: 'audio.mp4', model: 'whisper-1', temperature: 0.5 });
+                await handleSendRequest(transcription);
             }
         }
 
@@ -143,18 +128,13 @@ export function ChatInputField() {
         if ( audioDevice.current === undefined )
             return;
 
-        if ( !recording ) {
-            audioDevice.current!.start(500);
-        }
-        else {
-            audioDevice.current!.stop();
-        }
+        audioDevice.current[ recording ? 'stop' : 'start' ](500);
         setRecording( !recording);
     }, [ spokenResponse, messages, recording ]);
 
     return (
         <div className="flex flex-col justify-center items-center mb-3 mt-1 mx-1">
-            <div className="flex justify-start w-full items-center flex-wrap max-w-screen-sm my-1">
+            <div className="flex justify-start w-full items-center flex-wrap max-w-screen-md my-1">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
                                   directory/>
@@ -165,7 +145,7 @@ export function ChatInputField() {
                 ))}
             </div>
             <div
-                className="flex flex-col justify-end items-center bg-gray-800 rounded-3xl max-w-screen-sm md:max-w-screen-lg overflow-hidden border-[1px] border-solid border-gray-700">
+                className="flex flex-col justify-end items-center bg-gray-800 rounded-3xl max-w-screen-md md:max-w-screen-lg overflow-hidden border-[1px] border-solid border-gray-700">
                 <div
                     className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <ChatAlternativeOption
@@ -264,7 +244,7 @@ function AttachedFile(props: { filePath: string, onDelete: () => void, directory
     const fileName = props.filePath.substring(props.filePath.lastIndexOf(window.api.separator) + 1);
     return (
         <div
-            className="flex flex-row justify-between items-center bg-gray-700 p-1 mx-0.5 my-1 rounded-3xl">
+            className="flex flex-row justify-between items-center bg-gray-700 mx-0.5 my-1 rounded-3xl">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                  className={BaseStyles.ICON_NO_MARGIN}
                  onClick={props.onDelete}>

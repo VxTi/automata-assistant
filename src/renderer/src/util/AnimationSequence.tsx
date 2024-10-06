@@ -55,8 +55,6 @@ export function useAnimationSequence(config: AnimationSequenceConfig, dependenci
             if ( !config.containerRef.current || !entries[ 0 ].isIntersecting || !entries[ 0 ].target.checkVisibility())
                 return;
 
-            console.log('Starting animation sequence');
-
             animatableElements.forEach((element) => {
 
                 const hElement = element as HTMLElement;
@@ -70,10 +68,9 @@ export function useAnimationSequence(config: AnimationSequenceConfig, dependenci
                 hElement.style.animationPlayState = 'running';
                 hElement.style.animationDuration = sequenceDuration + 'ms';
                 hElement.style.animationDelay = `${interval}ms`;
-
             });
 
-            observer.disconnect();
+            //observer.disconnect();
         }, config.observerOptions ?? { threshold: [ 0, .1, .2, .3 ] });
 
         observer.observe(config.containerRef.current);
