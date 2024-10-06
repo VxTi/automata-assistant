@@ -13,6 +13,8 @@ function createWindow(): void {
         {
             width: 900,
             height: 670,
+            minWidth: 760,
+            minHeight: 550,
             transparent: (process.platform === 'linux' || process.platform === 'darwin'),
             show: false,
             autoHideMenuBar: true,

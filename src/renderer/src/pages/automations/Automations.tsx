@@ -3,6 +3,30 @@
  * @author Luca Warmenhoven
  * @date Created on Saturday, October 05 - 13:57
  */
+import { createContext, ReactNode, useState } from "react";
+
+/**
+ * The automations' context.
+ * This context is used to store and update the automations.
+ */
+export const AutomationsContext = createContext<{
+    automations: Automation[],
+    setAutomations: (automations: Automation[]) => void
+}>({ automations: [], setAutomations: () => {} });
+
+/**
+ * The automations' context provider.
+ * This provider is used to provide the automations' context to the children.
+ * This context is used in `main.tsx` to provide the automations to the automations list page.
+ */
+export function AutomationsContextProvider({ children }: { children: ReactNode }) {
+    const [ automations, setAutomations ] = useState<Automation[]>(Automations);
+    return (
+        <AutomationsContext.Provider value={{ automations, setAutomations }}>
+            {children}
+        </AutomationsContext.Provider>
+    )
+}
 
 /**
  * The automation interface.

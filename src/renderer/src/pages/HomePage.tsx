@@ -5,9 +5,9 @@
  */
 import { ReactNode, useContext, useEffect, useRef } from "react";
 import { AssistantPage }                            from "./assistant/AssistantPage";
-import { ApplicationContext }  from "../util/ApplicationContext";
-import { AutomationsListPage } from "./automations/AutomationsListPage";
-import { Shader }              from "../util/Shader";
+import { ApplicationContext }                       from "../util/ApplicationContext";
+import { AutomationsListPage }                      from "./automations/AutomationsListPage";
+import { Shader }                                   from "../util/Shader";
 import { VBO }                                      from "../util/VBO";
 import fragmentShader                               from "./home_page_shader.glsl";
 
@@ -60,8 +60,9 @@ export function HomePage() {
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none"/>
             <div className="grid grid-rows-3 place-items-center justify-items-center z-10">
                 <div className="mb-3">
-                    <h1 className="text-white font-bold text-4xl sm:text-6xl my-5 text-center font-sans">Welcome back</h1>
-                    <span className="text-white text-sm sm:text-2xl my-1 text-center font-sans">Select any of the below tasks to get started.</span>
+                    <h1 className="text-white font-bold text-4xl sm:text-6xl my-5 text-center font-helvetica-neue">Welcome
+                        back</h1>
+                    <span className="text-white text-sm sm:text-2xl my-1 text-center font-helvetica-neue">Select any of the below tools to get started.</span>
                 </div>
                 <div className="flex flex-row justify-center items-center w-full max-w-screen-md">
                     <FeatureCard title="Assistant" thumbnail={

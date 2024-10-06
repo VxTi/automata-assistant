@@ -8,6 +8,7 @@ import { ApplicationContext } from "../../util/ApplicationContext";
 import { useContext } from "react";
 import { Automation } from "./Automations";
 import { AutomationPageWrapper } from "./AutomationPageWrapper";
+import { CreateSequence } from "../../util/AnimationSequence";
 
 /**
  * The automation card.
@@ -19,6 +20,7 @@ export function AutomationCard(props: Automation)
     const { setContent } = useContext(ApplicationContext);
     return (
         <div
+            {...CreateSequence('fadeIn', 500, 40)}
             className="group relative text-white flex m-1 p-2 flex-col justify-start items-center rounded-lg bg-gray-800"
             onClick={() => setContent(<AutomationPageWrapper automation={props} />)}>
             <div className="flex absolute top-0 left-0 w-full h-full justify-end">

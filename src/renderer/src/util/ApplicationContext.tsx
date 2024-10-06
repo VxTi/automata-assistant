@@ -10,7 +10,7 @@ export const ApplicationContext = createContext<{
     content: ReactNode,
     setContent: (content: ReactNode) => void
 }>({
-       content: null,
+       content: <HomePage/>,
        setContent: () => {
        }
    });

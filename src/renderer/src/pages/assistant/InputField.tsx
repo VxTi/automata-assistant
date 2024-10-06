@@ -5,8 +5,8 @@
  */
 
 
-import { useCallback, useContext, useRef, useState } from "react";
-import { BaseStyles }                                from "../../util/BaseStyles";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { BaseStyles }                                           from "../../util/BaseStyles";
 import { requestMicrophoneAccess }                   from "../../util/Audio";
 import { openai }                                    from "../../util/Model";
 import { ChatContext, ChatContextMessageType }       from "./Conversation";
@@ -52,6 +52,21 @@ export function ChatInputField() {
     const inputContentRef                             = useRef<HTMLTextAreaElement>(null);
     const audioDevice                                 = useRef<MediaRecorder | null | undefined>(null);
 
+    useEffect(() => {
+        if (!inputContentRef.current) return;
+
+        // Smoothly change the height of the input field.
+        inputContentRef.current.addEventListener('input', () => {
+            inputContentRef.current!.style.height = 'auto';
+            inputContentRef.current!.style.height = `${inputContentRef.current!.scrollHeight}px`;
+        });
+    }, []);
+
+    /**
+     * Handles the sending of a request.
+     * This function is called when the user sends a message,
+     * which happens both after recording and after typing.
+     */
     const handleSendRequest = useCallback(async (prompt: string) => {
 
         const myMessage: ChatContextMessageType = { message: { role: 'user', content: await mdParser.parse(prompt) } };
@@ -170,7 +185,7 @@ export function ChatInputField() {
                     }}/>
                 </div>
                 <div
-                    className="flex justify-center items-center text-white mx-2">
+                    className="flex justify-center items-end text-white mx-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                          className={BaseStyles.ICON + ` ${optionsShown ? 'bg-gray-600' : ''}`}
                          onClick={() => setOptionsShown( !optionsShown)}>
@@ -184,7 +199,7 @@ export function ChatInputField() {
                     <textarea
                         placeholder="Ask me anything..."
                         rows={1} cols={50} ref={inputContentRef}
-                        className="resize-none mx-2 w-full font-helvetica-neue grow focus:outline-none bg-transparent text-white p-2"/>
+                        className="resize-none mx-2 w-full max-h-52 my-auto font-helvetica-neue grow focus:outline-none bg-transparent text-white p-2"/>
                     <svg xmlns="http://www.w3.org/2000/svg" fill={recording ? '#fff' : 'none'} viewBox="0 0 24 24"
                          strokeWidth={recording ? 0 : 1.5}
                          onClick={handleMicrophoneAccess}

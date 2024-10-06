@@ -2,11 +2,14 @@ import { StrictMode, useContext }                         from 'react'
 import { createRoot }                                     from 'react-dom/client'
 import { ApplicationContext, ApplicationContextProvider } from "./util/ApplicationContext";
 import './styles/styles.css'
+import { AutomationsContextProvider }                     from "./pages/automations/Automations";
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <ApplicationContextProvider>
-            <Application/>
+            <AutomationsContextProvider>
+                <Application/>
+            </AutomationsContextProvider>
         </ApplicationContextProvider>
     </StrictMode>,
 )
