@@ -39,8 +39,6 @@ export function useAnimationSequence(config: AnimationSequenceConfig, dependenci
         if ( !config.containerRef.current )
             return;
 
-        console.log('Animating sequence');
-
         const animatableElements = config.containerRef.current.querySelectorAll('*[data-sequence-animation]');
         animatableElements.forEach((element) => {
             const target = element as HTMLElement;

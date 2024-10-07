@@ -54,6 +54,11 @@ export const openai = {
                 language: 'en',
             } as TranscriptionConfig,
 
+            // see https://help.openai.com/en/articles/8555545-file-uploads-faq
+            // 25MB limit
+            fileSizeLimit: 25 * 1024 * 1024,
+            fragmentationInterval: 500, // 500ms per blob fragment
+
             /**
              * Generate a transcription from the given audio file using the specified model.
              * This function returns a promise that resolves to the generated transcription

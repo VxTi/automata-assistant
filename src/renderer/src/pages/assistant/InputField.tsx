@@ -59,10 +59,10 @@ export function ChatInputField() {
          */
         if ( messages.length === 0 ) {
             topicTitle = (await openai.chat.generate(
-                'Summarize the following question in as little words as possible, at most 4 words: ' + prompt
+                'Summarize the following question in as little words as possible, at most 5 words: ' + prompt
             )).choices[ 0 ][ 'message' ][ 'content' ];
 
-            uuid       = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
             setTopicUUID(uuid);
             setConversationTopic(topicTitle);
         }
@@ -87,7 +87,7 @@ export function ChatInputField() {
                 .conversations.save(
                 {
                     topic: topicTitle,
-                    date: new Date().toISOString(),
+                    date: Date.now(),
                     uuid: uuid,
                     messages: [ ...previous, responseMessage ]
                         .map(message => message.message)
@@ -112,6 +112,7 @@ export function ChatInputField() {
             return;
 
         inputContentRef.current!.value = '';
+        inputContentRef.current!.style.height = 'auto';
         await handleSendRequest(elementValue);
     }, [ spokenResponse, messages ]);
 
@@ -138,7 +139,8 @@ export function ChatInputField() {
             audioDevice.current.ondataavailable = event => {
                 chunks.push(event.data);
                 totalBytes += event.data.size;
-                if ( totalBytes > 25 * 1024 * 1024 ) {
+                openai.audio.fileSizeLimit
+                if ( totalBytes > openai.audio.transcription.fileSizeLimit ) {
                     audioDevice.current!.stop();
                 }
             }
@@ -155,7 +157,7 @@ export function ChatInputField() {
         if ( audioDevice.current === undefined )
             return;
 
-        audioDevice.current[ recording ? 'stop' : 'start' ](500);
+        audioDevice.current[ recording ? 'stop' : 'start' ](openai.audio.transcription.fragmentationInterval);
         setRecording( !recording);
     }, [ spokenResponse, messages, recording ]);
 
@@ -178,22 +180,23 @@ export function ChatInputField() {
                     <ChatAlternativeOption
                         path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
                         text="Add file" onClick={() => {
-                        // @ts-ignore
-                        window.api.openFile()
-                              .then((files: string[]) => {
-                                  setSelectedFiles([ ...selectedFiles, ...files ]);
-                                  setOptionsShown(false);
-                              });
+                        (window[ 'api' ] as any)
+                            .openFile()
+                            .then((files: string[]) => {
+                                setSelectedFiles([ ...selectedFiles, ...files ]);
+                                setOptionsShown(false);
+                            });
                     }}/>
                     <ChatAlternativeOption
                         path="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
                         text="Add directory" onClick={() => {
-                        // @ts-ignore
-                        window.api.openDirectory()
-                              .then((directory: string) => {
-                                  setSelectedDirectory(directory);
-                                  setOptionsShown(false);
-                              });
+
+                        (window[ 'api' ] as any)
+                            .openDirectory()
+                            .then((directory: string) => {
+                                setSelectedDirectory(directory);
+                                setOptionsShown(false);
+                            });
                     }}/>
                 </div>
                 <div

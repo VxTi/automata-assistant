@@ -38,7 +38,7 @@ declare module openai {
     export interface ConversationTopic {
         uuid: string,
         topic: string,
-        date: string,
+        date: number,
         messages: CompletionMessage[]
     }
 

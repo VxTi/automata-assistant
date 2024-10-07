@@ -9,6 +9,7 @@ import { ApplicationContext }                       from "../util/ApplicationCon
 import { AutomationsListPage }                      from "./automations/AutomationsListPage";
 import { Shader }                                   from "../util/Shader";
 import { VBO }                                      from "../util/VBO";
+import { LiveAssistantPage }                        from "./live-assistant/LiveAssistantPage";
 import fragmentShader                               from "./home_page_shader.glsl";
 
 export function HomePage() {
@@ -81,6 +82,14 @@ export function HomePage() {
                                 d="M5.26 17.242a.75.75 0 1 0-.897-1.203 5.243 5.243 0 0 0-2.05 5.022.75.75 0 0 0 .625.627 5.243 5.243 0 0 0 5.022-2.051.75.75 0 1 0-1.202-.897 3.744 3.744 0 0 1-3.008 1.51c0-1.23.592-2.323 1.51-3.008Z"></path>
                         </svg>
                     } targetPage={<AutomationsListPage/>}/>
+                    <FeatureCard title="Live Assistant"
+                                 thumbnail={
+                                     <svg data-slot="icon" fill="currentColor" viewBox="0 0 24 24"
+                                          xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                         <path clipRule="evenodd" fillRule="evenodd"
+                                               d="M9 4.5a.75.75 0 0 1 .721.544l.813 2.846a3.75 3.75 0 0 0 2.576 2.576l2.846.813a.75.75 0 0 1 0 1.442l-2.846.813a3.75 3.75 0 0 0-2.576 2.576l-.813 2.846a.75.75 0 0 1-1.442 0l-.813-2.846a3.75 3.75 0 0 0-2.576-2.576l-2.846-.813a.75.75 0 0 1 0-1.442l2.846-.813A3.75 3.75 0 0 0 7.466 7.89l.813-2.846A.75.75 0 0 1 9 4.5ZM18 1.5a.75.75 0 0 1 .728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 0 1 0 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 0 1-1.456 0l-.258-1.036a2.625 2.625 0 0 0-1.91-1.91l-1.036-.258a.75.75 0 0 1 0-1.456l1.036-.258a2.625 2.625 0 0 0 1.91-1.91l.258-1.036A.75.75 0 0 1 18 1.5ZM16.5 15a.75.75 0 0 1 .712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 0 1 0 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 0 1-1.422 0l-.395-1.183a1.5 1.5 0 0 0-.948-.948l-1.183-.395a.75.75 0 0 1 0-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0 1 16.5 15Z"></path>
+                                     </svg>
+                                 } targetPage={<LiveAssistantPage/>}/>
                 </div>
             </div>
         </div>
