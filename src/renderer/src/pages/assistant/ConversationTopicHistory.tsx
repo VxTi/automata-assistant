@@ -59,9 +59,12 @@ export function ConversationHistoryContainer() {
         // and filter out any faulty topics.
         (window[ 'api' ] as any)
             .conversations.list()
-            .then((topics: ConversationTopic[]) => setConversationTopics(topics.map(topic => {
-                return { ...topic, hidden: false };
-            })));
+            .then((topics: ConversationTopic[]) =>
+                      setConversationTopics(
+                          topics.map(topic => {
+                                    return { ...topic, hidden: false };
+                                })
+                                .sort((a, b) => b.date - a.date)));
     }, [ historyVisible ]);
 
     /**
@@ -125,14 +128,18 @@ export function ConversationHistoryContainer() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12"></path>
                         </svg>
                     </div>
-                    <div className="grow overflow-scroll flex flex-col justify-start items-stretch" ref={containerRef}>
+                    <div className="grow relative overflow-scroll flex flex-col justify-start items-stretch min-h-[80vh]"
+                         ref={containerRef}>
                         {conversationTopics.length === 0 ?
                          <span className="text-white text-center mt-5 text-md font-helvetica-neue">No previous conversations found.</span> :
-                         conversationTopics.sort((a, b) => b.date - a.date)
-                                           .map(
-                                               (entry, index) =>
-                                                   ( !entry.hidden && <Topic key={index} topic={entry} index={index}
-                                                                             forceUpdate={forceUpdate}/>))}
+                         <div
+                             className="flex flex-col justify-start z-30 items-stretch overflow-y-scroll pointer-events-auto left-0 top-0 w-full absolute">
+                             {conversationTopics
+                                 .map((entry, index) =>
+                                          ( !entry.hidden && <Topic key={index} topic={entry} index={index}/>))
+                             }
+                         </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -145,20 +152,21 @@ export function ConversationHistoryContainer() {
  * This component is used to display a conversation topic.
  * @param props the properties of the component.
  */
-function Topic(props: { topic: ConversationTopic, index: number, forceUpdate: Dispatch<SetStateAction<any>> }) {
+function Topic(props: { topic: ConversationTopic, index: number }) {
     const {
               setConversationTopic, setMessages,
               setHistoryVisible, setTopicUUID,
               topicUUID
           }                = useContext(ChatContext);
     const { topic: entry } = props;
+    const [ deleted, setDeleted ] = useState(false);
 
     // Removes a conversation topic from the conversation directory,
     // and forces an update to refresh the conversation history.
     const deleteTopic = useCallback(async (event: Event) => {
         event.stopPropagation();
         await (window[ 'api' ] as any).conversations.delete(entry.uuid);
-        props.forceUpdate(Math.random());
+        setDeleted(true);
     }, []);
 
     // Load the conversation topic into the chat context.
@@ -180,7 +188,7 @@ function Topic(props: { topic: ConversationTopic, index: number, forceUpdate: Di
 
     return (
         <div
-            className="flex flex-row my-1 p-2 rounded bg-gray-800 mx-auto w-[80%] hover:bg-gray-700 hover:cursor-pointer duration-200 transition-colors justify-between items-center"
+            className={`flex flex-row rounded bg-gray-800 mx-auto w-[80%] hover:bg-gray-700 hover:cursor-pointer duration-200 transition-all justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0' : 'max-h-32 my-1 p-2'}`}
             onClick={loadTopic}
             {...CreateSequence('fadeIn', 700, 30 * props.index)}>
             <span className="text-white text-sm font-sans">{entry.topic}</span>

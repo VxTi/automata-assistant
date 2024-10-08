@@ -4,7 +4,7 @@
  * @date Created on Friday June 21 - 20:54
  */
 
-const defaultVertexShader = `
+export const defaultVertexShader = `
     attribute vec2 position;
     void main() {
         gl_Position = vec4(position, 0.0, 1.0);

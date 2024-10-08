@@ -8,6 +8,9 @@ import { AnnotatedIcon }                 from "../../components/AnnotatedIcon";
 import { HomePage }                      from "../HomePage";
 import { ApplicationContext }            from "../../util/ApplicationContext";
 import { useContext, useEffect, useRef } from "react";
+import { Shader }                        from "../../util/Shader";
+import fragmentShader                    from "./audio_visualizer_shader.glsl";
+import { VBO }                           from "../../util/VBO";
 
 /**
  * Convert a float32 array to a 16-bit PCM array.
@@ -53,10 +56,13 @@ export function LiveAssistantPage() {
             return;
 
         const canvas = canvasRef.current;
-        const ctx    = canvas.getContext('2d');
+        const gl     = canvas.getContext('webgl2');
 
-        if ( !ctx )
+        if ( !gl )
             return;
+
+        let time           = 0;
+        let lastTimeMillis = Date.now();
 
         canvas.width  = window.innerWidth * 2;
         canvas.height = window.innerHeight * 2;
@@ -66,6 +72,18 @@ export function LiveAssistantPage() {
         analyzer.fftSize   = 256;
         const dataArray    = new Uint8Array(analyzer.frequencyBinCount);
 
+        const shader = new Shader(gl, fragmentShader,
+                                  '#version 300 es\n' +
+                                      'in vec2 position;\n' +
+                                      'void main() {\n' +
+                                      'gl_Position = vec4(position, 0.0, 1.0);' +
+                                      '\n}');
+        const vbo    = new VBO(gl, shader);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 1);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
 
         /** Acquire the audio stream from the user's microphone. */
         navigator.mediaDevices.getUserMedia({ audio: true, video: false })
@@ -74,28 +92,28 @@ export function LiveAssistantPage() {
                      source.connect(analyzer);
 
                      /*const url = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01";
-                     const ws  = new WebSocket(url, {
-                         headers: {
-                             'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
-                             'OpenAI-Beta': 'realtime=v1'
-                         }
-                     });
-                     ws.on('open', () => {
-                         let audioDevice: MediaRecorder = new MediaRecorder(stream);
+                      const ws  = new WebSocket(url, {
+                      headers: {
+                      'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
+                      'OpenAI-Beta': 'realtime=v1'
+                      }
+                      });
+                      ws.on('open', () => {
+                      let audioDevice: MediaRecorder = new MediaRecorder(stream);
 
-                         audioDevice.ondataavailable = async (event) => {
-                             const blobChunk = event.data;
-                             const f32Array  = new Float32Array(await blobChunk.arrayBuffer());
-                             const base64    = base64EncodeAudio(f32Array);
-                         }
+                      audioDevice.ondataavailable = async (event) => {
+                      const blobChunk = event.data;
+                      const f32Array  = new Float32Array(await blobChunk.arrayBuffer());
+                      const base64    = base64EncodeAudio(f32Array);
+                      }
 
-                         ws.send(
-                             JSON.stringify(
-                                 {
-                                     type: "response.create",
-                                     response: { modalities: [ "text" ], instructions: "Please speak to the user.", }
-                                 }));
-                     })*/
+                      ws.send(
+                      JSON.stringify(
+                      {
+                      type: "response.create",
+                      response: { modalities: [ "text" ], instructions: "Please speak to the user.", }
+                      }));
+                      })*/
 
 
                  })
@@ -103,22 +121,29 @@ export function LiveAssistantPage() {
                      setContent(<HomePage/>);
                  });
 
+        const audioBubbleCount = 12;
+        const audioBubbles     = new Float32Array(audioBubbleCount);
+
         const render = () => {
             analyzer.getByteFrequencyData(dataArray);
-            // Draw each frequency bar as a peak from the middle of a circle.
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.beginPath();
-            ctx.moveTo(canvas.width / 2, canvas.height / 2);
-            ctx.fillStyle = 'white';
-            ctx.lineWidth   = 2;
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
+            gl.clear(vbo.gl.COLOR_BUFFER_BIT);
+            shader.use();
+            gl.uniform1f(vbo.gl.getUniformLocation(vbo.shader.program, 'time'), time / 1000);
+
+            const currentTimeMillis = Date.now();
+            const deltaTime         = currentTimeMillis - lastTimeMillis;
+            time += deltaTime;
+            lastTimeMillis          = Date.now();
+            // Clear bubble array
+            audioBubbles.fill(0);
             for ( let i = 0; i < dataArray.length; i++ ) {
-                //ctx.moveTo(canvas.width / 2, canvas.height / 2);
-                const angle = 6 * Math.PI * i / dataArray.length - Math.PI / 2;
-                const x     = canvas.width / 2 + Math.cos(angle) * (2 + dataArray[ i ] * 2);
-                const y     = canvas.height / 2 + Math.sin(angle) * (2 + dataArray[ i ] * 2);
-                ctx.arcTo(x, y, x, y, 1);
+                audioBubbles[ i % audioBubbleCount ] = Math.max((dataArray[ i ] / 255.0) * 15, audioBubbles[ i % audioBubbleCount ]);
             }
-            ctx.fill();
+
+            vbo.gl.uniform1fv(vbo.gl.getUniformLocation(vbo.shader.program, 'audioLevels'), audioBubbles);
+
+            vbo.render(window.innerWidth, window.innerHeight);
             requestAnimationFrame(render);
         }
         render();

@@ -10,11 +10,14 @@ import { AutomationsListPage }                      from "./automations/Automati
 import { Shader }                                   from "../util/Shader";
 import { VBO }                                      from "../util/VBO";
 import { LiveAssistantPage }                        from "./live-assistant/LiveAssistantPage";
-import fragmentShader                               from "./home_page_shader.glsl";
+import fragmentShader                           from "./home_page_shader.glsl";
+import { CreateSequence, useAnimationSequence } from "../util/AnimationSequence";
 
 export function HomePage() {
 
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const canvasRef    = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    useAnimationSequence({ containerRef: containerRef });
 
     useEffect(() => {
         if ( !canvasRef.current )
@@ -59,13 +62,15 @@ export function HomePage() {
     return (
         <div className="grow flex flex-col justify-center">
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none"/>
-            <div className="grid grid-rows-3 place-items-center justify-items-center z-10">
+            <div className="grid grid-rows-3 place-items-center justify-items-center z-10" ref={containerRef}>
                 <div className="mb-3">
-                    <h1 className="text-white font-bold text-4xl sm:text-6xl my-5 text-center font-helvetica-neue">Welcome
-                        back</h1>
-                    <span className="text-white text-sm sm:text-2xl my-1 text-center font-helvetica-neue">Select any of the below tools to get started.</span>
+                    <h1 className="text-white font-bold text-4xl sm:text-6xl my-5 text-center font-helvetica-neue"
+                        {...CreateSequence('fadeIn', 800, 40)}>
+                        Welcome back</h1>
+                    <span className="text-white text-sm sm:text-2xl my-1 text-center font-helvetica-neue"
+                          {...CreateSequence('fadeIn', 800, 40)}>Select any of the below tools to get started.</span>
                 </div>
-                <div className="flex flex-row justify-center items-center w-full max-w-screen-md">
+                <div className="flex flex-row justify-center items-center w-full max-w-screen-md flex-wrap">
                     <FeatureCard title="Assistant" thumbnail={
                         <svg fill="currentColor" viewBox="0 0 24 24"
                              xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -105,6 +110,7 @@ function FeatureCard(props: { title: string, thumbnail: JSX.Element, targetPage:
     const { setContent } = useContext(ApplicationContext);
     return (
         <div
+            {...CreateSequence('fadeIn', 800, 40)}
             className="flex flex-col basis-40 justify-center hover:bg-gray-700 hover:cursor-pointer duration-500 transition-colors items-center rounded-lg border-[1px] border-solid border-gray-700 bg-gray-800 p-5 m-3 select-none"
             onClick={() => setContent(props.targetPage)}>
             <div className="text-white w-14 h-14">

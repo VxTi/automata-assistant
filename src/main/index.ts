@@ -10,6 +10,14 @@ dotenv.config({ path: join(__dirname, '../../.env') });
 
 const conversationDirectoryPath = join(app.getPath('userData'), 'conversations');
 
+/**
+ * Conversation topic cache.
+ * This cache is used to store conversation topics in memory,
+ * which will prevent excessive reads and writes to the conversation directory.
+ * This map is updated whenever a conversation topic is saved or deleted.
+ */
+let conversationCache: Map<string, ConversationTopic>;
+
 function createWindow(): void {
     // Create the browser window.
     const mainWindow = new BrowserWindow(
@@ -18,7 +26,7 @@ function createWindow(): void {
             height: 670,
             minWidth: 760,
             minHeight: 550,
-            transparent: (process.platform === 'linux' || process.platform === 'darwin'),
+            transparent: process.platform === 'darwin',
             show: false,
             autoHideMenuBar: true,
             titleBarOverlay: false,
@@ -40,6 +48,15 @@ function createWindow(): void {
         fs.mkdirSync(conversationDirectoryPath);
         console.log("Created conversation directory at: " + conversationDirectoryPath);
     }
+
+    const conversationFiles = fs.readdirSync(conversationDirectoryPath);
+    conversationCache = new Map(conversationFiles
+        .filter(filePath => filePath.startsWith('conversation-') && filePath.endsWith('.json'))
+        .map(file => {
+            const filePath = join(conversationDirectoryPath, file);
+            const parsedContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+            return [ parsedContent.uuid, parsedContent ];
+        }));
 
     mainWindow.on('ready-to-show', () => {
         mainWindow.show()
@@ -128,14 +145,6 @@ ipcMain.handle('open-directory', async (_) => {
 });
 
 /**
- * Conversation topic cache.
- * This cache is used to store conversation topics in memory,
- * which will prevent excessive reads and writes to the conversation directory.
- * This map is updated whenever a conversation topic is saved or deleted.
- */
-const conversationCache: Map<string, ConversationTopic> = new Map();
-
-/**
  * Get the conversation history from the conversation directory.
  * This function returns a promise that resolves to the topic history.
  * The topic history will be an array of conversation topics, in the form of:
@@ -160,7 +169,9 @@ ipcMain.handle('list-conversations', async (_) => {
         .filter(filePath => filePath.startsWith('conversation-') && filePath.endsWith('.json'))
         .map(file => {
             const filePath = join(conversationDirectoryPath, file);
-            return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+            const parsedContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+            conversationCache.set(parsedContent.uuid, parsedContent);
+            return parsedContent;
         })
 });
 

@@ -163,7 +163,7 @@ export function ChatInputField() {
 
     return (
         <div className="flex flex-col justify-center items-center mb-3 mt-1 mx-1">
-            <div className="flex justify-start w-full items-center flex-wrap max-w-screen-md my-1">
+            <div className="flex justify-start w-full items-center flex-wrap max-w-screen-sm mx-auto my-1">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
                                   directory/>
@@ -174,7 +174,7 @@ export function ChatInputField() {
                 ))}
             </div>
             <div
-                className="flex flex-col justify-end items-center bg-gray-800 rounded-3xl max-w-screen-md md:max-w-screen-lg overflow-hidden border-[1px] border-solid border-gray-700">
+                className="flex flex-col justify-end items-center bg-gray-800 rounded-3xl max-w-screen-md overflow-hidden border-[1px] border-solid border-gray-700">
                 <div
                     className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <ChatAlternativeOption
