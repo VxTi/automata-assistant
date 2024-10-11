@@ -58,7 +58,7 @@ export function ChatMessage(props: { entry: ChatContextMessageType }) {
 export function LiveChatMessage(props: { contentRef: RefObject<HTMLDivElement>, active: boolean }) {
     if ( !props.active ) return null;
     return (
-        <div className="group flex flex-row justify-between items-start bg-gray-800 rounded-md py-2 px-4 my-1"
+        <div className="group flex flex-row justify-between items-start bg-gray-800 rounded-md py-2 px-4 my-1 transition-all"
              {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start overflow-x-scroll">
                         <span

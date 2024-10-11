@@ -68,8 +68,8 @@ export function ChatInputField() {
 
         ctx.setLiveChatActive(true);
         // Acquire chunks from the AI model and append them to the last message.
-        for await (const chunk of openai.chat.generateStreamed(prompt, ctx.messages.map(message => message.message))) {
-            ctx.lastMessageRef.current!.innerText += chunk;
+        for await (const partial of openai.chat.generateStreamed(prompt, ctx.messages.map(message => message.message))) {
+            ctx.lastMessageRef.current!.innerHTML = partial;
         }
         const response = ctx.lastMessageRef.current!.innerText;
         ctx.setLiveChatActive(false);
@@ -97,7 +97,7 @@ export function ChatInputField() {
             return [ ...previous, responseMessage ]
         });
         if ( ctx.spokenResponse ) {
-            await openai.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);
+            await openai.audio.speech.generate(response);
         }
     }, [ ctx.spokenResponse, ctx.messages, ctx.conversationTopic ]);
 

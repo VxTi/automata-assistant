@@ -128,27 +128,33 @@ export const openai = {
 
             const reader  = response.body.getReader();
             const decoder = new TextDecoder('utf-8');
+            let content   = '';
 
             while ( true ) {
                 const { done, value } = await reader.read();
                 const text            = decoder.decode(value, { stream: !done });
-                if ( text.startsWith('data: '))
-                {
-                    const segments = text.split('\n')
-                                         .filter(s => s.startsWith('data: '))
-                                         .map(s => s.split('data: ')[1]);
+                if ( text.startsWith('data: ') ) {
+                    const segments = text
+                        .split('\n')
+                        .filter(s => s.startsWith('data: '))
+                        .map(s => s.split('data: ')[ 1 ]);
+
                     for ( const segment of segments ) {
+                        // Last 'data' message returns [DONE]
                         if ( segment === '[DONE]' )
-                            break;
+                            return;
+
                         console.log(segment);
                         let json: any = {};
                         try {
                             json = JSON.parse(segment);
                         } catch (e) {
                             console.error(e);
-                            yield '';
+                            yield content;
+                            continue;
                         }
-                        yield json.choices[0].delta.content ?? '';
+                        content += (json.choices[ 0 ].delta.content ?? '').replaceAll('\n', '<br />');
+                        yield content;
                     }
                 }
                 if ( done ) break;

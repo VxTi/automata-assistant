@@ -180,7 +180,7 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
 
     return (
         <div
-            className={`flex flex-row rounded bg-black mx-auto w-[80%] border-[1px] border-solid border-gray-800 hover:bg-gray-900 hover:cursor-pointer duration-200 transition-all justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0' : 'max-h-32 my-1 p-2'}`}
+            className={`flex flex-row rounded bg-black mx-auto w-[80%] overflow-hidden border-solid border-gray-800 hover:bg-gray-900 hover:cursor-pointer duration-200 transition-all justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-1 p-2 border-[1px]'}`}
             onClick={loadTopic}
             {...CreateSequence('fadeIn', 700, 30 * props.index)}>
             <span className="text-white text-sm font-sans">{entry.topic}</span>

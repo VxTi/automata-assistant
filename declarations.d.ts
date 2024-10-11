@@ -17,10 +17,6 @@ declare module openai {
     export type CompletionMessageType = 'user' | 'system' | 'assistant';
     export type CompletionModelType = 'o1-preview' | 'chatgpt-4o-latest' | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-3.5-turbo' | 'gpt-3.5-turbo-0125' | 'gpt-3.5-turbo-1106';
 
-    export interface completions {
-
-    }
-
     /**
      * Completion message interface.
      * This interface represents a message that can be used for completion.
