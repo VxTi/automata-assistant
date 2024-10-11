@@ -18,12 +18,12 @@ export interface ActionStateProps<T = ActionStateType> {
 export function ActionState<T>(props: ActionStateProps<T>) {
     return (
         <div className="flex flex-row justify-start items-center relative w-max p-4 rounded-lg bg-gray-800">
-            <span className="text-white font-helvetica-neue text-sm mr-2">{props.title}</span>
+            <span className="text-white text-sm mr-2">{props.title}</span>
             {
                 props.options.map((_, i) => {
                     return (
                         <div className="flex flex-row justify-between items-center" key={i}>
-                            <input type="text" className="bg-gray-700 text-white font-helvetica-neue text-sm p-2 rounded-lg"/>
+                            <input type="text" className="bg-gray-700 text-white text-sm p-2 rounded-lg"/>
                         </div>
                     )
                 })

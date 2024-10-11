@@ -8,9 +8,9 @@ import { ChatInputField }                      from "./InputField";
 import { ChatContext, ChatContextMessageType } from "./Conversation";
 import { ConversationHistoryContainer }        from "./ConversationTopicHistory";
 import { NavigationHeader }                    from "./NavigationHeader";
-import { ChatMessage }                         from "./ChatMessage";
+import { ChatMessage, LiveChatMessage }        from "./ChatMessage";
 import { useAnimationSequence }                from "../../util/AnimationSequence";
-import '../../styles/animations.css'
+import '../../styles/utilities.css'
 
 /**
  * The assistant page.
@@ -19,12 +19,14 @@ import '../../styles/animations.css'
  */
 export function AssistantPage() {
 
-    const [ chatMessages, setChatMessages ]             = useState<(ChatContextMessageType)[]>([]);
-    const [ historyVisible, setHistoryVisible ]         = useState(false);
-    const [ conversationTopics, setConversationTopics ] = useState<string>('New conversation');
-    const [ spokenResponse, setSpokenResponse ]         = useState(false);
-    const [ topicUUID, setTopicUUID ]                   = useState<string | undefined>(undefined);
-    const chatContainerRef = useRef<HTMLDivElement>(null);
+    const [ messages, setMessages ]                   = useState<(ChatContextMessageType)[]>([]);
+    const [ historyVisible, setHistoryVisible ]       = useState(false);
+    const [ conversationTopic, setConversationTopic ] = useState<string>('New conversation');
+    const [ spokenResponse, setSpokenResponse ]       = useState(false);
+    const [ topicUUID, setTopicUUID ]                 = useState<string | undefined>(undefined);
+    const chatContainerRef                            = useRef<HTMLDivElement>(null);
+    const lastMessageRef                              = useRef<HTMLDivElement>(null);
+    const [ liveChatActive, setLiveChatActive ]       = useState(false);
 
     // Scroll down to the bottom of the chat
     // when the chat messages change.
@@ -32,28 +34,27 @@ export function AssistantPage() {
         if ( !chatContainerRef.current ) return;
 
         chatContainerRef.current!.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, [ chatMessages, chatContainerRef ]);
+    }, [ messages, chatContainerRef ]);
 
-    useAnimationSequence({ containerRef: chatContainerRef }, [ chatMessages ]);
+    useAnimationSequence({ containerRef: chatContainerRef }, [ messages ]);
 
     return (
         <ChatContext.Provider value={{
-            messages: chatMessages, setMessages: setChatMessages,
-            conversationTopic: conversationTopics, setConversationTopic: setConversationTopics,
-            historyVisible: historyVisible, setHistoryVisible: setHistoryVisible,
-            spokenResponse: spokenResponse, setSpokenResponse: setSpokenResponse,
-            topicUUID: topicUUID, setTopicUUID: setTopicUUID
+            messages, setMessages, conversationTopic, setConversationTopic,
+            historyVisible, setHistoryVisible, spokenResponse, setSpokenResponse,
+            topicUUID, setTopicUUID, lastMessageRef, setLiveChatActive
         }}>
             <ConversationHistoryContainer/>
-            <div className="flex flex-col relative justify-start items-stretch grow max-w-screen-md w-full mx-auto">
+            <div className="flex flex-col relative justify-start items-stretch grow">
                 <NavigationHeader/>
                 <div
                     className="grow relative flex flex-col w-[80%] mx-auto my-auto items-stretch overflow-hidden justify-start">
                     <div
                         ref={chatContainerRef}
                         className="absolute left-0 top-0 h-full w-full flex flex-col justify-start items-stretch grow shrink overflow-x-hidden no-scrollbar">
-                        {chatMessages.map((entry, index) =>
-                                              <ChatMessage key={index} entry={entry}/>)}
+                        {messages.map((entry, index) =>
+                                          <ChatMessage key={index} entry={entry}/>)}
+                        <LiveChatMessage contentRef={lastMessageRef} active={liveChatActive}/>
                     </div>
                 </div>
                 <ChatInputField/>

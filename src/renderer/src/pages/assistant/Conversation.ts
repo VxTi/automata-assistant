@@ -4,8 +4,8 @@
  * @date Created on Friday, October 04 - 18:31
  */
 
-import { createContext }     from "react";
-import { CompletionMessage } from "declarations";
+import { createContext, RefObject } from "react";
+import { CompletionMessage }        from "declarations";
 import { Marked }            from "marked";
 import markedKatex           from "marked-katex-extension";
 import hljs                  from "highlight.js";
@@ -44,7 +44,9 @@ export interface ChatContextType {
     historyVisible: boolean,
     setHistoryVisible: (visible: boolean) => void,
     spokenResponse: boolean,
-    setSpokenResponse: (spoken: boolean) => void
+    setSpokenResponse: (spoken: boolean) => void,
+    lastMessageRef: RefObject<HTMLDivElement>,
+    setLiveChatActive: (active: boolean) => void
 }
 
 /**
@@ -58,4 +60,6 @@ export const ChatContext = createContext<ChatContextType>(
         topicUUID: undefined, setTopicUUID: () => void 0,
         conversationTopic: 'New conversation', setConversationTopic: () => void 0,
         messages: [], setMessages: () => void 0,
+        lastMessageRef: { current: null },
+        setLiveChatActive: () => void 0
     });

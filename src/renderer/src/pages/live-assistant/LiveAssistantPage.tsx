@@ -157,7 +157,7 @@ export function LiveAssistantPage() {
                                    annotation="Back to menu" side='right'
                                    onClick={() => setContent(<HomePage/>)}/>
                 </div>
-                <h1 className="text-white text-center text-2xl font-helvetica-neue">Live Assistant</h1>
+                <h1 className="text-white text-center text-2xl">Live Assistant</h1>
             </div>
             <div className="flex flex-col grow justify-center items-center">
                 <canvas className="w-60 h-60 " ref={canvasRef}/>

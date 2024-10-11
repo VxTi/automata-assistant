@@ -17,7 +17,7 @@ createRoot(document.getElementById('root')!).render(
 function Application() {
     const { content } = useContext(ApplicationContext);
     return (
-        <div className="flex relative w-screen h-screen flex-col justify-start bg-gray-900">
+        <div className="flex relative w-screen h-screen flex-col justify-start bg-black">
             <div className="flex w-full min-h-7 shrink-0 justify-center items-center" style={{
                 WebkitUserSelect: 'none',
                 /** @ts-ignore */

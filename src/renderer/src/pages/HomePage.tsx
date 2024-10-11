@@ -64,11 +64,11 @@ export function HomePage() {
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none"/>
             <div className="grid grid-rows-3 place-items-center justify-items-center z-10" ref={containerRef}>
                 <div className="mb-3">
-                    <h1 className="text-white font-bold text-4xl sm:text-6xl my-5 text-center font-helvetica-neue"
-                        {...CreateSequence('fadeIn', 800, 40)}>
+                    <h1 className="text-white font-bold text-4xl sm:text-6xl my-5 text-center"
+                        {...CreateSequence('fadeIn', 800, 30)}>
                         Welcome back</h1>
-                    <span className="text-white text-sm sm:text-2xl my-1 text-center font-helvetica-neue"
-                          {...CreateSequence('fadeIn', 800, 40)}>Select any of the below tools to get started.</span>
+                    <span className="text-white text-sm sm:text-2xl my-1 text-center"
+                          {...CreateSequence('fadeIn', 800, 30)}>Select any of the below tools to get started.</span>
                 </div>
                 <div className="flex flex-row justify-center items-center w-full max-w-screen-md flex-wrap">
                     <FeatureCard title="Assistant" thumbnail={
@@ -110,8 +110,8 @@ function FeatureCard(props: { title: string, thumbnail: JSX.Element, targetPage:
     const { setContent } = useContext(ApplicationContext);
     return (
         <div
-            {...CreateSequence('fadeIn', 800, 40)}
-            className="flex flex-col basis-40 justify-center hover:bg-gray-700 hover:cursor-pointer duration-500 transition-colors items-center rounded-lg border-[1px] border-solid border-gray-700 bg-gray-800 p-5 m-3 select-none"
+            {...CreateSequence('fadeIn', 500, 30)}
+            className="flex flex-col basis-40 justify-center hover:bg-gray-900 hover:cursor-pointer duration-500 transition-colors items-center rounded-lg border-[1px] border-solid border-gray-700 bg-black p-5 m-3 select-none"
             onClick={() => setContent(props.targetPage)}>
             <div className="text-white w-14 h-14">
                 {props.thumbnail}

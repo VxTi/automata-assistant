@@ -22,7 +22,7 @@ export function NavigationHeader() {
               conversationTopic, setConversationTopic
           }              = useContext(ChatContext);
     return (
-        <div className="grid grid-cols-5 items-center mt-4 mb-1 mx-4 text-white">
+        <div className="grid grid-cols-5 items-center mt-4 mb-1 mx-4 text-white max-w-screen-md w-full mx-auto">
             <div className="flex flex-row items-center">
                 <AnnotatedIcon path="M15.75 19.5 8.25 12l7.5-7.5"
                                annotation="Back to menu" side='right' onClick={() => setContent(<HomePage/>)}
@@ -38,7 +38,7 @@ export function NavigationHeader() {
                     }}/>
                 )}
             </div>
-            <h1 className="text-white text-lg col-start-2 col-end-5 font-helvetica-neue text-center">
+            <h1 className="text-white text-lg col-start-2 col-end-5 text-center">
                 {conversationTopic}
             </h1>
             <div className="flex flex-row items-center justify-end">

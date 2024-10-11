@@ -1,4 +1,4 @@
-import { playAudio } from "./Audio";
+import { playAudio }                                                                            from "./Audio";
 import { CompletionMessage, SpeechGenerationConfig, TextCompletionConfig, TranscriptionConfig } from "declarations";
 
 /**
@@ -91,7 +91,7 @@ export const openai = {
     chat: {
         url: 'chat/completions',
         defaultConfiguration: {
-            model: 'gpt-4o',//'gpt-3.5-turbo',
+            model: 'gpt-3.5-turbo',//'gpt-3.5-turbo',
             max_tokens: 1024,
             temperature: 0.5,
             messages: []
@@ -103,6 +103,58 @@ export const openai = {
         imageFileSizeLimit: 20 * (1 << 20), // 20MB
         spreadsheetFileSizeLimit: 50 * (1 << 20), // 50MB
 
+        generateStreamed: async function* (prompt: string, messages: CompletionMessage[] = [], config: TextCompletionConfig = openai.chat.defaultConfiguration) {
+            const response = await fetch(openai.baseUrl + this.url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + openai.apiKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(
+                    {
+                        ...config,
+                        stream: true,
+                        messages: [
+                            ...config.messages,
+                            ...messages,
+                            { role: 'user', content: prompt }
+                        ]
+                    })
+            });
+
+            if ( !response.body ) {
+                throw new Error('ReadableStream not supported in this environment.');
+            }
+
+            const reader  = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+
+            while ( true ) {
+                const { done, value } = await reader.read();
+                const text            = decoder.decode(value, { stream: !done });
+                if ( text.startsWith('data: '))
+                {
+                    const segments = text.split('\n')
+                                         .filter(s => s.startsWith('data: '))
+                                         .map(s => s.split('data: ')[1]);
+                    for ( const segment of segments ) {
+                        if ( segment === '[DONE]' )
+                            break;
+                        console.log(segment);
+                        let json: any = {};
+                        try {
+                            json = JSON.parse(segment);
+                        } catch (e) {
+                            console.error(e);
+                            yield '';
+                        }
+                        yield json.choices[0].delta.content ?? '';
+                    }
+                }
+                if ( done ) break;
+            }
+        },
+
         /**
          * Generate a response to the given messages using the specified model.
          * This function returns a promise that resolves to the generated response
@@ -113,13 +165,13 @@ export const openai = {
          */
         generate: async function (prompt: string, messages: CompletionMessage[] = [], config: TextCompletionConfig = openai.chat.defaultConfiguration): Promise<Object> {
 
-            // If there's files to upload, add them to the form data
-            if ( config.files && config.files.length > 0 ) {
-                const formData = new FormData();
-                for ( let i = 0; i < config.files.length; i++ ) {
-                    formData.append('files', config.files[ i ]);
-                }
-            }
+            /*// If there's files to upload, add them to the form data
+             if ( config.files && config.files.length > 0 ) {
+             const formData = new FormData();
+             for ( let i = 0; i < config.files.length; i++ ) {
+             formData.append('files', config.files[ i ]);
+             }
+             }*/
 
             return fetch(openai.baseUrl + this.url, {
                 method: 'POST',

@@ -6,14 +6,14 @@
 
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { BaseStyles }                                           from "../../util/BaseStyles";
-import { requestMicrophoneAccess }                              from "../../util/Audio";
-import { openai }                                               from "../../util/Model";
 import { ChatContext, ChatContextMessageType, mdParser }        from "./Conversation";
-import { CompletionMessage }                                    from "declarations";
+import { requestMicrophoneAccess }                              from "../../util/Audio";
+import { CompletionMessage, ConversationTopic }                 from "declarations";
+import { BaseStyles }                                           from "../../util/BaseStyles";
+import { openai }                                               from "../../util/Model";
+
 import '../../styles/code-highlighting.css';
 import 'katex/dist/katex.min.css';
-import { ConversationTopic }                                    from "../../../../../declarations";
 
 
 /**
@@ -22,11 +22,7 @@ import { ConversationTopic }                                    from "../../../.
  */
 export function ChatInputField() {
 
-    const {
-              messages, setMessages,
-              spokenResponse, conversationTopic,
-              setConversationTopic, setTopicUUID, topicUUID
-          }                                           = useContext(ChatContext);
+    const ctx                                         = useContext(ChatContext);
     const [ selectedDirectory, setSelectedDirectory ] = useState<string | null>(null);
     const [ optionsShown, setOptionsShown ]           = useState(false);
     const [ selectedFiles, setSelectedFiles ]         = useState<string[]>([]);
@@ -51,38 +47,43 @@ export function ChatInputField() {
      */
     const handleSendRequest = useCallback(async (prompt: string) => {
 
-        let topicTitle = conversationTopic;
-        let uuid       = topicUUID;
+        let topicTitle = ctx.conversationTopic;
+        let uuid       = ctx.topicUUID;
+
+        const myMessage: ChatContextMessageType = { message: { role: 'user', content: await mdParser.parse(prompt) } };
+        ctx.setMessages((previous: ChatContextMessageType[]) => [ ...previous, myMessage ]);
 
         /**
          * Generate a summary of the prompt if no messages are present.
          */
-        if ( messages.length === 0 ) {
+        if ( ctx.messages.length === 0 ) {
             topicTitle = (await openai.chat.generate(
                 'Summarize the following question in as little words as possible, at most 5 words: ' + prompt
             )).choices[ 0 ][ 'message' ][ 'content' ];
+            ctx.setConversationTopic(topicTitle);
 
             uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            setTopicUUID(uuid);
-            setConversationTopic(topicTitle);
+            ctx.setTopicUUID(uuid);
         }
-        const myMessage: ChatContextMessageType = { message: { role: 'user', content: await mdParser.parse(prompt) } };
-        setMessages((previous: ChatContextMessageType[]) => [ ...previous, myMessage ]);
 
-        const response = await openai.chat.generate(prompt, messages.map(message => message.message));
-        if ( !('choices' in response) )
-            return;
+        ctx.setLiveChatActive(true);
+        // Acquire chunks from the AI model and append them to the last message.
+        for await (const chunk of openai.chat.generateStreamed(prompt, ctx.messages.map(message => message.message))) {
+            ctx.lastMessageRef.current!.innerText += chunk;
+        }
+        const response = ctx.lastMessageRef.current!.innerText;
+        ctx.setLiveChatActive(false);
 
         const responseMessage: ChatContextMessageType = {
             message: {
-                role: response.choices[ 0 ][ 'message' ][ 'role' ],
-                content: await mdParser.parse(response.choices[ 0 ][ 'message' ][ 'content' ])
+                role: 'assistant',
+                content: await mdParser.parse(response)
             } as CompletionMessage
         };
 
         // Update the conversation topic with the new message,
         // and save the conversation to the conversation history.
-        setMessages((previous: ChatContextMessageType[]) => {
+        ctx.setMessages((previous: ChatContextMessageType[]) => {
             (window[ 'api' ] as any)
                 .conversations.save(
                 {
@@ -95,10 +96,10 @@ export function ChatInputField() {
 
             return [ ...previous, responseMessage ]
         });
-        if ( spokenResponse ) {
+        if ( ctx.spokenResponse ) {
             await openai.audio.speech.generate(response.choices[ 0 ][ 'message' ][ 'content' ]);
         }
-    }, [ spokenResponse, messages, conversationTopic ]);
+    }, [ ctx.spokenResponse, ctx.messages, ctx.conversationTopic ]);
 
     /**
      * Handles the sending of a message.
@@ -111,10 +112,10 @@ export function ChatInputField() {
         if ( !inputContentRef.current || !elementValue )
             return;
 
-        inputContentRef.current!.value = '';
+        inputContentRef.current!.value        = '';
         inputContentRef.current!.style.height = 'auto';
         await handleSendRequest(elementValue);
-    }, [ spokenResponse, messages ]);
+    }, [ ctx.spokenResponse, ctx.messages ]);
 
     /**
      * Handles the microphone access.
@@ -159,10 +160,10 @@ export function ChatInputField() {
 
         audioDevice.current[ recording ? 'stop' : 'start' ](openai.audio.transcription.fragmentationInterval);
         setRecording( !recording);
-    }, [ spokenResponse, messages, recording ]);
+    }, [ ctx.spokenResponse, ctx.messages, recording ]);
 
     return (
-        <div className="flex flex-col justify-center items-center mb-3 mt-1 mx-1">
+        <div className="flex flex-col justify-center items-center mb-3 mt-1 mx-1 max-w-screen-md w-full mx-auto">
             <div className="flex justify-start w-full items-center flex-wrap max-w-screen-sm mx-auto my-1">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
@@ -174,7 +175,7 @@ export function ChatInputField() {
                 ))}
             </div>
             <div
-                className="flex flex-col justify-end items-center bg-gray-800 rounded-3xl max-w-screen-md overflow-hidden border-[1px] border-solid border-gray-700">
+                className="flex flex-col justify-end items-center bg-gray-900 rounded-3xl max-w-screen-md overflow-hidden border-[1px] border-solid border-gray-700">
                 <div
                     className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <ChatAlternativeOption
@@ -214,7 +215,7 @@ export function ChatInputField() {
                     <textarea
                         placeholder="Ask me anything..."
                         rows={1} cols={50} ref={inputContentRef}
-                        className="resize-none mx-2 w-full max-h-52 my-auto font-helvetica-neue grow focus:outline-none bg-transparent text-white p-2"/>
+                        className="resize-none mx-2 w-full max-h-52 my-auto grow focus:outline-none bg-transparent text-white p-2"/>
                     <svg xmlns="http://www.w3.org/2000/svg" fill={recording ? '#fff' : 'none'} viewBox="0 0 24 24"
                          strokeWidth={recording ? 0 : 1.5}
                          onClick={handleMicrophoneAccess}

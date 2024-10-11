@@ -31,11 +31,11 @@ export function AutomationsListPage() {
                                    annotation="Back to menu" side='right'
                                    onClick={() => setContent(<HomePage/>)}/>
                 </div>
-                <h1 className="text-white text-center text-2xl font-helvetica-neue">Automations</h1>
+                <h1 className="text-white text-center text-2xl">Automations</h1>
                 <div className="flex flex-row justify-end items-center">
                     <div>
 
-                    <span className="text-white text-md font-helvetica-neue text-right mr-2">
+                    <span className="text-white text-md text-right mr-2">
                         {automations.reduce((acc, prev) => acc + (prev.enabled ? 1 : 0), 0)} active
                     </span>
                     </div>

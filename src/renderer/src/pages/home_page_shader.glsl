@@ -5,8 +5,8 @@ uniform vec2 iResolution;
 
 const vec3 darkBlue = vec3(0.0, 0.0, 0.1);
 const vec3 lightBlue = vec3(0.192, 0.384, 0.633);
-const vec3 redAccent = vec3(0.610, 0.010, 0.05);
-const vec3 skyBlue = vec3(0.350, 0.61, 0.653);
+const vec3 redAccent = vec3(0.510, 0.010, 0.05);
+const vec3 skyBlue = vec3(0., 0., 0.);
 
 /**
  * Creates a 2x2 rotation matrix.
