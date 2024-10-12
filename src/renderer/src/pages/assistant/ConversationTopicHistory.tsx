@@ -48,8 +48,7 @@ export function ConversationHistoryContainer() {
 
         // Acquire the conversation topics from the main process
         // and filter out any faulty topics.
-        (window[ 'api' ] as any)
-            .conversations.list()
+        window[ 'conversations' ].list()
             .then((topics: ConversationTopic[]) =>
                       setConversationTopics(
                           topics.map(topic => {
@@ -157,7 +156,7 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
     // and forces an update to refresh the conversation history.
     const deleteTopic = useCallback(async (event: Event) => {
         event.stopPropagation();
-        await (window[ 'api' ] as any).conversations.delete(entry.uuid);
+        await window[ 'conversations' ].delete(entry.uuid);
         setDeleted(true);
     }, []);
 

@@ -1,10 +1,9 @@
 /**
- * @fileoverview ChatCompletion.ts
+ * @fileoverview ChatRequest.ts
  * @author Luca Warmenhoven
- * @date Created on Friday, October 11 - 15:02
+ * @date Created on Saturday, October 12 - 11:38
  */
 
-import { AIContext, Model }  from "./AIContext";
 
 export type ModelType =
     'google/gemini-flash-1.5-8b-exp'
@@ -89,23 +88,28 @@ export type ImageContentPart = {
 export type ContentPart = TextContent | ImageContentPart;
 
 /**
+ * Tool message interface.
+ */
+export interface ToolMessage {
+    role: 'tool';
+    content: string;
+    tool_call_id: string;
+    name?: string;
+}
+
+/**
+ * Regular message interface.
+ */
+export interface RegularMessage {
+    role: 'user' | 'assistant' | 'system';
+    content: string | ContentPart[];
+    name?: string;
+}
+
+/**
  * Message interface, used for completion.
  */
-export type Message =
-    | {
-          role: 'user' | 'assistant' | 'system';
-          // ContentParts are only for the 'user' role:
-          content: string | ContentPart[];
-          // If "name" is included, it will be prepended like this
-          // for non-OpenAI models: `{name}: {content}`
-          name?: string;
-      }
-    | {
-          role: 'tool';
-          content: string;
-          tool_call_id: string;
-          name?: string;
-      };
+export type Message = RegularMessage | ToolMessage;
 
 /**
  * Interface representing a tool parameter.
@@ -134,73 +138,3 @@ export type ToolChoice = | 'none' | 'auto' | {
         name: string;
     };
 };
-
-/**
- * The conversation topic.
- * This interface represents a conversation topic,
- * and can be used to store the conversation history.
- */
-export interface ConversationTopic {
-    /**
-     * The UUID of the conversation topic.
-     * This is used to identify the conversation topic.
-     */
-    uuid: string;
-
-    /**
-     * The topic of the conversation.
-     * This is a summary generated based on the initial message of the conversation.
-     */
-    topic: string;
-
-    /**
-     * The date of the conversation.
-     * This is updated whenever a new message is added to the conversation.
-     */
-    date: number;
-
-    /**
-     * The messages of the conversation.
-     */
-    messages: Message[]
-}
-
-const defaultConfiguration: CompletionRequest = {
-    model: 'google/gemini-flash-1.5-exp',
-    max_tokens: 2048,
-    temperature: 0.5,
-    messages: []
-};
-
-export class ChatCompletion extends Model<CompletionRequest | string> {
-
-    /**
-     * The base request.
-     * This request is used to set the default model or other parameters.
-     */
-    private readonly defaultConfig: CompletionRequest;
-
-    /**
-     * Constructs a new instance of the Chat Completion class.
-     * @param context The AI context to use.
-     * @param defaultConfig The base request to use. This can be used
-     * to set the default model or other parameters.
-     */
-    constructor(context: AIContext, defaultConfig?: CompletionRequest) {
-        super(context, 'chat/completion');
-        this.defaultConfig = defaultConfig || defaultConfiguration;
-    }
-
-    /**
-     * Create a new completion request.
-     * @param config The configuration of the completion request.
-     * This can be a string or a completion request object.
-     * When a string is provided, the string is used as the prompt,
-     * and the base request is used as the configuration.
-     */
-    create(config: CompletionRequest | string): Promise<Response> {
-        if ( typeof config === 'string')
-            return super.create({ ...this.defaultConfig, prompt: config });
-        return super.create(config);
-    }
-}

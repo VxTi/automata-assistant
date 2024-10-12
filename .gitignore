@@ -3,5 +3,5 @@ dist
 out
 .DS_Store
 *.log*
-.env
+src/backend/main/.env
 .idea

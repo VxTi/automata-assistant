@@ -6,10 +6,10 @@
 import { ReactNode, useContext, useEffect, useRef } from "react";
 import { AssistantPage }                            from "./assistant/AssistantPage";
 import { ApplicationContext }                       from "../util/ApplicationContext";
-import { AutomationsListPage }                      from "./automations/AutomationsListPage";
-import { Shader }                                   from "../util/Shader";
-import { VBO }                                      from "../util/VBO";
-import { LiveAssistantPage }                        from "./live-assistant/LiveAssistantPage";
+import { AutomationsListPage } from "./automations/AutomationsListPage";
+import { Shader }              from "../util/rendering/Shader";
+import { VBO }                 from "../util/rendering/VBO";
+import { LiveAssistantPage }   from "./live-assistant/LiveAssistantPage";
 import fragmentShader                           from "./home_page_shader.glsl";
 import { CreateSequence, useAnimationSequence } from "../util/AnimationSequence";
 

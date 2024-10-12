@@ -1,3 +1,7 @@
+import { TextToSpeech }   from "./src/backend/ai/TextToSpeech";
+import { ChatCompletion } from "./src/backend/ai/ChatCompletion";
+import { SpeechToText }   from "./src/backend/ai/SpeechToText";
+
 declare module '*.glsl' {
     const value: string;
     export default value;
@@ -92,6 +96,12 @@ declare module openai {
         model?: SpeechModelType;
         speed?: number;
     }
+}
+
+declare module ai {
+    declare const completion: ChatCompletion;
+    declare const tts: TextToSpeech;
+    declare const stt: SpeechToText;
 }
 
 export = openai;

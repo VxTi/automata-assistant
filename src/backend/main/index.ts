@@ -1,10 +1,11 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
-import { join }                                       from 'path'
+import { ConversationTopic }                          from "../../../declarations";
 import { electronApp, is, optimizer }                 from '@electron-toolkit/utils'
-import icon                                           from '../../resources/icon.png?asset'
-import dotenv                                         from 'dotenv';
+import { join }                                       from 'path'
+import icon                                           from '../../../resources/icon.png'
+import * as dotenv                                    from 'dotenv';
 import * as fs                                        from "node:fs";
-import { ConversationTopic }                          from "../../declarations";
+import './AIApiHandlers'
 
 dotenv.config({ path: join(__dirname, '../../.env') });
 
@@ -50,13 +51,13 @@ function createWindow(): void {
     }
 
     const conversationFiles = fs.readdirSync(conversationDirectoryPath);
-    conversationCache = new Map(conversationFiles
-        .filter(filePath => filePath.startsWith('conversation-') && filePath.endsWith('.json'))
-        .map(file => {
-            const filePath = join(conversationDirectoryPath, file);
-            const parsedContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-            return [ parsedContent.uuid, parsedContent ];
-        }));
+    conversationCache       = new Map(conversationFiles
+                                          .filter(filePath => filePath.startsWith('conversation-') && filePath.endsWith('.json'))
+                                          .map(file => {
+                                              const filePath      = join(conversationDirectoryPath, file);
+                                              const parsedContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+                                              return [ parsedContent.uuid, parsedContent ];
+                                          }));
 
     mainWindow.on('ready-to-show', () => {
         mainWindow.show()
@@ -113,35 +114,37 @@ app.on('window-all-closed', () => {
 // code. You can also put them in separate files and require them here.
 
 ipcMain.handle('open-file', async (_) => {
-    return await dialog.showOpenDialog(
-                           {
-                               title: 'Select file to upload',
-                               properties: [ 'openFile', 'multiSelections' ],
-                               buttonLabel: 'Select',
-                               message: 'Select a file to upload',
-                               defaultPath: app.getPath('home')
-                           })
-                       .then(result =>
-                                 !result.canceled ? result.filePaths : [])
-                       .catch(() => [])
+    return await dialog
+        .showOpenDialog(
+            {
+                title: 'Select file to upload',
+                properties: [ 'openFile', 'multiSelections' ],
+                buttonLabel: 'Select',
+                message: 'Select a file to upload',
+                defaultPath: app.getPath('home')
+            })
+        .then(result =>
+                  !result.canceled ? result.filePaths : [])
+        .catch(() => [])
 });
 
 ipcMain.handle('open-directory', async (_) => {
-    return await dialog.showOpenDialog(
-                           {
-                               title: 'Select directory to upload',
-                               properties: [ 'openDirectory' ],
-                               buttonLabel: 'Select',
-                               message: 'Select a directory to upload',
-                               defaultPath: app.getPath('home')
-                           })
-                       .then(result => {
-                           if ( !result.canceled ) {
-                               return result.filePaths[ 0 ];
-                           }
-                           return null;
-                       })
-                       .catch(() => null)
+    return await dialog
+        .showOpenDialog(
+            {
+                title: 'Select directory to upload',
+                properties: [ 'openDirectory' ],
+                buttonLabel: 'Select',
+                message: 'Select a directory to upload',
+                defaultPath: app.getPath('home')
+            })
+        .then(result => {
+            if ( !result.canceled ) {
+                return result.filePaths[ 0 ];
+            }
+            return null;
+        })
+        .catch(() => null)
 });
 
 /**
@@ -168,7 +171,7 @@ ipcMain.handle('list-conversations', async (_) => {
     return conversationFiles
         .filter(filePath => filePath.startsWith('conversation-') && filePath.endsWith('.json'))
         .map(file => {
-            const filePath = join(conversationDirectoryPath, file);
+            const filePath      = join(conversationDirectoryPath, file);
             const parsedContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
             conversationCache.set(parsedContent.uuid, parsedContent);
             return parsedContent;

@@ -8,7 +8,7 @@ import { CompletionMessage, SpeechGenerationConfig, TextCompletionConfig, Transc
 export const openai = {
     baseUrl: 'https://api.openai.com/v1/',
     /* @ts-ignore */
-    apiKey: window.api.openAiKey,
+    //apiKey: //window.api.openAiKey,
     audio: {
         /**
          * Speech generation model.

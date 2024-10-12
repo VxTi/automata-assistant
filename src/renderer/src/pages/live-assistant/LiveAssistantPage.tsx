@@ -8,9 +8,9 @@ import { AnnotatedIcon }                 from "../../components/AnnotatedIcon";
 import { HomePage }                      from "../HomePage";
 import { ApplicationContext }            from "../../util/ApplicationContext";
 import { useContext, useEffect, useRef } from "react";
-import { Shader }                        from "../../util/Shader";
+import { Shader }                        from "../../util/rendering/Shader";
 import fragmentShader                    from "./audio_visualizer_shader.glsl";
-import { VBO }                           from "../../util/VBO";
+import { VBO }                           from "../../util/rendering/VBO";
 
 /**
  * Convert a float32 array to a 16-bit PCM array.

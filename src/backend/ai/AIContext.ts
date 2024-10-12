@@ -78,7 +78,7 @@ export class AIContext {
  * The model class.
  * This is the parent class for all AI models,
  */
-export class Model<T> {
+export class AIModel {
 
     /**
      * The AI context to use for the model.
@@ -93,7 +93,8 @@ export class Model<T> {
 
     /**
      * Constructs a new instance of the model.
-     * @param context
+     * @param context The AI context to use.
+     * @param route The route to use.
      */
     constructor(context: AIContext, route: string) {
         this.aiContext = context;
@@ -104,7 +105,7 @@ export class Model<T> {
      * Create a new instance of the model.
      * @param config The configuration of the model.
      */
-    create(config: T): Promise<Response> {
+    async create(config: any): Promise<any> {
         return this.aiContext.request(this.route, 'POST', config);
     }
 }

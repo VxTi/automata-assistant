@@ -6,10 +6,32 @@ import glsl                                    from 'vite-plugin-glsl'
 export default defineConfig(
     {
         main: {
-            plugins: [ externalizeDepsPlugin() ]
+            plugins: [ externalizeDepsPlugin() ],
+            build: {
+                lib: {
+                    entry: resolve(__dirname, 'src/backend/main/'),
+                    formats: [ 'cjs' ]
+                },
+            },
+            resolve: {
+                alias: {
+                    '@main': resolve(__dirname, 'src/backend/main/')
+                }
+            }
         },
         preload: {
-            plugins: [ externalizeDepsPlugin() ]
+            plugins: [ externalizeDepsPlugin() ],
+            build: {
+                lib: {
+                    entry: resolve(__dirname, 'src/backend/preload/'),
+                    formats: [ 'cjs' ]
+                },
+            },
+            resolve: {
+                alias: {
+                    '@preload': resolve(__dirname, 'src/backend/preload/')
+                }
+            }
         },
         renderer: {
             resolve: {
@@ -19,4 +41,5 @@ export default defineConfig(
             },
             plugins: [ react(), glsl() ]
         }
-    })
+    }
+)

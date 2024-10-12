@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: ssh-ftp-react
+productName: Assistant
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: ssh-ftp-react
+  executableName: Assistant
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
