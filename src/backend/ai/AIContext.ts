@@ -18,7 +18,7 @@ export interface AIContextConfig {
     /**
      * The base URL of the API, e.g. https://api.openai.com/v1
      */
-    baseURL: string;
+    baseURL?: string;
 
     /**
      * The name of the application.
@@ -40,6 +40,30 @@ export interface AIContextConfig {
 }
 
 /**
+ * Request parameters for the AI Context.
+ */
+interface AIContextRequestParams {
+    /**
+     * The route to request, e.g. 'audio/speech'
+     */
+    route: string;
+    /**
+     * The method to use. Defaults to 'POST'
+     */
+    method?: string;
+
+    /**
+     * The body of the request.
+     */
+    body: any;
+
+    /**
+     * The headers of the request.
+     */
+    headers?: Record<string, string>;
+}
+
+/**
  * The AI Context class.
  * This class is used to make requests to the AI.
  */
@@ -53,23 +77,22 @@ export class AIContext {
      */
     constructor(config: AIContextConfig) {
         this.config = config;
+        this.config.baseURL ??= 'https://api.openai.com/v1/'; // Default to OpenAI
     }
 
     /**
      * Make a request to the AI.
      * This uses the configured fetch method to make a request to the AI.
-     * @param route The route to request, e.g. 'audio/speech'
-     * @param method The method to use, e.g. 'POST'
-     * @param body The body of the request.
+     * @param params The configuration of the request.
      */
-    request(route: string, method: string, body: any): Promise<Response> {
-        return (this.config.fetchMethod ?? fetch)(this.config.baseURL + route, {
-            method: method,
+    request(params: AIContextRequestParams): Promise<Response> {
+        return (this.config.fetchMethod ?? fetch)(this.config.baseURL + params.route, {
+            method: params.method ?? 'POST',
             headers: {
+                'Authorization': 'Bearer ' + this.config.apiKey,
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + this.config.apiKey
             },
-            body: JSON.stringify(body)
+            body: (params.body instanceof FormData || typeof params.body === 'string') ? params.body : JSON.stringify(params.body)
         });
     }
 }
@@ -106,6 +129,6 @@ export class AIModel {
      * @param config The configuration of the model.
      */
     async create(config: any): Promise<any> {
-        return this.aiContext.request(this.route, 'POST', config);
+        return this.aiContext.request({ route: this.route, body: config });
     }
 }

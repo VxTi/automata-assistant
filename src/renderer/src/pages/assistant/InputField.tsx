@@ -7,14 +7,12 @@
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ChatContext, ChatContextMessageType, mdParser }        from "./Conversation";
-import { requestMicrophoneAccess }                              from "../../util/Audio";
 import { CompletionMessage, ConversationTopic }                 from "declarations";
 import { BaseStyles }                                           from "../../util/BaseStyles";
-import { openai }                                               from "../../util/Model";
+import { ChatResponse, StreamingChoice }                        from "../../../../backend/ai/ChatResponse";
 
 import '../../styles/code-highlighting.css';
-import 'katex/dist/katex.min.css';
-
+import { SecureAIIPCContext }                                   from "../../util/SecureAIIPCContext";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -22,6 +20,7 @@ import 'katex/dist/katex.min.css';
  */
 export function ChatInputField() {
 
+    const evtCtx                                      = useContext(SecureAIIPCContext);
     const ctx                                         = useContext(ChatContext);
     const [ selectedDirectory, setSelectedDirectory ] = useState<string | null>(null);
     const [ optionsShown, setOptionsShown ]           = useState(false);
@@ -57,9 +56,13 @@ export function ChatInputField() {
          * Generate a summary of the prompt if no messages are present.
          */
         if ( ctx.messages.length === 0 ) {
-            topicTitle = (await openai.chat.generate(
-                'Summarize the following question in as little words as possible, at most 5 words: ' + prompt
-            )).choices[ 0 ][ 'message' ][ 'content' ];
+            await window[ 'ai' ].completion.create('Summarize the following question in as little words as possible, at most 5 words: ' + prompt);
+
+            evtCtx.setCompletionHandler((response: ChatResponse) => {
+                topicTitle = (response.choices[ 0 ][ 'message' ][ 'content' ]);
+                evtCtx.setCompletionHandler(undefined);
+            });
+
             ctx.setConversationTopic(topicTitle);
 
             uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -67,12 +70,25 @@ export function ChatInputField() {
         }
 
         ctx.setLiveChatActive(true);
-        // Acquire chunks from the AI model and append them to the last message.
-        for await ( const partial of openai.chat.generateStreamed(prompt, ctx.messages.map(message => message.message)) ) {
-            ctx.lastMessageRef.current!.innerHTML = partial;
-        }
-        const response = ctx.lastMessageRef.current!.innerText;
-        ctx.setLiveChatActive(false);
+
+        let response = '';
+
+        /**
+         * Stream the messages to the AI model.
+         */
+        await window[ 'ai' ].completion.create({ messages: [ ...ctx.messages, myMessage ].map($message => $message.message), stream: true});
+        evtCtx.setCompletionHandler((chatResponse: ChatResponse) => {
+            const message = chatResponse.choices[ 0 ] as StreamingChoice;
+
+            if ( message.delta.content )
+                ctx.lastMessageRef.current!.innerHTML = (response += message.delta.content);
+
+            if ( message.finish_reason === 'stop')
+            {
+                ctx.setLiveChatActive(false);
+                evtCtx.setCompletionHandler(undefined);
+            }
+        });
 
         const responseMessage: ChatContextMessageType = {
             message: {
@@ -96,7 +112,7 @@ export function ChatInputField() {
             return [ ...previous, responseMessage ]
         });
         if ( ctx.spokenResponse ) {
-            await openai.audio.speech.generate(response);
+            window[ 'audio' ].play(await window[ 'ai' ].audio.textToSpeech(response));
         }
     }, [ ctx.spokenResponse, ctx.messages, ctx.conversationTopic ]);
 
@@ -128,7 +144,8 @@ export function ChatInputField() {
     const handleMicrophoneAccess = useCallback(async () => {
         // If we're going to start recording, request microphone access.
         if ( audioDevice.current === null ) {
-            audioDevice.current = await requestMicrophoneAccess();
+            audioDevice.current = await window[ 'audio' ].requestMicrophone();
+
             // If the audio device is still not available, it probably means the user denied access.
             if ( !audioDevice.current )
                 return;
@@ -139,16 +156,14 @@ export function ChatInputField() {
             audioDevice.current.ondataavailable = event => {
                 chunks.push(event.data);
                 totalBytes += event.data.size;
-                openai.audio.fileSizeLimit
-                if ( totalBytes > openai.audio.transcription.fileSizeLimit ) {
+
+                if ( totalBytes > window[ 'ai' ].audio.speechToTextFileLimit ) {
                     audioDevice.current!.stop();
                 }
             }
 
             audioDevice.current.onstop = async () => {
-
-                const transcription = await openai.audio.transcription.generate(
-                    { file: new Blob(chunks), fileName: 'audio.mp4', model: 'whisper-1', temperature: 0.5 });
+                const transcription = await window[ 'ai' ].audio.speechToText(new Blob(chunks));
                 await handleSendRequest(transcription);
             }
         }
@@ -157,7 +172,7 @@ export function ChatInputField() {
         if ( audioDevice.current === undefined )
             return;
 
-        audioDevice.current[ recording ? 'stop' : 'start' ](openai.audio.transcription.fragmentationInterval);
+        audioDevice.current[ recording ? 'stop' : 'start' ](window[ 'ai' ].audio.audioSegmentationIntervalMs);
         setRecording( !recording);
     }, [ ctx.spokenResponse, ctx.messages, recording ]);
 
@@ -180,7 +195,7 @@ export function ChatInputField() {
                     <ChatAlternativeOption
                         path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
                         text="Add file" onClick={() => {
-                        window['fs']
+                        window[ 'fs' ]
                             .openFile()
                             .then((files: string[]) => {
                                 setSelectedFiles([ ...selectedFiles, ...files ]);
@@ -212,6 +227,12 @@ export function ChatInputField() {
                               d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/>
                     </svg>
                     <textarea
+                        onKeyDown={async event => {
+                            if ( event.key === 'Enter' && !event.shiftKey ) {
+                                event.preventDefault();
+                                await handleSend();
+                            }
+                        }}
                         placeholder="Ask me anything..."
                         rows={1} cols={50} ref={inputContentRef}
                         className="resize-none mx-2 w-full max-h-52 my-auto grow focus:outline-none bg-transparent text-white p-2"/>

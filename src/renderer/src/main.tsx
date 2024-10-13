@@ -3,14 +3,17 @@ import { createRoot }                                     from 'react-dom/client
 import { ApplicationContext, ApplicationContextProvider } from "./util/ApplicationContext";
 import './styles/styles.css'
 import { AutomationsContextProvider }                     from "./pages/automations/Automations";
+import { SecureAIIPCContextProvider }                     from "./util/SecureAIIPCContext";
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-        <ApplicationContextProvider>
-            <AutomationsContextProvider>
-                <Application/>
-            </AutomationsContextProvider>
-        </ApplicationContextProvider>
+        <SecureAIIPCContextProvider>
+            <ApplicationContextProvider>
+                <AutomationsContextProvider>
+                    <Application/>
+                </AutomationsContextProvider>
+            </ApplicationContextProvider>
+        </SecureAIIPCContextProvider>
     </StrictMode>,
 )
 

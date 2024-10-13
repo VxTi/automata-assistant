@@ -39,13 +39,12 @@ export interface ConversationTopic {
 }
 
 const defaultConfiguration: CompletionRequest = {
-    model: 'google/gemini-flash-1.5-exp',
-    max_tokens: 2048,
+    model: 'gpt-3.5-turbo-1106',
+    max_completion_tokens: 2048,
     temperature: 0.5,
-    messages: []
-};
+}
 
-type ChatCompletionResponse = ChatResponse | (() => AsyncIterator<ChatResponse>);
+export type ChatCompletionResponse = ChatResponse | (() => AsyncGenerator<ChatResponse>);
 
 export class ChatCompletion extends AIModel {
 
@@ -62,7 +61,7 @@ export class ChatCompletion extends AIModel {
      * to set the default model or other parameters.
      */
     constructor(context: AIContext, defaultConfig?: CompletionRequest) {
-        super(context, 'chat/completion');
+        super(context, 'chat/completions');
         this.defaultConfig = defaultConfig || defaultConfiguration;
     }
 
@@ -75,32 +74,55 @@ export class ChatCompletion extends AIModel {
      */
     public async create(config: CompletionRequest | string): Promise<ChatCompletionResponse> {
 
-        const streaming = typeof config === 'object' && config.stream;
-        const response  = await super.create(typeof config === 'string' ?
-                                                 { ...this.defaultConfig, prompt: config } : config) as Response;
+        if ( typeof config !== 'string')
+        {
+            config.model ??= this.defaultConfig.model;
+        }
+
+        const streaming = typeof config !== 'string' && 'stream' in config && config.stream;
+        const response  = await super.create(typeof config === 'string'
+                                             ?
+                                                 {
+                                                     ...this.defaultConfig,
+                                                     messages: [ { role: 'user', content: config } ]
+                                                 }
+                                             : config) as Response;
 
         if ( !streaming )
             return await response.json() as ChatResponse;
 
-        return (async function* (): AsyncIterator<ChatResponse> {
+        // Return an async iterator that will
+        // parse the incoming packets and yield them.
+        return (async function* (): AsyncGenerator<ChatResponse> {
 
-            const reader  = response.body!.getReader();
-            const decoder = new TextDecoder('utf-8');
-            let content   = '';
+            const reader     = response.body!.getReader();
+            const decoder    = new TextDecoder('utf-8');
+            let content      = '';
             let idxOfNewline = -1;
 
             while ( true ) {
                 const { done, value } = await reader.read();
                 if ( done ) break;
 
-                content += decoder.decode(value);
+                const chunk = decoder.decode(value, { stream: true });
 
-                // Split the content by newlines
-                while ( (idxOfNewline = content.indexOf('\n')) >= 0 ) {
+                // Decode the value and append it to the content
+                content += chunk;
+
+                idxOfNewline = content.indexOf('\n');
+
+                // Since data fragmentation's can occur, we need to split the content
+                // into lines and parse them individually.
+                if ( idxOfNewline > -1 ) {
                     // Start from after 'data: '
                     const line = content.slice(6, idxOfNewline);
+
+                    if ( line === '[DONE]' )
+                        return;
+
                     console.log(line);
-                    content    = content.slice(idxOfNewline + 1);
+                    content = content.slice(idxOfNewline + 1);
+                    idxOfNewline = -1;
                     yield JSON.parse(line) as ChatResponse;
                 }
             }
