@@ -4,8 +4,6 @@
  * @date Created on Sunday, October 06 - 18:52
  */
 
-import { AnnotatedIcon }                 from "../../components/AnnotatedIcon";
-import { HomePage }                      from "../HomePage";
 import { ApplicationContext }            from "../../util/ApplicationContext";
 import { useContext, useEffect, useRef } from "react";
 import { Shader }                        from "../../util/rendering/Shader";
@@ -118,7 +116,7 @@ export function LiveAssistantPage() {
 
                  })
                  .catch(() => {
-                     setContent(<HomePage/>);
+
                  });
 
         const audioBubbleCount = 12;
@@ -151,12 +149,7 @@ export function LiveAssistantPage() {
 
     return (
         <div className="mx-auto max-w-screen-md w-full flex flex-col grow justify-start">
-            <div className="grid grid-cols-3 m-4 items-center">
-                <div className="flex items-center justify-start">
-                    <AnnotatedIcon path="M15.75 19.5 8.25 12l7.5-7.5"
-                                   annotation="Back to menu" side='right'
-                                   onClick={() => setContent(<HomePage/>)}/>
-                </div>
+            <div className="flex flex-col items-center m-4">
                 <h1 className="text-white text-center text-2xl">Live Assistant</h1>
             </div>
             <div className="flex flex-col grow justify-center items-center">

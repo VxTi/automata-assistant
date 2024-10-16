@@ -1,32 +1,23 @@
 /**
- * @fileoverview ConversationTopicHistory.tsx
+ * @fileoverview ConversationHistory.tsx
  * @author Luca Warmenhoven
- * @date Created on Friday, October 04 - 18:38
+ * @date Created on Wednesday, October 16 - 12:08
  */
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { CreateSequence, useAnimationSequence }                 from "../../util/AnimationSequence";
-import { BaseStyles }                                           from "../../util/BaseStyles";
-import { AnnotatedIcon }                                        from "../../components/AnnotatedIcon";
-import { CompletionMessage, ConversationTopic }                 from "declarations";
-import { ChatContext }                                          from "./Conversation";
+import { ChatContext }                                          from "./assistant/Conversation";
+import { CreateSequence, useAnimationSequence }                 from "../util/AnimationSequence";
+import { AnnotatedIcon }                                        from "../components/AnnotatedIcon";
+import { ConversationTopic }                                    from "../../../backend/ai/ChatCompletion";
+import { Message }                                              from "../../../backend/ai/ChatCompletionDefinitions";
 
-/**
- * The conversation history wrapper.
- * This component is used to display the conversation history,
- * and allows the user to select a conversation topic to view.
- * @param props the properties of the component.
- */
-export function ConversationHistoryContainer() {
+export function ConversationHistory() {
     const [ conversationTopics, setConversationTopics ]
               = useState<(ConversationTopic & { hidden: boolean })[]>([]);
-    const {
-              historyVisible, setHistoryVisible
-          }   = useContext(ChatContext);
 
     const inputRef     = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     useAnimationSequence({ containerRef: containerRef, intervalType: 'absolute' },
-                         [ conversationTopics, historyVisible ]);
+                         [ conversationTopics ]);
 
     /**
      * Debounce function for filtering the conversation topics.
@@ -43,19 +34,20 @@ export function ConversationHistoryContainer() {
      * Load the conversation topics from the main process.
      */
     useEffect(() => {
-        if ( !historyVisible )
-            return;
 
         // Acquire the conversation topics from the main process
         // and filter out any faulty topics.
-        window[ 'conversations' ].list()
+        window[ 'conversations' ]
+            .list()
             .then((topics: ConversationTopic[]) =>
                       setConversationTopics(
-                          topics.map(topic => {
-                                    return { ...topic, hidden: false };
-                                })
-                                .sort((a, b) => b.date - a.date)));
-    }, [ historyVisible ]);
+                          topics
+                              .map(topic => {
+                                  return { ...topic, hidden: false };
+                              })
+                              .sort((a, b) =>
+                                        b.date - a.date)));
+    }, []);
 
     /**
      * Filter the conversation topics based on the input value.
@@ -79,8 +71,9 @@ export function ConversationHistoryContainer() {
                           return {
                               ...topic,
                               hidden: !(topic.topic.toLowerCase().includes(value) ||
-                                  topic.messages.some((message: CompletionMessage) =>
-                                                          message.content.toLowerCase().includes(value)
+                                  topic.messages.some((message: Message) =>
+                                                          (Array.isArray(message.content) ? message.content.join(", ") : message.content!).toLowerCase()
+                                                                                                                                          .includes(value)
                                   ))
                           };
                       }));
@@ -95,13 +88,13 @@ export function ConversationHistoryContainer() {
 
     return (
         <div
-            className={`absolute transition-all duration-500 flex z-20 flex-col justify-start items-stretch w-full h-full left-0 top-0 backdrop-blur-md backdrop-brightness-50 ${historyVisible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0 -z-10'}`}>
+            className={`transition-all duration-500 flex z-20 flex-col justify-start items-stretch w-full h-full`}>
             <div className="flex flex-row justify-center items-start w-full">
                 <div className="flex flex-col justify-start grow items-stretch max-w-screen-md">
-                    <h3 className="text-white text-center text-2xl mt-5">Conversation history</h3>
+                    <h3 className="text-black text-center text-2xl mt-5">Conversation history</h3>
                     <div className="header-grid">
                         <div
-                            className="bg-gray-900 col-start-2 col-end-3 flex items-center justify-start overflow-hidden text-white grow py-2 px-3 rounded-xl mx-2">
+                            className="bg-gray-200 col-start-2 col-end-3 flex items-center justify-start overflow-hidden text-black grow py-2 px-3 rounded-xl mx-2">
                             <svg fill="none" strokeWidth={1.5} stroke="currentColor" viewBox="0 0 24 24"
                                  className="w-6 h-6 mr-2"
                                  xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -109,20 +102,14 @@ export function ConversationHistoryContainer() {
                                       d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
                             </svg>
                             <input type="text" placeholder="Search conversation topics" ref={inputRef}
-                                   className="bg-transparent col-start-2 col-end-3 focus:outline-none mx-1 px-1 text-white grow rounded-xl"/>
+                                   className="bg-transparent col-start-2 placeholder:text-gray-400 col-end-3 focus:outline-none mx-1 px-1 text-black grow rounded-xl"/>
                         </div>
-                        <svg fill="none" strokeWidth="1.5" stroke="currentColor" viewBox="0 0 24 24"
-                             onClick={() => setHistoryVisible( !historyVisible)}
-                             className={`my-2 ${BaseStyles.ICON}`}
-                             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-                        </svg>
                     </div>
                     <div
                         className="grow relative overflow-scroll flex flex-col justify-start items-stretch min-h-[80vh]"
                         ref={containerRef}>
                         {conversationTopics.length === 0 ?
-                         <span className="text-white text-center mt-5 text-md">No previous conversations found.</span> :
+                         <span className="text-black text-center mt-5 text-md">No previous conversations found.</span> :
                          <div
                              className="flex flex-col justify-start z-30 items-stretch overflow-y-scroll left-0 top-0 w-full mt-4 absolute">
                              {conversationTopics
@@ -145,9 +132,7 @@ export function ConversationHistoryContainer() {
  */
 function Topic(props: { topic: ConversationTopic, index: number }) {
     const {
-              setConversationTopic, setMessages,
-              setHistoryVisible, setTopicUUID,
-              topicUUID
+              setConversationTopic, setMessages, setTopicUUID, topicUUID
           }                       = useContext(ChatContext);
     const { topic: entry }        = props;
     const [ deleted, setDeleted ] = useState(false);
@@ -167,7 +152,6 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
             return;
         setConversationTopic(entry.topic);
         setTopicUUID(entry.uuid);
-        setHistoryVisible(false);
         setMessages((_) => entry.messages.map(messageEntry => {
             return { message: messageEntry };
         }))
@@ -193,3 +177,4 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
         </div>
     )
 }
+

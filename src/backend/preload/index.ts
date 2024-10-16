@@ -4,8 +4,8 @@ import { SpeechToTextRequest } from "../ai/SpeechToText";
 import { TTSRequest }          from "../ai/TextToSpeech";
 import { sep }                 from 'path';
 import { ConversationTopic }   from "../ai/ChatCompletion";
-import './Audio'
 import { CompletionRequest }   from "../ai/ChatCompletionDefinitions";
+import './Audio'
 
 
 // Expose the APIs to the renderer process
@@ -70,7 +70,10 @@ contextBridge.exposeInMainWorld('conversations', {
     }
 });
 
-const ipcAi = {
+/**
+ * The AI APIs for the renderer process.
+ */
+contextBridge.exposeInMainWorld('ai', {
     completion: async (request: CompletionRequest) => {
         return await electronAPI.ipcRenderer.invoke('ai:completion', request);
     },
@@ -92,9 +95,4 @@ const ipcAi = {
         speechToTextFileLimit: 25 * 1024 * 1024,
         audioSegmentationIntervalMs: 500,
     }
-}
-
-/**
- * The AI APIs for the renderer process.
- */
-contextBridge.exposeInMainWorld('ai', ipcAi);
+});

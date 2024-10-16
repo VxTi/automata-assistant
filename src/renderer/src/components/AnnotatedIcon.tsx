@@ -27,7 +27,7 @@ export function AnnotatedIcon(props: {
             {props.annotation}
         </span>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                 className={BaseStyles.ICON_NO_HOVER + ' group-hover:bg-gray-800 transition-colors duration-300'}>
+                 className={BaseStyles.ICON_NO_HOVER + ' group-hover:bg-gray-800 group-hover:stroke-white transition-colors duration-300'}>
                 { Array.isArray(props.path) ?
                   props.path.map((path, i) =>
                                      <path key={i} strokeLinecap="round" strokeLinejoin="round" d={path}/>) :

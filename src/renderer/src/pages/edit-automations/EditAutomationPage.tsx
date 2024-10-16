@@ -28,7 +28,7 @@ export function EditAutomationPage(props: { automation?: Automation }) {
                                                              <AutomationPageWrapper automation={props.automation}/> :
                                                              <AutomationsListPage/>)}/>
                 </div>
-                <h1 className="text-white text-center text-2xl">
+                <h1 className="text-black text-center text-2xl">
                     Edit automation{props.automation ? ' for \'' + props.automation.name + '\'' : ''}
                 </h1>
             </div>

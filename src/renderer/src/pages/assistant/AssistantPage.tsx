@@ -6,7 +6,6 @@
 import { useEffect, useRef, useState }         from "react";
 import { ChatInputField }                      from "./InputField";
 import { ChatContext, ChatContextMessageType } from "./Conversation";
-import { ConversationHistoryContainer }        from "./ConversationTopicHistory";
 import { NavigationHeader }                    from "./NavigationHeader";
 import { ChatMessage, LiveChatMessage }        from "./ChatMessage";
 import { useAnimationSequence }                from "../../util/AnimationSequence";
@@ -44,8 +43,7 @@ export function AssistantPage() {
             historyVisible, setHistoryVisible, spokenResponse, setSpokenResponse,
             topicUUID, setTopicUUID, lastMessageRef, setLiveChatActive
         }}>
-            <ConversationHistoryContainer/>
-            <div className="flex flex-col relative justify-start items-stretch grow">
+            <div className="flex flex-col relative justify-start items-center grow">
                 <NavigationHeader/>
                 <div
                     className="grow relative flex flex-col w-[80%] mx-auto my-auto items-stretch overflow-hidden justify-start">

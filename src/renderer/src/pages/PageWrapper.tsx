@@ -8,6 +8,7 @@ import { ApplicationContext }              from "../util/ApplicationContext";
 import { AutomationsListPage }             from "./automations/AutomationsListPage";
 import { AssistantPage }                   from "./assistant/AssistantPage";
 import { LiveAssistantPage }               from "./live-assistant/LiveAssistantPage";
+import { ConversationHistory }             from "./ConversationHistory";
 
 export function PageWrapper() {
     const [ sidebarExpanded, setSidebarExpanded ] = useState(false);
@@ -22,7 +23,7 @@ export function PageWrapper() {
             }}/>
             <div className="flex flex-col justify-start items-stretch w-full h-full">
                 <div className="relative flex flex-row justify-start items-stretch h-full">
-                    {sidebarExpanded &&
+                    {!sidebarExpanded &&
                         <div
                             className={`absolute left-0 top-0 p-3 z-50 transition-colors duration-500 text-black`}>
                             <svg fill="none" strokeWidth="1.5" stroke="currentColor" viewBox="0 0 24 24"
@@ -35,8 +36,8 @@ export function PageWrapper() {
                         </div>
                     }
                     <div
-                        className={`flex flex-col left-0 top-0 h-full bg-black absolute md:relative transition-all duration-500 justify-start items-stretch grow ${sidebarExpanded ? 'max-w-0' +
-                            ' overflow-hidden p-0' : 'max-w-[300px] z-20'}`}>
+                        className={`flex flex-col left-0 top-0 h-full shrink-0 bg-black absolute md:relative w-96 shadow-black shadow-lg transition-all duration-500 justify-start items-stretch grow ${!sidebarExpanded ? 'max-w-0' +
+                            ' overflow-hidden p-0' : 'max-w-[300px] z-50'}`}>
                         <div className="ml-auto p-3 text-white">
                             <svg fill="none" strokeWidth="1.5" stroke="currentColor" viewBox="0 0 24 24"
                                  className="w-9 h-9 p-1 rounded-full hover:bg-gray-800 transition-colors duration-300 cursor-pointer"
@@ -48,6 +49,7 @@ export function PageWrapper() {
                         <MenuItem title="Assistant" content={<AssistantPage/>}/>
                         <MenuItem title="Live Chat" content={<LiveAssistantPage/>}/>
                         <MenuItem title="Automations" content={<AutomationsListPage/>}/>
+                        <MenuItem title="Conversation History" content={<ConversationHistory />} />
                     </div>
                     {content}
 

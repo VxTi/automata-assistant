@@ -5,11 +5,11 @@
  */
 
 import { createContext, RefObject } from "react";
-import { Marked }            from "marked";
-import markedKatex           from "marked-katex-extension";
-import hljs                  from "highlight.js";
-import { markedHighlight } from "marked-highlight";
-import { Message }         from "../../../../backend/ai/ChatCompletionDefinitions";
+import { Marked }                   from "marked";
+import markedKatex                  from "marked-katex-extension";
+import hljs                         from "highlight.js";
+import { markedHighlight }          from "marked-highlight";
+import { Message }                  from "../../../../backend/ai/ChatCompletionDefinitions";
 
 
 export const mdParser = new Marked();
@@ -41,8 +41,6 @@ export interface ChatContextType {
     setTopicUUID: (uuid: string) => void,
     conversationTopic: string,
     setConversationTopic: (topic: string) => void,
-    historyVisible: boolean,
-    setHistoryVisible: (visible: boolean) => void,
     spokenResponse: boolean,
     setSpokenResponse: (spoken: boolean) => void,
     lastMessageRef: RefObject<HTMLDivElement>,
@@ -55,7 +53,6 @@ export interface ChatContextType {
  */
 export const ChatContext = createContext<ChatContextType>(
     {
-        historyVisible: false, setHistoryVisible: () => void 0,
         spokenResponse: false, setSpokenResponse: () => void 0,
         topicUUID: undefined, setTopicUUID: () => void 0,
         conversationTopic: 'New conversation', setConversationTopic: () => void 0,

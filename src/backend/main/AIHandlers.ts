@@ -27,8 +27,8 @@ ipcMain.handle('ai:completion', async (event: Electron.IpcMainInvokeEvent, reque
     if ( typeof response !== 'function' )
         return response as ChatResponse;
 
-    const generator = response();
-    for await ( const entry of generator ) {
+    const iterator = response();
+    for await ( const entry of iterator ) {
         console.log('Sending chunk to renderer: ', entry);
         event.sender.send('ai:completion-chunk', entry);
         console.log("Sent chunk to renderer");

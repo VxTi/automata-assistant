@@ -6,7 +6,7 @@
 
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { ChatContext, ChatContextMessageType, mdParser }        from "./Conversation";
+import { ChatContext, ChatContextMessageType }                  from "./Conversation";
 import { BaseStyles }                                           from "../../util/BaseStyles";
 
 import '../../styles/code-highlighting.css';
@@ -188,9 +188,15 @@ export function ChatInputField() {
         if ( audioDevice.current === undefined )
             return;
 
-        audioDevice.current[ recording ? 'stop' : 'start' ](window[ 'ai' ].audio.audioSegmentationIntervalMs);
+        console.log(audioDevice.current);
+        if ( recording ) {
+            audioDevice.current.stop!();
+        }
+        else {
+            audioDevice.current.start!(window[ 'ai' ].audio.audioSegmentationIntervalMs);
+        }
         setRecording( !recording);
-    }, [ ctx.spokenResponse, ctx.messages, recording ]);
+    }, [ ctx.spokenResponse, ctx.messages, recording, audioDevice.current ]);
 
     return (
         <div className="flex flex-col justify-center items-center mb-3 mt-1 max-w-screen-md w-full mx-auto">

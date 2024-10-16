@@ -110,9 +110,8 @@ export class ChatCompletion extends AIModel {
 
                 console.log("Reading packet: ", content);
 
-                // Since data fragmentation's can occur, we need to split the content
-                // into lines and parse them individually.
-                while (( idxOfNewline = content.indexOf('\n') ) > -1 && content.length > 0 ) {
+                while ( (idxOfNewline = content.indexOf('\n')) > -1)
+                {
                     // Start from after 'data: '
                     const line = content.slice(6, idxOfNewline);
 
@@ -128,7 +127,6 @@ export class ChatCompletion extends AIModel {
                         console.error("Failed to parse JSON: ", line);
                     }
                     content = content.slice(idxOfNewline + 1);
-                    await new Promise(resolve => setImmediate(resolve));
                 }
             }
         });
