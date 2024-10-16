@@ -4,9 +4,8 @@
  * @date Created on Friday, October 11 - 15:02
  */
 
-import { AIContext, AIModel }         from "./AIContext";
-import { CompletionRequest, Message } from "./ChatRequest";
-import { ChatResponse }               from "./ChatResponse";
+import { AIContext, AIModel }                                             from "./AIContext";
+import { ChatResponse, CompletionRequest, Message, StreamedChatResponse } from "./ChatCompletionDefinitions";
 
 /**
  * The conversation topic.
@@ -44,7 +43,7 @@ const defaultConfiguration: CompletionRequest = {
     temperature: 0.5,
 }
 
-export type ChatCompletionResponse = ChatResponse | (() => AsyncGenerator<ChatResponse>);
+export type ChatCompletionResponse = ChatResponse | (() => AsyncGenerator<StreamedChatResponse>);
 
 export class ChatCompletion extends AIModel {
 
@@ -74,60 +73,64 @@ export class ChatCompletion extends AIModel {
      */
     public async create(config: CompletionRequest | string): Promise<ChatCompletionResponse> {
 
-        if ( typeof config !== 'string')
-        {
-            config.model ??= this.defaultConfig.model;
+        if ( typeof config !== 'string' ) {
+            config['model'] = config['model'] ?? this.defaultConfig.model;
         }
 
         const streaming = typeof config !== 'string' && 'stream' in config && config.stream;
-        const response  = await super.create(typeof config === 'string'
-                                             ?
-                                                 {
-                                                     ...this.defaultConfig,
-                                                     messages: [ { role: 'user', content: config } ]
-                                                 }
-                                             : config) as Response;
+        const response  = await super.create(
+            typeof config === 'string' ?
+                { ...this.defaultConfig, messages: [ { role: 'user', content: config } ] } : config
+        ) as Response;
 
         if ( !streaming )
             return await response.json() as ChatResponse;
 
         // Return an async iterator that will
         // parse the incoming packets and yield them.
-        return (async function* (): AsyncGenerator<ChatResponse> {
+        return (async function* (): AsyncGenerator<StreamedChatResponse> {
 
             const reader     = response.body!.getReader();
             const decoder    = new TextDecoder('utf-8');
             let content      = '';
             let idxOfNewline = -1;
 
+            /**
+             * Read the incoming data and yield the parsed JSON.
+             * Since some chunks arrive in multiple parts, we'll need to
+             * buffer the data and split it into lines.
+             */
             while ( true ) {
                 const { done, value } = await reader.read();
-                if ( done ) break;
-
-                const chunk = decoder.decode(value, { stream: true });
+                if ( done || !value)
+                    return;
 
                 // Decode the value and append it to the content
-                content += chunk;
+                content += decoder.decode(value, { stream: true });
 
-                idxOfNewline = content.indexOf('\n');
+                console.log("Reading packet: ", content);
 
                 // Since data fragmentation's can occur, we need to split the content
                 // into lines and parse them individually.
-                if ( idxOfNewline > -1 ) {
+                while (( idxOfNewline = content.indexOf('\n') ) > -1 && content.length > 0 ) {
                     // Start from after 'data: '
                     const line = content.slice(6, idxOfNewline);
 
-                    if ( line === '[DONE]' )
-                        return;
+                    if ( line.length === 0 ) continue;
+                    if ( line === '[DONE]') return;
 
-                    console.log(line);
+                    try {
+                        const parsed = JSON.parse(line);
+                        console.log('Parsed: ', parsed);
+                        console.log("Content: ", parsed.choices[0].delta);
+                        yield parsed as StreamedChatResponse;
+                    } catch (e) {
+                        console.error("Failed to parse JSON: ", line);
+                    }
                     content = content.slice(idxOfNewline + 1);
-                    idxOfNewline = -1;
-                    yield JSON.parse(line) as ChatResponse;
+                    await new Promise(resolve => setImmediate(resolve));
                 }
             }
         });
     }
-
-
 }

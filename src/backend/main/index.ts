@@ -5,7 +5,7 @@ import { join }                                       from 'path'
 import icon                                           from '../../../resources/icon.png'
 import * as dotenv                                    from 'dotenv';
 import * as fs                                        from "node:fs";
-import './AIIPCHandlers'
+import './AIHandlers'
 
 dotenv.config({ path: join(__dirname, '../../.env') });
 

@@ -1,5 +1,5 @@
 /**
- * @fileoverview ChatRequest.ts
+ * @fileoverview ChatCompletionDefinitions.d.ts
  * @author Luca Warmenhoven
  * @date Created on Saturday, October 12 - 11:38
  */
@@ -326,7 +326,7 @@ interface LogProbs {
 
 type LogProbsTop = LogProbs & { top_logprobs: LogProbs[] };
 
-type FinishReasonType = 'stop' | 'length' | 'content_filter' | 'tool_calls' | 'function_call';
+type FinishReasonType = 'stop' | 'length' | 'content_filter' | 'tool_calls' | 'function_call' | null;
 
 /**
  * Represents a generic response returned by the model.
@@ -360,11 +360,6 @@ interface GenericResponse {
      * that might impact determinism.
      */
     system_fingerprint: string;
-
-    /**
-     * The object type, which is always `chat.completion`.
-     */
-    object: 'chat.completion';
 }
 
 interface GenericUsage {
@@ -389,6 +384,11 @@ interface GenericUsage {
  */
 export interface StreamedChatResponse extends GenericResponse {
 
+
+    /**
+     * The object type, which is always `chat.completion`.
+     */
+    object: 'chat.completion.chunk';
 
     /**
      * A list of chat completion choices. Can contain more than one elements if n is greater than 1. Can also be empty
@@ -495,6 +495,12 @@ export interface ChatResponse extends GenericResponse {
             refusal: null | LogProbsTop[];
         }
     }[],
+
+
+    /**
+     * The object type, which is always `chat.completion`.
+     */
+    object: 'chat.completion';
 
     /**
      * Usage statistics for the completion request.

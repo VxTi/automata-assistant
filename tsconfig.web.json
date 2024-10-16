@@ -3,8 +3,8 @@
     "include": [
         "src/renderer/src/**/*",
         "src/renderer/src/**/*.tsx",
-        "src/backend/*.d.ts",
-        "declarations.d.ts"
+        "src/**/*.d.ts",
+        "src/shared/**/*"
     ],
     "compilerOptions": {
         "composite": true,

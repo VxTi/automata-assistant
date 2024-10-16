@@ -85,14 +85,15 @@ export class AIContext {
      * This uses the configured fetch method to make a request to the AI.
      * @param params The configuration of the request.
      */
-    request(params: AIContextRequestParams): Promise<Response> {
-        return (this.config.fetchMethod ?? fetch)(this.config.baseURL + params.route, {
+    public request(params: AIContextRequestParams): Promise<Response> {
+        return fetch(this.config.baseURL + params.route, {
             method: params.method ?? 'POST',
             headers: {
                 'Authorization': 'Bearer ' + this.config.apiKey,
                 'Content-Type': 'application/json',
             },
-            body: (params.body instanceof FormData || typeof params.body === 'string') ? params.body : JSON.stringify(params.body)
+            body: (params.body instanceof FormData || typeof params.body === 'string') ?
+                  params.body : JSON.stringify(params.body)
         });
     }
 }
@@ -128,7 +129,8 @@ export class AIModel {
      * Create a new instance of the model.
      * @param config The configuration of the model.
      */
-    async create(config: any): Promise<any> {
+    public async create(config: any): Promise<any> {
+        console.log("Creating request: ", config, this.aiContext);
         return this.aiContext.request({ route: this.route, body: config });
     }
 }

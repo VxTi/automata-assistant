@@ -10,7 +10,7 @@ type SpeechToTextModelType = 'whisper-1';
 /**
  * Configuration object for the speech to text model.
  */
-export interface SpeechToTextConfig {
+export interface SpeechToTextRequest {
     model: SpeechToTextModelType;
     language?: string;
     temperature?: number;
@@ -43,7 +43,7 @@ export class SpeechToText extends AIModel {
      * @param config The configuration object for the speech to text model.
      * This can be either a configuration object, or a Blob object.
      */
-    public async create(config: SpeechToTextConfig | Blob): Promise<SpeechToTextResponse> {
+    public async create(config: SpeechToTextRequest | Blob): Promise<SpeechToTextResponse> {
         const formData = new FormData();
         formData.append('file', config[ 'file' ] ?? config, config[ 'fileName' ] ?? 'audio.wav');
         formData.append('language', config[ 'language' ] ?? 'en');

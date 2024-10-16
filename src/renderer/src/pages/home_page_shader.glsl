@@ -3,10 +3,10 @@ precision mediump float;
 uniform float time;
 uniform vec2 iResolution;
 
-const vec3 darkBlue = vec3(0.0, 0.0, 0.1);
-const vec3 lightBlue = vec3(0.192, 0.384, 0.633);
-const vec3 redAccent = vec3(0.510, 0.010, 0.05);
-const vec3 skyBlue = vec3(0., 0., 0.);
+const vec3 lightBlue = vec3(.95, .95, 1.);
+const vec3 skyBlue = vec3(0.410, 0.40, 0.95);
+const vec3 darkBlue = lightBlue;
+const vec3 redAccent = skyBlue;
 
 /**
  * Creates a 2x2 rotation matrix.

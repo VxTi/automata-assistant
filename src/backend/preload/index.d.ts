@@ -1,15 +1,19 @@
-import { ElectronAPI }                          from '@electron-toolkit/preload'
-import { CompletionRequest, ConversationTopic } from "../ai/ChatCompletion";
-import { SpeechToTextConfig }                   from "../ai/SpeechToText";
-import { TTSRequest }                           from "../ai/TextToSpeech";
+import { ElectronAPI }                                               from '@electron-toolkit/preload'
+import { ChatCompletion, ChatCompletionResponse, ConversationTopic } from "../ai/ChatCompletion";
+import { SpeechToText, SpeechToTextRequest }                         from "../ai/SpeechToText";
+import { TextToSpeech, TTSRequest }                                  from "../ai/TextToSpeech";
+import {
+    ChatResponse,
+    CompletionRequest
+}                                                                    from "../ai/ChatCompletionDefinitions";
 
 declare global {
     interface Window {
         electron: ElectronAPI
         fs: {
             separator: string,
-            openFile: () => Promise<string | null>,
-            openDirectory: () => Promise<string | null>
+            openFile: () => Promise<string[]>,
+            openDirectory: () => Promise<string>
         },
         conversations: {
             save: (topic: ConversationTopic) => Promise<void>,
@@ -17,12 +21,12 @@ declare global {
             list: () => Promise<ConversationTopic[]>
         },
         ai: {
-            completion: {
-                create: (prompt: string | CompletionRequest) => Promise<Response>
-            },
+            completion: (request: CompletionRequest | string) => Promise<ChatResponse | null>,
             audio: {
-                textToSpeech: (config: TTSRequest) => Promise<Response>,
-                speechToText: (config: SpeechToTextConfig | Blob) => Promise<Response>
+                textToSpeech: (request: TTSRequest) => Promise<{ data: string }>,
+                speechToText: (request: SpeechToTextRequest | Blob) => Promise<string>,
+                speechToTextFileLimit: number,
+                audioSegmentationIntervalMs: number
             }
         }
     }

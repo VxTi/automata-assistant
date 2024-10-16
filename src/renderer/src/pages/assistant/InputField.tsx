@@ -7,12 +7,11 @@
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ChatContext, ChatContextMessageType, mdParser }        from "./Conversation";
-import { CompletionMessage, ConversationTopic }                 from "declarations";
 import { BaseStyles }                                           from "../../util/BaseStyles";
-import { ChatResponse, StreamingChoice }                        from "../../../../backend/ai/ChatResponse";
 
 import '../../styles/code-highlighting.css';
-import { SecureAIIPCContext }                                   from "../../util/SecureAIIPCContext";
+import { ConversationTopic }                                    from "../../../../backend/ai/ChatCompletion";
+import { ChatResponse, StreamedChatResponse }                   from "../../../../backend/ai/ChatCompletionDefinitions";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -20,7 +19,6 @@ import { SecureAIIPCContext }                                   from "../../util
  */
 export function ChatInputField() {
 
-    const evtCtx                                      = useContext(SecureAIIPCContext);
     const ctx                                         = useContext(ChatContext);
     const [ selectedDirectory, setSelectedDirectory ] = useState<string | null>(null);
     const [ optionsShown, setOptionsShown ]           = useState(false);
@@ -31,6 +29,8 @@ export function ChatInputField() {
 
     useEffect(() => {
         if ( !inputContentRef.current ) return;
+
+        inputContentRef.current.select();
 
         // Smoothly change the height of the input field.
         inputContentRef.current.addEventListener('input', () => {
@@ -46,23 +46,35 @@ export function ChatInputField() {
      */
     const handleSendRequest = useCallback(async (prompt: string) => {
 
+        console.log("Sending request")
+
         let topicTitle = ctx.conversationTopic;
         let uuid       = ctx.topicUUID;
 
-        const myMessage: ChatContextMessageType = { message: { role: 'user', content: await mdParser.parse(prompt) } };
-        ctx.setMessages((previous: ChatContextMessageType[]) => [ ...previous, myMessage ]);
+        const newMessages = [ ...ctx.messages, {
+            message: {
+                role: 'user',
+                content: prompt
+            }
+        } as ChatContextMessageType ];
+        ctx.setMessages(() => newMessages);
 
         /**
          * Generate a summary of the prompt if no messages are present.
          */
         if ( ctx.messages.length === 0 ) {
-            await window[ 'ai' ].completion.create('Summarize the following question in as little words as possible, at most 5 words: ' + prompt);
 
-            evtCtx.setCompletionHandler((response: ChatResponse) => {
-                topicTitle = (response.choices[ 0 ][ 'message' ][ 'content' ]);
-                evtCtx.setCompletionHandler(undefined);
-            });
-
+            console.log('Generating topic title for conversation...');
+            const response = await window[ 'ai' ]
+                .completion(
+                    {
+                        model: 'gpt-4o-mini', messages: [ {
+                            role: 'user',
+                            content: 'Summarize the following question in as little words as possible, at most 5 words: ' + prompt
+                        } ]
+                    }) as ChatResponse;
+            topicTitle     = response.choices[ 0 ].message.content as string;
+            console.log('Generated topic title:', topicTitle);
             ctx.setConversationTopic(topicTitle);
 
             uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -71,49 +83,53 @@ export function ChatInputField() {
 
         ctx.setLiveChatActive(true);
 
-        let response = '';
 
         /**
          * Stream the messages to the AI model.
          */
-        await window[ 'ai' ].completion.create({ messages: [ ...ctx.messages, myMessage ].map($message => $message.message), stream: true});
-        evtCtx.setCompletionHandler((chatResponse: ChatResponse) => {
-            const message = chatResponse.choices[ 0 ] as StreamingChoice;
 
-            if ( message.delta.content )
-                ctx.lastMessageRef.current!.innerHTML = (response += message.delta.content);
+        let response = '';
+        const chunk  = async (_: any, message: StreamedChatResponse) => {
+            console.log('Received chunk from AI model:', message);
+            const delta = message.choices[ 0 ].delta;
 
-            if ( message.finish_reason === 'stop')
-            {
-                ctx.setLiveChatActive(false);
-                evtCtx.setCompletionHandler(undefined);
+            if ( delta.content )
+                ctx.lastMessageRef.current!.innerHTML = (response += delta.content);
+        };
+        window.electron.ipcRenderer.on('ai:completion-chunk', chunk);
+        window.electron.ipcRenderer.once('ai:completion-chunk-end', async () => {
+            window.electron.ipcRenderer.removeListener('ai:completion-chunk', chunk);
+            ctx.setLiveChatActive(false);
+
+            // Update the conversation topic with the new message,
+            // and save the conversation to the conversation history.
+            ctx.setMessages(() => {
+                const updatedMessages = [ ...newMessages, {
+                    message: { role: 'assistant', content: response }
+                } as ChatContextMessageType ];
+                window[ 'conversations' ].save(
+                    {
+                        topic: topicTitle,
+                        date: Date.now(),
+                        uuid: uuid,
+                        messages: updatedMessages
+                            .map(message => message.message)
+                    } as ConversationTopic);
+
+                return updatedMessages;
+            });
+            if ( ctx.spokenResponse ) {
+                const blob = await window[ 'ai' ].audio.textToSpeech(
+                    { input: response, model: 'tts-1', voice: 'alloy' });
+                window[ 'audio' ].play(blob);
             }
         });
-
-        const responseMessage: ChatContextMessageType = {
-            message: {
-                role: 'assistant',
-                content: await mdParser.parse(response)
-            } as CompletionMessage
-        };
-
-        // Update the conversation topic with the new message,
-        // and save the conversation to the conversation history.
-        ctx.setMessages((previous: ChatContextMessageType[]) => {
-            window[ 'conversations' ].save(
-                {
-                    topic: topicTitle,
-                    date: Date.now(),
-                    uuid: uuid,
-                    messages: [ ...previous, responseMessage ]
-                        .map(message => message.message)
-                } as ConversationTopic);
-
-            return [ ...previous, responseMessage ]
-        });
-        if ( ctx.spokenResponse ) {
-            window[ 'audio' ].play(await window[ 'ai' ].audio.textToSpeech(response));
-        }
+        window[ 'ai' ].completion(
+            {
+                model: 'gpt-4o-mini',
+                messages: newMessages.map($message => $message.message),
+                stream: true
+            });
     }, [ ctx.spokenResponse, ctx.messages, ctx.conversationTopic ]);
 
     /**
@@ -157,14 +173,14 @@ export function ChatInputField() {
                 chunks.push(event.data);
                 totalBytes += event.data.size;
 
-                if ( totalBytes > window[ 'ai' ].audio.speechToTextFileLimit ) {
+                if ( totalBytes > window.ai.audio.speechToTextFileLimit ) {
                     audioDevice.current!.stop();
                 }
             }
 
+            // When the recording is stopped, send the request.
             audioDevice.current.onstop = async () => {
-                const transcription = await window[ 'ai' ].audio.speechToText(new Blob(chunks));
-                await handleSendRequest(transcription);
+                await handleSendRequest(await window[ 'ai' ].audio.speechToText(new Blob(chunks)));
             }
         }
 
@@ -177,7 +193,7 @@ export function ChatInputField() {
     }, [ ctx.spokenResponse, ctx.messages, recording ]);
 
     return (
-        <div className="flex flex-col justify-center items-center mb-3 mt-1 mx-1 max-w-screen-md w-full mx-auto">
+        <div className="flex flex-col justify-center items-center mb-3 mt-1 max-w-screen-md w-full mx-auto">
             <div className="flex justify-start w-full items-center flex-wrap max-w-screen-sm mx-auto my-1">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}

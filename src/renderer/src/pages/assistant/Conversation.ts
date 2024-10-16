@@ -5,11 +5,11 @@
  */
 
 import { createContext, RefObject } from "react";
-import { CompletionMessage }        from "declarations";
 import { Marked }            from "marked";
 import markedKatex           from "marked-katex-extension";
 import hljs                  from "highlight.js";
-import { markedHighlight }   from "marked-highlight";
+import { markedHighlight } from "marked-highlight";
+import { Message }         from "../../../../backend/ai/ChatCompletionDefinitions";
 
 
 export const mdParser = new Marked();
@@ -32,7 +32,7 @@ mdParser.use(
 );
 
 /** The chat context message type. */
-export type ChatContextMessageType = { message: CompletionMessage, representation?: JSX.Element };
+export type ChatContextMessageType = { message: Message, representation?: JSX.Element };
 
 export interface ChatContextType {
     messages: ChatContextMessageType[],

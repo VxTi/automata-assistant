@@ -4,13 +4,13 @@
  * @date Created on Friday, October 04 - 12:05
  */
 import { createContext, ReactNode, useState } from "react";
-import { HomePage }                           from "../pages/HomePage";
+import { AssistantPage }                      from "../pages/assistant/AssistantPage";
 
 export const ApplicationContext = createContext<{
     content: ReactNode,
     setContent: (content: ReactNode) => void
 }>({
-       content: <HomePage/>,
+       content: <AssistantPage/>,
        setContent: () => {
        }
    });
@@ -20,7 +20,7 @@ export const ApplicationContext = createContext<{
  * @param children The children of the component
  */
 export function ApplicationContextProvider({ children }: { children: ReactNode }) {
-    const [ content, setContent ] = useState<ReactNode>(<HomePage/>);
+    const [ content, setContent ] = useState<ReactNode>(<AssistantPage/>);
     return (
         <ApplicationContext.Provider value={{ content, setContent }}>
             {children}

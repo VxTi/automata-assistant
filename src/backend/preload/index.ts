@@ -1,12 +1,12 @@
 import { contextBridge, ipcMain } from 'electron'
-import { electronAPI }            from '@electron-toolkit/preload'
-import { ConversationTopic }  from "../../../declarations";
-import { CompletionRequest }  from "../ai/ChatRequest";
-import { SpeechToTextConfig } from "../ai/SpeechToText";
-import { TTSRequest }         from "../ai/TextToSpeech";
-import { sep }                from 'path';
+import { electronAPI }         from '@electron-toolkit/preload'
+import { SpeechToTextRequest } from "../ai/SpeechToText";
+import { TTSRequest }          from "../ai/TextToSpeech";
+import { sep }                 from 'path';
+import { ConversationTopic }   from "../ai/ChatCompletion";
 import './Audio'
-import { ChatCompletionResponse } from "../ai/ChatCompletion";
+import { CompletionRequest }   from "../ai/ChatCompletionDefinitions";
+
 
 // Expose the APIs to the renderer process
 contextBridge.exposeInMainWorld('electron', electronAPI);
@@ -70,36 +70,31 @@ contextBridge.exposeInMainWorld('conversations', {
     }
 });
 
-/**
- * The AI APIs for the renderer process.
- */
-contextBridge.exposeInMainWorld('ai', {
-    completion: {
-        /**
-         * Handle the chat completion request.
-         * @param request The completion request to handle, or a string prompt.
-         */
-        create: async (request: string | CompletionRequest): Promise<ChatCompletionResponse> => {
-            return await electronAPI.ipcRenderer.invoke('ai:chat-completion', request);
-        }
+const ipcAi = {
+    completion: async (request: CompletionRequest) => {
+        return await electronAPI.ipcRenderer.invoke('ai:completion', request);
     },
     audio: {
         /**
          * Handle the text-to-speech request.
          * @param request The text-to-speech request to handle.
          */
-        textToSpeech: async (request: TTSRequest | string): Promise<Blob> => {
+        textToSpeech: async (request: TTSRequest) => {
             return await electronAPI.ipcRenderer.invoke('ai:text-to-speech', request);
         },
         /**
          * Handle the speech-to-text request.
          * @param request The speech-to-text request to handle.
          */
-        speechToText: async (request: Blob | SpeechToTextConfig): Promise<string> => {
+        speechToText: async (request: SpeechToTextRequest) => {
             return await electronAPI.ipcRenderer.invoke('ai:speech-to-text', request);
         },
-
         speechToTextFileLimit: 25 * 1024 * 1024,
         audioSegmentationIntervalMs: 500,
     }
-});
+}
+
+/**
+ * The AI APIs for the renderer process.
+ */
+contextBridge.exposeInMainWorld('ai', ipcAi);
