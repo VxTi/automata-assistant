@@ -6,9 +6,9 @@
 import { AnnotatedIcon }         from "../../components/AnnotatedIcon";
 import { ApplicationContext }    from "../../util/ApplicationContext";
 import { useContext }            from "react";
-import { AutomationsListPage }   from "../automations/AutomationsListPage";
-import { Automation }            from "../automations/Automations";
-import { AutomationPageWrapper } from "../automations/AutomationPageWrapper";
+import { AutomationsListPage }            from "../automations/AutomationsListPage";
+import { Automation, AutomationsContext } from "../automations/Automations";
+import { AutomationPageWrapper }          from "../automations/AutomationPageWrapper";
 
 /**
  * The edit automation page.
@@ -18,6 +18,7 @@ import { AutomationPageWrapper } from "../automations/AutomationPageWrapper";
  */
 export function EditAutomationPage(props: { automation?: Automation }) {
     const { setContent } = useContext(ApplicationContext);
+    const { automations } = useContext(AutomationsContext);
     return (
         <div className="mx-auto max-w-screen-md w-full flex flex-col justify-start">
             <div className="header-grid mb-6">
@@ -32,15 +33,20 @@ export function EditAutomationPage(props: { automation?: Automation }) {
                     Edit automation{props.automation ? ' for \'' + props.automation.name + '\'' : ''}
                 </h1>
             </div>
-            <div className="flex flex-col justify-start items-stretch max-w-screen-sm mx-auto">
+            <div className="flex flex-col justify-start items-stretch max-w-screen-sm mx-auto text-black">
+                <div className="flex flex-row justify-center mb-5 items-center text-lg">
+                    <span>Name of automation: </span>
+                    <input type="text" className="ml-2 px-2 border-b-[1px] border-solid border-black focus:outline-none bg-transparent" placeholder="Automation name" defaultValue={`My automation #${automations.length + 1}`}/>
+                </div>
+
                 <div className="flex flex-col justify-start items-start relative w-max p-4 rounded-lg bg-gray-800">
                     <span
                         className="text-white text-sm mb-4">Detailed description of automation</span>
                     <textarea rows={4} cols={60}
                               className="bg-gray-700 text-white text-sm p-2 rounded-lg resize-none"/>
-                    <div className="absolute left-1/2 bottom-full">
+                    <div className="absolute left-1/2 top-full">
                         <div
-                            className="w-0 h-0 border-4 border-solid border-gray-800 border-t-0 border-l-2 border-r-2"></div>
+                            className="rounded-full w-0 h-0 border-8 border-solid border-gray-800"></div>
                     </div>
                 </div>
                 <button

@@ -14,7 +14,7 @@ export interface SpeechToTextRequest {
     model: SpeechToTextModelType;
     language?: string;
     temperature?: number;
-    file: Blob;
+    file: Blob | string;
     fileName: string;
 }
 
@@ -43,9 +43,14 @@ export class SpeechToText extends AIModel {
      * @param config The configuration object for the speech to text model.
      * This can be either a configuration object, or a Blob object.
      */
-    public async create(config: SpeechToTextRequest | Blob): Promise<SpeechToTextResponse> {
+    public async create(config: SpeechToTextRequest): Promise<SpeechToTextResponse> {
         const formData = new FormData();
-        formData.append('file', config[ 'file' ] ?? config, config[ 'fileName' ] ?? 'audio.wav');
+        if ( typeof config[ 'file' ] === 'string' ) {
+            const blob =  new Blob([ config[ 'file' ] ], { type: 'audio/wav' });
+            formData.append('file', blob, config[ 'fileName' ]);
+        } else {
+            formData.append('file', config[ 'file' ], config[ 'fileName' ]);
+        }
         formData.append('language', config[ 'language' ] ?? 'en');
         formData.append('temperature', String(config[ 'temperature' ] ?? .5));
         formData.append('model', config[ 'model' ] ?? 'whisper-1');

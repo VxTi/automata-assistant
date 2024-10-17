@@ -30,7 +30,7 @@ export function NavigationHeader() {
                     }}/>
                 )}
             </div>
-            <h1 className="text-black text-xl col-start-2 col-end-5 text-center">
+            <h1 className="text-black text-2xl col-start-2 col-end-5 text-center">
                 {conversationTopic}
             </h1>
             <div className="flex flex-row items-center justify-end">

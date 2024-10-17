@@ -4,13 +4,11 @@
  * @date Created on Friday, October 04 - 15:07
  */
 
-import { contextBridge } from "electron";
-
 /**
  * The audio API.
  * This API is used to play audio and request the microphone.
  */
-contextBridge.exposeInMainWorld('audio', {
+window['audio'] = {
     /**
      * Play the given audio blob.
      * @param audioBlob The audio blob to play.
@@ -42,4 +40,4 @@ contextBridge.exposeInMainWorld('audio', {
                            )
                            .catch(_ => null);
     }
-});
+}

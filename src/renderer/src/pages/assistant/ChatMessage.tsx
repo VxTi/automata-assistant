@@ -3,10 +3,10 @@
  * @author Luca Warmenhoven
  * @date Created on Saturday, October 05 - 01:45
  */
-import { ChatContextMessageType }           from "./Conversation";
-import { BaseStyles }                       from "../../util/BaseStyles";
-import { RefObject, useCallback, useState } from "react";
-import { CreateSequence }                   from "../../util/AnimationSequence";
+import { ChatContextMessageType, mdParser }          from "./Conversation";
+import { BaseStyles }                                from "../../util/BaseStyles";
+import { RefObject, useCallback, useMemo, useState } from "react";
+import { CreateSequence }                            from "../../util/AnimationSequence";
 
 import '../../styles/markdown.css'
 
@@ -20,13 +20,22 @@ export function ChatMessage(props: { entry: ChatContextMessageType }) {
 
     const [ copiedToClipboard, setCopiedToClipboard ] = useState(false);
 
-    const handleClick = useCallback(async () => {
+    const saveToClipboardCb = useCallback(async () => {
         setCopiedToClipboard(true);
         await navigator.clipboard.writeText(
             Array.isArray(props.entry.message.content) ?
             props.entry.message.content.join("\n") : props.entry.message.content);
         setTimeout(() => setCopiedToClipboard(false), 1000);
     }, []);
+
+    const htmlContent = useMemo(() => {
+        return mdParser.parse(
+            Array.isArray(
+                props.entry.message.content) ?
+            props.entry.message.content.join('\n') :
+            props.entry.message.content
+        );
+    }, [ props.entry ]);
 
     return (
         <div className="group flex flex-row justify-between items-start bg-gray-300 rounded-md py-2 px-4 my-1"
@@ -35,11 +44,11 @@ export function ChatMessage(props: { entry: ChatContextMessageType }) {
                         <span
                             className="text-black font-bold font-sans text-md">{props.entry.message.role === 'user' ? 'You' : 'Assistant'}</span>
                 <div className="not-prose text-black text-sm mt-2 mb-1">
-                    <span className="markdown" dangerouslySetInnerHTML={{ __html: props.entry.message.content }}/>
+                    <span className="markdown" dangerouslySetInnerHTML={{ __html: htmlContent }}/>
                 </div>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                 onClick={handleClick}
+                 onClick={saveToClipboardCb}
                  className={BaseStyles.ICON_NO_MARGIN + ' opacity-0 group-hover:opacity-100 duration-500'}>
                 <path strokeLinecap="round" strokeLinejoin="round"
                       className="transition-all duration-300"
@@ -59,14 +68,15 @@ export function ChatMessage(props: { entry: ChatContextMessageType }) {
  */
 export function LiveChatMessage(props: { contentRef: RefObject<HTMLDivElement>, active: boolean }) {
     if ( !props.active ) return null;
+
     return (
         <div
-            className="group flex flex-row justify-between items-start bg-gray-800 rounded-md py-2 px-4 my-1 transition-all"
+            className="group flex flex-row justify-between items-start bg-gray-300 rounded-md py-2 px-4 my-1 transition-all"
             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start overflow-x-scroll">
                         <span
-                            className="text-white font-bold font-sans text-md">Assistant</span>
-                <div className="not-prose text-white text-sm mt-2 mb-1">
+                            className="text-black font-bold font-sans text-md">Assistant</span>
+                <div className="not-prose text-black text-sm mt-2 mb-1">
                     <div ref={props.contentRef}/>
                 </div>
             </div>

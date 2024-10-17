@@ -4,6 +4,7 @@ import { ApplicationContextProvider } from "./util/ApplicationContext";
 import './styles/styles.css'
 import { AutomationsContextProvider } from "./pages/automations/Automations";
 import { PageWrapper }                from "./pages/PageWrapper";
+import './util/Audio'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -13,6 +14,7 @@ createRoot(document.getElementById('root')!).render(
             </AutomationsContextProvider>
         </ApplicationContextProvider>
     </StrictMode>
-)
+);
+
 
 

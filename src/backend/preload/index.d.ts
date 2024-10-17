@@ -20,11 +20,15 @@ declare global {
             delete: (uuid: string) => Promise<void>,
             list: () => Promise<ConversationTopic[]>
         },
+        audio: {
+            play: (audioBlob: Blob) => HTMLAudioElement,
+            requestMicrophone: () => Promise<MediaRecorder | null>
+        },
         ai: {
             completion: (request: CompletionRequest | string) => Promise<ChatResponse | null>,
             audio: {
                 textToSpeech: (request: TTSRequest) => Promise<{ data: string }>,
-                speechToText: (request: SpeechToTextRequest | Blob) => Promise<string>,
+                speechToText: (request: SpeechToTextRequest) => Promise<string>,
                 speechToTextFileLimit: number,
                 audioSegmentationIntervalMs: number
             }

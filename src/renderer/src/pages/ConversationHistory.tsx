@@ -9,13 +9,18 @@ import { CreateSequence, useAnimationSequence }                 from "../util/An
 import { AnnotatedIcon }                                        from "../components/AnnotatedIcon";
 import { ConversationTopic }                                    from "../../../backend/ai/ChatCompletion";
 import { Message }                                              from "../../../backend/ai/ChatCompletionDefinitions";
+import { AssistantPage }                                        from "./assistant/AssistantPage";
+import { ApplicationContext }                                   from "../util/ApplicationContext";
 
 export function ConversationHistory() {
     const [ conversationTopics, setConversationTopics ]
               = useState<(ConversationTopic & { hidden: boolean })[]>([]);
 
+    const { setHeaderConfig } = useContext(ApplicationContext);
+
     const inputRef     = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+
     useAnimationSequence({ containerRef: containerRef, intervalType: 'absolute' },
                          [ conversationTopics ]);
 
@@ -34,6 +39,12 @@ export function ConversationHistory() {
      * Load the conversation topics from the main process.
      */
     useEffect(() => {
+
+        setHeaderConfig(() => {
+            return {
+                pageTitle: 'Conversation History'
+            }
+        });
 
         // Acquire the conversation topics from the main process
         // and filter out any faulty topics.
@@ -91,19 +102,16 @@ export function ConversationHistory() {
             className={`transition-all duration-500 flex z-20 flex-col justify-start items-stretch w-full h-full`}>
             <div className="flex flex-row justify-center items-start w-full">
                 <div className="flex flex-col justify-start grow items-stretch max-w-screen-md">
-                    <h3 className="text-black text-center text-2xl mt-5">Conversation history</h3>
-                    <div className="header-grid">
-                        <div
-                            className="bg-gray-200 col-start-2 col-end-3 flex items-center justify-start overflow-hidden text-black grow py-2 px-3 rounded-xl mx-2">
-                            <svg fill="none" strokeWidth={1.5} stroke="currentColor" viewBox="0 0 24 24"
-                                 className="w-6 h-6 mr-2"
-                                 xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round"
-                                      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
-                            </svg>
-                            <input type="text" placeholder="Search conversation topics" ref={inputRef}
-                                   className="bg-transparent col-start-2 placeholder:text-gray-400 col-end-3 focus:outline-none mx-1 px-1 text-black grow rounded-xl"/>
-                        </div>
+                    <div
+                        className="bg-gray-950 col-start-2 col-end-3 flex items-center justify-start overflow-hidden text-white py-2 px-3 rounded-xl mx-auto w-[80%]">
+                        <svg fill="none" strokeWidth={1.5} stroke="currentColor" viewBox="0 0 24 24"
+                             className="w-6 h-6 mr-2"
+                             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
+                        </svg>
+                        <input type="text" placeholder="Search conversation topics" ref={inputRef}
+                               className="bg-transparent col-start-2 placeholder:text-gray-400 col-end-3 focus:outline-none mx-1 px-1 text-black grow rounded-xl"/>
                     </div>
                     <div
                         className="grow relative overflow-scroll flex flex-col justify-start items-stretch min-h-[80vh]"
@@ -134,6 +142,7 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
     const {
               setConversationTopic, setMessages, setTopicUUID, topicUUID
           }                       = useContext(ChatContext);
+    const { setContent }          = useContext(ApplicationContext);
     const { topic: entry }        = props;
     const [ deleted, setDeleted ] = useState(false);
 
@@ -150,11 +159,15 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
         // If the topic is already loaded, do not reload it.
         if ( topicUUID === entry.uuid )
             return;
-        setConversationTopic(entry.topic);
-        setTopicUUID(entry.uuid);
-        setMessages((_) => entry.messages.map(messageEntry => {
-            return { message: messageEntry };
-        }))
+        setContent(<AssistantPage/>);
+        setTimeout(() => {
+
+            setConversationTopic(entry.topic);
+            setTopicUUID(entry.uuid);
+            setMessages((_) => entry.messages.map(messageEntry => {
+                return { message: messageEntry };
+            }))
+        }, 500);
     }, []);
     const topicDateString = (() => {
         const date = new Date(entry.date);

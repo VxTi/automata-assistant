@@ -5,7 +5,7 @@ import { TTSRequest }          from "../ai/TextToSpeech";
 import { sep }                 from 'path';
 import { ConversationTopic }   from "../ai/ChatCompletion";
 import { CompletionRequest }   from "../ai/ChatCompletionDefinitions";
-import './Audio'
+import '../../renderer/src/util/Audio'
 
 
 // Expose the APIs to the renderer process

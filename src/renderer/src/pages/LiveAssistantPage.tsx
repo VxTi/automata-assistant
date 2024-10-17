@@ -4,11 +4,8 @@
  * @date Created on Sunday, October 06 - 18:52
  */
 
-import { ApplicationContext }            from "../../util/ApplicationContext";
 import { useContext, useEffect, useRef } from "react";
-import { Shader }                        from "../../util/rendering/Shader";
-import fragmentShader                    from "./audio_visualizer_shader.glsl";
-import { VBO }                           from "../../util/rendering/VBO";
+import { ApplicationContext }            from "../util/ApplicationContext";
 
 /**
  * Convert a float32 array to a 16-bit PCM array.
@@ -46,42 +43,37 @@ function base64EncodeAudio(float32Array: Float32Array): string {
  */
 export function LiveAssistantPage() {
 
-    const { setContent } = useContext(ApplicationContext);
-    const canvasRef      = useRef<HTMLCanvasElement>(null);
+    useEffect(() => {
+
+    }, []);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const { setHeaderConfig } = useContext(ApplicationContext);
 
     useEffect(() => {
+
+        setHeaderConfig(() => {
+            return {
+                pageTitle: 'Live Assistant',
+            };
+        });
+
         if ( !canvasRef.current )
             return;
 
         const canvas = canvasRef.current;
-        const gl     = canvas.getContext('webgl2');
+        const gl     = canvas.getContext('2d');
 
         if ( !gl )
             return;
 
-        let time           = 0;
-        let lastTimeMillis = Date.now();
-
-        canvas.width  = window.innerWidth * 2;
-        canvas.height = window.innerHeight * 2;
+        canvas.width  = window.innerWidth * window.devicePixelRatio;
+        canvas.height = window.innerHeight * window.devicePixelRatio;
 
         const audioContext = new (window.AudioContext || window[ 'webkitAudioContext' ])();
         const analyzer     = audioContext.createAnalyser();
         analyzer.fftSize   = 256;
         const dataArray    = new Uint8Array(analyzer.frequencyBinCount);
-
-        const shader = new Shader(gl, fragmentShader,
-                                  '#version 300 es\n' +
-                                      'in vec2 position;\n' +
-                                      'void main() {\n' +
-                                      'gl_Position = vec4(position, 0.0, 1.0);' +
-                                      '\n}');
-        const vbo    = new VBO(gl, shader);
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.clearColor(0, 0, 0, 1);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
 
         /** Acquire the audio stream from the user's microphone. */
         navigator.mediaDevices.getUserMedia({ audio: true, video: false })
@@ -113,35 +105,36 @@ export function LiveAssistantPage() {
                       }));
                       })*/
 
-
                  })
                  .catch(() => {
 
                  });
 
-        const audioBubbleCount = 12;
-        const audioBubbles     = new Float32Array(audioBubbleCount);
+
+        const size  = Math.floor(Math.min(canvas.width / 50, canvas.height / 50));
+        const cells = Array(size * 2).fill(0).map(_ => Array(size * 2).fill(0));
 
         const render = () => {
+            gl.clearRect(0, 0, canvas.width, canvas.height);
             analyzer.getByteFrequencyData(dataArray);
-            gl.clearColor(0.0, 0.0, 0.0, 0.0);
-            gl.clear(vbo.gl.COLOR_BUFFER_BIT);
-            shader.use();
-            gl.uniform1f(vbo.gl.getUniformLocation(vbo.shader.program, 'time'), time / 1000);
 
-            const currentTimeMillis = Date.now();
-            const deltaTime         = currentTimeMillis - lastTimeMillis;
-            time += deltaTime;
-            lastTimeMillis          = Date.now();
-            // Clear bubble array
-            audioBubbles.fill(0);
-            for ( let i = 0; i < dataArray.length; i++ ) {
-                audioBubbles[ i % audioBubbleCount ] = Math.max((dataArray[ i ] / 255.0) * 15, audioBubbles[ i % audioBubbleCount ]);
+
+            for ( let y = -size; y < size; y++ ) {
+                for ( let x = -size; x < size; x++ ) {
+                    const theta                   = Math.atan2(y, x);
+                    const index                   = Math.floor((Math.abs(Math.cos(theta)) + Math.abs(Math.sin(theta))) * dataArray.length / 2);
+                    const intensity               = Math.pow(dataArray[ index % dataArray.length ] / 255 * size * size, 1.2);
+                    cells[ y + size ][ x + size ] = (cells[ y + size ][ x + size ] + intensity) / 2;
+                    if ( x * x + y * y <= cells[ y + size ][ x + size ] * 2 ) {
+                        gl.beginPath();
+                        gl.fillStyle = `hsl(${360 * (index / dataArray.length)}, 50%, 50%)`;
+                        gl.moveTo(canvas.width / 2 + (x) * 20, canvas.height / 2 + (y + 1) * 20);
+                        gl.arc(canvas.width / 2 + (x) * 20, canvas.height / 2 + (y + 1) * 20, 10, 0, 2 * Math.PI);
+                        gl.fill();
+                    }
+                }
             }
 
-            vbo.gl.uniform1fv(vbo.gl.getUniformLocation(vbo.shader.program, 'audioLevels'), audioBubbles);
-
-            vbo.render(window.innerWidth, window.innerHeight);
             requestAnimationFrame(render);
         }
         render();
@@ -149,11 +142,8 @@ export function LiveAssistantPage() {
 
     return (
         <div className="mx-auto max-w-screen-md w-full flex flex-col grow justify-start">
-            <div className="flex flex-col items-center m-4">
-                <h1 className="text-white text-center text-2xl">Live Assistant</h1>
-            </div>
-            <div className="flex flex-col grow justify-center items-center">
-                <canvas className="w-60 h-60 " ref={canvasRef}/>
+            <div className="flex flex-col grow justify-center items-center relative">
+                <canvas className="absolute h-full aspect-video" ref={canvasRef}/>
             </div>
         </div>
     )

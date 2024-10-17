@@ -11,6 +11,8 @@ dotenv.config({ path: join(__dirname, '../../.env') });
 
 const conversationDirectoryPath = join(app.getPath('userData'), 'conversations');
 
+export let mainWindow: BrowserWindow | null = null;
+
 /**
  * Conversation topic cache.
  * This cache is used to store conversation topics in memory,
@@ -21,7 +23,7 @@ let conversationCache: Map<string, ConversationTopic>;
 
 function createWindow(): void {
     // Create the browser window.
-    const mainWindow = new BrowserWindow(
+    mainWindow = new BrowserWindow(
         {
             width: 900,
             height: 670,
@@ -60,7 +62,7 @@ function createWindow(): void {
                                           }));
 
     mainWindow.on('ready-to-show', () => {
-        mainWindow.show()
+        mainWindow!.show()
     });
 
     mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -92,7 +94,7 @@ app.whenReady().then(() => {
         optimizer.watchWindowShortcuts(window)
     })
 
-    createWindow()
+    createWindow();
 
     app.on('activate', function () {
         // On macOS it's common to re-create a window in the app when the

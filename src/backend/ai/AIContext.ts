@@ -130,7 +130,6 @@ export class AIModel {
      * @param config The configuration of the model.
      */
     public async create(config: any): Promise<any> {
-        console.log("Creating request: ", config, this.aiContext);
         return this.aiContext.request({ route: this.route, body: config });
     }
 }

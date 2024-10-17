@@ -21,20 +21,11 @@ const completion = new ChatCompletion(ctx);
 const tts        = new TextToSpeech(ctx);
 const stt        = new SpeechToText(ctx);
 
-ipcMain.handle('ai:completion', async (event: Electron.IpcMainInvokeEvent, request: CompletionRequest) => {
+ipcMain.handle('ai:completion', async (_: Electron.IpcMainInvokeEvent, request: CompletionRequest) => {
     const response = await completion.create(request);
     console.log(response);
     if ( typeof response !== 'function' )
         return response as ChatResponse;
-
-    const iterator = response();
-    for await ( const entry of iterator ) {
-        console.log('Sending chunk to renderer: ', entry);
-        event.sender.send('ai:completion-chunk', entry);
-        console.log("Sent chunk to renderer");
-    }
-    console.log('Completed.')
-    event.sender.send('ai:completion-chunk-end');
     return null;
 });
 

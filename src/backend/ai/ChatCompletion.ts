@@ -4,8 +4,11 @@
  * @date Created on Friday, October 11 - 15:02
  */
 
-import { AIContext, AIModel }                                             from "./AIContext";
-import { ChatResponse, CompletionRequest, Message, StreamedChatResponse } from "./ChatCompletionDefinitions";
+import { AIContext, AIModel }                       from "./AIContext";
+import { ChatResponse, CompletionRequest, Message } from "./ChatCompletionDefinitions";
+import { ipcMain }                                  from "electron";
+import ipcRenderer = Electron.ipcRenderer;
+import { mainWindow }                               from "../main";
 
 /**
  * The conversation topic.
@@ -43,8 +46,6 @@ const defaultConfiguration: CompletionRequest = {
     temperature: 0.5,
 }
 
-export type ChatCompletionResponse = ChatResponse | (() => AsyncGenerator<StreamedChatResponse>);
-
 export class ChatCompletion extends AIModel {
 
     /**
@@ -71,10 +72,10 @@ export class ChatCompletion extends AIModel {
      * When a string is provided, the string is used as the prompt,
      * and the base request is used as the configuration.
      */
-    public async create(config: CompletionRequest | string): Promise<ChatCompletionResponse> {
+    public async create(config: CompletionRequest | string): Promise<ChatResponse | null> {
 
         if ( typeof config !== 'string' ) {
-            config['model'] = config['model'] ?? this.defaultConfig.model;
+            config[ 'model' ] = config[ 'model' ] ?? this.defaultConfig.model;
         }
 
         const streaming = typeof config !== 'string' && 'stream' in config && config.stream;
@@ -86,49 +87,45 @@ export class ChatCompletion extends AIModel {
         if ( !streaming )
             return await response.json() as ChatResponse;
 
-        // Return an async iterator that will
-        // parse the incoming packets and yield them.
-        return (async function* (): AsyncGenerator<StreamedChatResponse> {
+        const reader     = response.body!.getReader();
+        const decoder    = new TextDecoder('utf-8');
+        let content      = '';
+        let idxOfNewline = -1;
 
-            const reader     = response.body!.getReader();
-            const decoder    = new TextDecoder('utf-8');
-            let content      = '';
-            let idxOfNewline = -1;
+        /**
+         * Read the incoming data and yield the parsed JSON.
+         * Since some chunks arrive in multiple parts, we'll need to
+         * buffer the data and split it into lines.
+         */
+        while ( true ) {
+            const { done, value } = await reader.read();
+            if ( done || !value )
+                break;
 
-            /**
-             * Read the incoming data and yield the parsed JSON.
-             * Since some chunks arrive in multiple parts, we'll need to
-             * buffer the data and split it into lines.
-             */
-            while ( true ) {
-                const { done, value } = await reader.read();
-                if ( done || !value)
-                    return;
+            // Decode the value and append it to the content
+            content += decoder.decode(value, { stream: true });
 
-                // Decode the value and append it to the content
-                content += decoder.decode(value, { stream: true });
+            while ( (idxOfNewline = content.indexOf('\n')) > -1 && content.length > 1) {
+                // Start from after 'data: '
+                const line = content.slice(6, idxOfNewline).trim();
 
-                console.log("Reading packet: ", content);
-
-                while ( (idxOfNewline = content.indexOf('\n')) > -1)
-                {
-                    // Start from after 'data: '
-                    const line = content.slice(6, idxOfNewline);
-
-                    if ( line.length === 0 ) continue;
-                    if ( line === '[DONE]') return;
-
-                    try {
-                        const parsed = JSON.parse(line);
-                        console.log('Parsed: ', parsed);
-                        console.log("Content: ", parsed.choices[0].delta);
-                        yield parsed as StreamedChatResponse;
-                    } catch (e) {
-                        console.error("Failed to parse JSON: ", line);
-                    }
+                if ( line.length === 0 ) {
                     content = content.slice(idxOfNewline + 1);
+                    continue;
                 }
+                if ( line === '[DONE]' )
+                    break;
+
+                try {
+                    const parsed = JSON.parse(line);
+                    mainWindow!.webContents.send('ai:completion-chunk', parsed);
+                } catch (e) {
+                    console.error("Failed to parse JSON: ", line);
+                }
+                content = content.slice(idxOfNewline + 1);
             }
-        });
+        }
+            mainWindow!.webContents.send('ai:completion-chunk-end');
+        return null;
     }
 }

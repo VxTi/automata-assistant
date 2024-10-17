@@ -12,6 +12,7 @@ import { BaseStyles }                                           from "../../util
 import '../../styles/code-highlighting.css';
 import { ConversationTopic }                                    from "../../../../backend/ai/ChatCompletion";
 import { ChatResponse, StreamedChatResponse }                   from "../../../../backend/ai/ChatCompletionDefinitions";
+import { SpeechToTextRequest }                                  from "../../../../backend/ai/SpeechToText";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -90,16 +91,17 @@ export function ChatInputField() {
 
         let response = '';
         const chunk  = async (_: any, message: StreamedChatResponse) => {
-            console.log('Received chunk from AI model:', message);
             const delta = message.choices[ 0 ].delta;
 
-            if ( delta.content )
-                ctx.lastMessageRef.current!.innerHTML = (response += delta.content);
+            if ( delta.content && ctx.lastMessageRef.current)
+                ctx.lastMessageRef.current!.innerHTML = (response += delta.content ?? '');
         };
         window.electron.ipcRenderer.on('ai:completion-chunk', chunk);
         window.electron.ipcRenderer.once('ai:completion-chunk-end', async () => {
             window.electron.ipcRenderer.removeListener('ai:completion-chunk', chunk);
             ctx.setLiveChatActive(false);
+
+            console.log('Received completion from AI model:', response);
 
             // Update the conversation topic with the new message,
             // and save the conversation to the conversation history.
@@ -119,8 +121,10 @@ export function ChatInputField() {
                 return updatedMessages;
             });
             if ( ctx.spokenResponse ) {
-                const blob = await window[ 'ai' ].audio.textToSpeech(
-                    { input: response, model: 'tts-1', voice: 'alloy' });
+                const { data } = await window[ 'ai' ].audio.textToSpeech(
+                    { input: response, model: 'tts-1', voice: 'nova' });
+                const blob = new Blob([ window.Buffer.from(data, 'base64') ]);
+
                 window[ 'audio' ].play(blob);
             }
         });
@@ -173,30 +177,32 @@ export function ChatInputField() {
                 chunks.push(event.data);
                 totalBytes += event.data.size;
 
-                if ( totalBytes > window.ai.audio.speechToTextFileLimit ) {
+                if ( totalBytes > window['ai']['audio'].speechToTextFileLimit ) {
                     audioDevice.current!.stop();
                 }
             }
 
             // When the recording is stopped, send the request.
             audioDevice.current.onstop = async () => {
-                await handleSendRequest(await window[ 'ai' ].audio.speechToText(new Blob(chunks)));
+                const audioString = await new Blob(chunks).text();
+                await handleSendRequest(await window[ 'ai' ]['audio'].speechToText(
+                    { file: audioString, fileName: 'audio.wav'} as SpeechToTextRequest));
             }
         }
 
         // If the audio device is not available, return.
-        if ( audioDevice.current === undefined )
+        if ( audioDevice.current === undefined || !(audioDevice.current instanceof MediaRecorder) )
             return;
 
-        console.log(audioDevice.current);
+
         if ( recording ) {
             audioDevice.current.stop!();
         }
         else {
-            audioDevice.current.start!(window[ 'ai' ].audio.audioSegmentationIntervalMs);
+            audioDevice.current.start!(window['ai'][ 'audio' ].audioSegmentationIntervalMs);
         }
         setRecording( !recording);
-    }, [ ctx.spokenResponse, ctx.messages, recording, audioDevice.current ]);
+    }, [ ctx.spokenResponse, ctx.messages, recording ]);
 
     return (
         <div className="flex flex-col justify-center items-center mb-3 mt-1 max-w-screen-md w-full mx-auto">
