@@ -5,8 +5,8 @@
  */
 import { AnnotatedIcon }         from "../../components/AnnotatedIcon";
 import { ApplicationContext }    from "../../util/ApplicationContext";
-import { useContext }            from "react";
-import { AutomationsListPage }            from "../automations/AutomationsListPage";
+import { useContext, useEffect } from "react";
+import { AutomationsListPage }   from "../automations/AutomationsListPage";
 import { Automation, AutomationsContext } from "../automations/Automations";
 import { AutomationPageWrapper }          from "../automations/AutomationPageWrapper";
 
@@ -17,22 +17,26 @@ import { AutomationPageWrapper }          from "../automations/AutomationPageWra
  * @param props The properties for the edit automation page
  */
 export function EditAutomationPage(props: { automation?: Automation }) {
-    const { setContent } = useContext(ApplicationContext);
+    const { setContent, setHeaderConfig } = useContext(ApplicationContext);
     const { automations } = useContext(AutomationsContext);
-    return (
-        <div className="mx-auto max-w-screen-md w-full flex flex-col justify-start">
-            <div className="header-grid mb-6">
-                <div className="flex items-center justify-start">
+
+    useEffect(() => {
+        setHeaderConfig(() => {
+            return {
+                leftHeaderContent: (
                     <AnnotatedIcon path="M15.75 19.5 8.25 12l7.5-7.5"
                                    annotation={"Back to " + (props.automation?.name ?? 'automations')} side='right'
                                    onClick={() => setContent(props.automation ?
                                                              <AutomationPageWrapper automation={props.automation}/> :
                                                              <AutomationsListPage/>)}/>
-                </div>
-                <h1 className="text-black text-center text-2xl">
-                    Edit automation{props.automation ? ' for \'' + props.automation.name + '\'' : ''}
-                </h1>
-            </div>
+                ),
+                pageTitle: 'Edit automation' + (props.automation ? ' for \'' + props.automation.name + '\'' : ''),
+            }
+        })
+    }, []);
+
+    return (
+        <div className="mx-auto max-w-screen-md w-full flex flex-col justify-start">
             <div className="flex flex-col justify-start items-stretch max-w-screen-sm mx-auto text-black">
                 <div className="flex flex-row justify-center mb-5 items-center text-lg">
                     <span>Name of automation: </span>

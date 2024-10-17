@@ -1,3 +1,8 @@
+.markdown h1, .markdown h2, .markdown h3, .markdown h4, .markdown h5, .markdown h6 {
+    font-weight: bold;
+    color: #333;
+}
+
 .markdown h1 {
     font-size: 4em;
     margin: 0.67em 0;
@@ -55,7 +60,8 @@
 
 .markdown code {
     font-family: 'JetBrains Mono', monospace;
-    background-color: #222;
-    padding: 0.2em 0.4em;
+    background-color: #ddd;
+    margin: 0 .1rem;
+    padding: 0.1em 0.3em;
     border-radius: 0.4em;
 }

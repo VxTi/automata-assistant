@@ -30,11 +30,8 @@ export function PageWrapper() {
         <div className="flex relative w-screen h-screen flex-col justify-start bg-white">
             <WindowDraggableArea/>
             <PageHeader config={headerConfig}/>
-            <div className="flex flex-col justify-start items-stretch h-full">
-                <div className="relative flex flex-row justify-start items-stretch h-full">
-                    {content}
-
-                </div>
+            <div className="flex flex-col justify-start items-stretch grow overflow-y-scroll">
+                {content}
             </div>
         </div>
     )

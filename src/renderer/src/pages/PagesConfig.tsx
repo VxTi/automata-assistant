@@ -6,20 +6,23 @@
 import { ReactNode } from "react";
 import { AssistantPage }       from "./assistant/AssistantPage";
 import { LiveAssistantPage }   from "./LiveAssistantPage";
-import { AutomationsListPage } from "./automations/AutomationsListPage";
-import { ConversationHistory } from "./ConversationHistory";
-import { ImageLibraryPage }    from "./ImageLibraryPage";
+import { AutomationsListPage }     from "./automations/AutomationsListPage";
+import { ConversationHistoryPage } from "./ConversationHistoryPage";
+import { ImageLibraryPage }        from "./ImageLibraryPage";
+import { Icons } from "../components/cosmetic/Icons";
 
 export interface Page {
     title: string,
     visible?: boolean,
+    icon?: ReactNode,
     pageComponent: ReactNode
-};
+}
 
 export const PagesConfig: Page[] = [
     {
         title: 'Assistant',
-        pageComponent: <AssistantPage />
+        pageComponent: <AssistantPage />,
+        icon: <Icons.ChatBubbles />
     },
     {
         title: 'Live Chat',
@@ -27,14 +30,17 @@ export const PagesConfig: Page[] = [
     },
     {
         title: 'Automations',
-        pageComponent: <AutomationsListPage />
+        pageComponent: <AutomationsListPage />,
+        icon: <Icons.WrenchScrew />
     },
     {
         title: 'Conversation History',
-        pageComponent: <ConversationHistory />
+        pageComponent: <ConversationHistoryPage />,
+        icon: <Icons.BookOpen />
     },
     {
         title: 'Browse Images',
-        pageComponent: <ImageLibraryPage />
+        pageComponent: <ImageLibraryPage />,
+        icon: <Icons.Camera />
     }
 ]

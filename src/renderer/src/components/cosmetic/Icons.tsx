@@ -28,6 +28,10 @@ export const IconStyles = {
         ' fill-none stroke-[1.5px]'
 }
 
+/**
+ * A collection of icons, from Heroicons.
+ * These icons are used in the application to display various elements.
+ */
 export const Icons = {
     Gear: (props: BasicIconProps) => (
         <IconWrapper props={props}>
@@ -41,4 +45,56 @@ export const Icons = {
             <StrokePath d="M6 18 18 6M6 6l12 12"></StrokePath>
         </IconWrapper>
     ),
+    RightArrow: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="m8.25 4.5 7.5 7.5-7.5 7.5"></StrokePath>
+        </IconWrapper>
+    ),
+    BarsArrowDown: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25"/>
+        </IconWrapper>
+    ),
+    BarsArrowUp: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12"/>
+        </IconWrapper>
+    ),
+    MagnifyingGlass: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+        </IconWrapper>
+    ),
+    Clipboard: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath
+                d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5A3.375 3.375 0 0 0 6.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0 0 15 2.25h-1.5a2.251 2.251 0 0 0-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 0 0-9-9Z"/>
+        </IconWrapper>
+    ),
+    Checkmark: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="m4.5 12.75 6 6 9-13.5"/>
+        </IconWrapper>
+    ),
+    Camera: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+            <StrokePath d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/>
+        </IconWrapper>
+    ),
+    ChatBubbles: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+        </IconWrapper>
+    ),
+    BookOpen: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+        </IconWrapper>
+    ),
+    WrenchScrew: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
+        </IconWrapper>
+    )
 }

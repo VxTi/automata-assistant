@@ -11,7 +11,7 @@ import { ApplicationContext }            from "../util/ApplicationContext";
  * Convert a float32 array to a 16-bit PCM array.
  * @param float32Array the float32 array.
  */
-function floatTo16BitPCM(float32Array: Float32Array): ArrayBuffer {
+/*function floatTo16BitPCM(float32Array: Float32Array): ArrayBuffer {
     const buffer = new ArrayBuffer(float32Array.length * 2);
     const view   = new DataView(buffer);
     let offset   = 0;
@@ -20,13 +20,13 @@ function floatTo16BitPCM(float32Array: Float32Array): ArrayBuffer {
         view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
     }
     return buffer;
-}
+}*/
 
 /**
  * Converts a Float32Array to base64-encoded PCM16 data
  * @param float32Array The Float32Array to encode
  */
-function base64EncodeAudio(float32Array: Float32Array): string {
+/*function base64EncodeAudio(float32Array: Float32Array): string {
     const arrayBuffer = floatTo16BitPCM(float32Array);
     let binary        = '';
     let bytes         = new Uint8Array(arrayBuffer);
@@ -36,7 +36,7 @@ function base64EncodeAudio(float32Array: Float32Array): string {
         binary += String.fromCharCode.apply(null, chunk);
     }
     return btoa(binary);
-}
+}*/
 
 /**
  * The live assistant page.

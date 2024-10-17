@@ -3,12 +3,13 @@
  * @author Luca Warmenhoven
  * @date Created on Saturday, October 05 - 01:45
  */
-import { ChatContextMessageType, mdParser }          from "./Conversation";
-import { BaseStyles }                                from "../../util/BaseStyles";
+import { mdParser }                                  from "./Conversation";
 import { RefObject, useCallback, useMemo, useState } from "react";
 import { CreateSequence }                            from "../../util/AnimationSequence";
 
 import '../../styles/markdown.css'
+import { Icons }                                     from "../../components/cosmetic/Icons";
+import { Message }                                   from "../../../../backend/ai/ChatCompletionDefinitions";
 
 /**
  * The chat message.
@@ -16,46 +17,42 @@ import '../../styles/markdown.css'
  * @param props the properties of the component.
  * @constructor
  */
-export function ChatMessage(props: { entry: ChatContextMessageType }) {
+export function ChatMessage(props: { entry: Message }) {
 
     const [ copiedToClipboard, setCopiedToClipboard ] = useState(false);
 
     const saveToClipboardCb = useCallback(async () => {
         setCopiedToClipboard(true);
         await navigator.clipboard.writeText(
-            Array.isArray(props.entry.message.content) ?
-            props.entry.message.content.join("\n") : props.entry.message.content);
+            Array.isArray(props.entry.content) ?
+            props.entry.content.join("\n") : props.entry.content);
         setTimeout(() => setCopiedToClipboard(false), 1000);
     }, []);
 
     const htmlContent = useMemo(() => {
         return mdParser.parse(
             Array.isArray(
-                props.entry.message.content) ?
-            props.entry.message.content.join('\n') :
-            props.entry.message.content
+                props.entry.content) ?
+            props.entry.content.join('\n') :
+            props.entry.content
         );
     }, [ props.entry ]);
 
     return (
-        <div className="group flex flex-row justify-between items-start bg-gray-300 rounded-md py-2 px-4 my-1"
-             {...CreateSequence('fadeIn', 300, 10)}>
-            <div className="flex flex-col justify-center items-start overflow-x-scroll">
+        <div
+            className="group flex flex-row justify-between items-start border-gray-200 bg-[#fbfafd] border-[1px] border-solid rounded-md py-2 px-4 my-1 w-full"
+            {...CreateSequence('fadeIn', 300, 10)}>
+            <div className="flex flex-col justify-center items-start text-wrap overflow-hidden">
                         <span
-                            className="text-black font-bold font-sans text-md">{props.entry.message.role === 'user' ? 'You' : 'Assistant'}</span>
-                <div className="not-prose text-black text-sm mt-2 mb-1">
+                            className="text-black font-bold font-sans text-md">{props.entry.role === 'user' ? 'You' : 'Assistant'}</span>
+                <div className="not-prose text-black text-sm mt-2 mb-1 w-full">
                     <span className="markdown" dangerouslySetInnerHTML={{ __html: htmlContent }}/>
                 </div>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                 onClick={saveToClipboardCb}
-                 className={BaseStyles.ICON_NO_MARGIN + ' opacity-0 group-hover:opacity-100 duration-500'}>
-                <path strokeLinecap="round" strokeLinejoin="round"
-                      className="transition-all duration-300"
-                      d={copiedToClipboard ? "m4.5 12.75 6 6 9-13.5" : "M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057" +
-                          " 1.123-.08M15.75" +
-                          " 18H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5A3.375 3.375 0 0 0 6.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0 0 15 2.25h-1.5a2.251 2.251 0 0 0-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 0 0-9-9Z"}/>
-            </svg>
+            <div onClick={saveToClipboardCb}
+                 className="stroke-black fill-none rounded-full hover:cursor-pointer hover:bg-gray-200 duration-300 transition-colors">
+                {copiedToClipboard ? <Icons.Checkmark/> : <Icons.Clipboard/>}
+            </div>
         </div>
     )
 }

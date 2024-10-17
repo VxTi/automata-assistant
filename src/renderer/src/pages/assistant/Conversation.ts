@@ -31,12 +31,10 @@ mdParser.use(
         }),
 );
 
-/** The chat context message type. */
-export type ChatContextMessageType = { message: Message, representation?: JSX.Element };
 
 export interface ChatContextType {
-    messages: ChatContextMessageType[],
-    setMessages: (messages: (previous: ChatContextMessageType[]) => (ChatContextMessageType)[]) => void,
+    messages: Message[],
+    setMessages: (messages: (previous: Message[]) => (Message)[]) => void,
     topicUUID: string | undefined,
     setTopicUUID: (uuid: string) => void,
     conversationTopic: string,

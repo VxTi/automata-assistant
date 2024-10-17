@@ -5,25 +5,30 @@
  */
 import { useContext, useEffect, useRef, useState } from "react";
 import { ChatInputField }                          from "./InputField";
-import { ChatContext, ChatContextMessageType }     from "./Conversation";
+import { ChatContext }                             from "./Conversation";
 import { ChatMessage, LiveChatMessage }            from "./ChatMessage";
 import { useAnimationSequence }                    from "../../util/AnimationSequence";
 import { AnnotatedIcon }                           from "../../components/AnnotatedIcon";
 import { ApplicationContext }                      from "../../util/ApplicationContext";
 
 import '../../styles/utilities.css'
+import { Message }                                 from "../../../../backend/ai/ChatCompletionDefinitions";
 
 /**
  * The assistant page.
  * This page is used to interact with the assistant.
  * Here, the user can input text, voice, or files to interact with the assistant.
  */
-export function AssistantPage() {
+export function AssistantPage(props: {
+    messages?: Message[],
+    conversationTopic?: string,
+    topicUUID?: string
+}) {
 
-    const [ messages, setMessages ]                   = useState<(ChatContextMessageType)[]>([]);
-    const [ conversationTopic, setConversationTopic ] = useState<string>('New conversation');
+    const [ messages, setMessages ]                   = useState<Message[]>(props.messages ?? []);
+    const [ conversationTopic, setConversationTopic ] = useState<string>(props.conversationTopic ?? 'New conversation');
     const [ spokenResponse, setSpokenResponse ]       = useState(false);
-    const [ topicUUID, setTopicUUID ]                 = useState<string | undefined>(undefined);
+    const [ topicUUID, setTopicUUID ]                 = useState<string | undefined>(props.topicUUID);
     const chatContainerRef                            = useRef<HTMLDivElement>(null);
     const lastMessageRef                              = useRef<HTMLDivElement>(null);
     const [ liveChatActive, setLiveChatActive ]       = useState(false);

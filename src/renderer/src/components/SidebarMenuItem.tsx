@@ -15,9 +15,10 @@ export function SidebarMenuItem(props: { page: Page }) {
 
     return (
         <div
-            className="py-1 px-6 rounded-lg m-1 text-black text-lg hover:bg-gray-200 transition-colors duration-300 hover:cursor-pointer flex text-nowrap justify-center select-none items-center"
+            className="py-1 px-6 rounded-lg m-1 text-black hover:bg-gray-200 transition-colors duration-300 hover:cursor-pointer flex text-nowrap justify-start select-none items-center"
             onClick={() => setContent(props.page.pageComponent)}>
-            <span>{props.page.title}</span>
+            <div className="w-7 h-7 p-1 shrink-0 stroke-black fill-none stroke-[1.5px] mr-2">{props.page.icon}</div>
+            <span className="text-sm">{props.page.title}</span>
         </div>
     )
 }

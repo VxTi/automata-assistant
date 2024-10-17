@@ -6,6 +6,7 @@
 import { ApplicationContext, PageHeaderConfig } from "../util/ApplicationContext";
 import { useContext }                           from "react";
 import { Sidebar }                              from "./Sidebar";
+import { Icons }                                from "./cosmetic/Icons";
 
 /**
  * The page header component.
@@ -16,23 +17,20 @@ export function PageHeader(props: { config: PageHeaderConfig }) {
     const { sidebarExpanded, setSidebarExpanded } = useContext(ApplicationContext);
     return (
         <div
-            className={`header-grid text-black items-center text-xl sm:text-2xl mx-4 mt-8 mb-4 ${props.config.className! ?? ''}`}>
+            className={`header-grid text-black items-center text-lg mx-6 mt-8 mb-4 ${props.config.className! ?? ''}`}>
             <Sidebar/>
 
-            <div className="flex flex-row items-center justify-start">
                 <div
-                    className={`p-3 z-50 transition-colors duration-500 text-black ${sidebarExpanded ? 'opacity-0 pointer-events-none' : ''}`}>
-                    <svg fill="none" strokeWidth="1.5" stroke="currentColor" viewBox="0 0 24 24"
-                         className="w-9 h-9 hover:bg-gray-200 p-1 duration-300 cursor-pointer transition-colors rounded-full"
-                         onClick={() => setSidebarExpanded( !sidebarExpanded)}
-                         xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"></path>
-                    </svg>
+                    className={`z-50 absolute left-0 top-0 h-full bg-gray-50 bg-opacity-20 hover:bg-gray-100 transition-colors duration-300 flex flex-col justify-center text-black ${sidebarExpanded ? 'opacity-0 pointer-events-none' : ''}`}>
+                    <Icons.RightArrow
+                        className="w-6 h-6 fill-none stroke-black duration-300 transition-colors rounded-full"
+                        onClick={() => setSidebarExpanded(!sidebarExpanded)}/>
+
                 </div>
+            <div className="flex flex-row items-center justify-start">
                 {props.config.leftHeaderContent}
             </div>
-            <h1 className="text-center">{props.config.pageTitle}</h1>
+            <h1 className="text-center text-xl">{props.config.pageTitle}</h1>
             <div className="flex flex-row items-center justify-end">
                 {props.config.rightHeaderContent}
             </div>

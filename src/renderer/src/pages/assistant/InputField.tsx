@@ -10,9 +10,9 @@ import { ChatContext, ChatContextMessageType }                  from "./Conversa
 import { BaseStyles }                                           from "../../util/BaseStyles";
 
 import '../../styles/code-highlighting.css';
-import { ConversationTopic }                                    from "../../../../backend/ai/ChatCompletion";
-import { ChatResponse, StreamedChatResponse }                   from "../../../../backend/ai/ChatCompletionDefinitions";
-import { SpeechToTextRequest }                                  from "../../../../backend/ai/SpeechToText";
+import { ConversationTopic }                           from "../../../../backend/ai/ChatCompletion";
+import { ChatResponse, Message, StreamedChatResponse } from "../../../../backend/ai/ChatCompletionDefinitions";
+import { SpeechToTextRequest }                         from "../../../../backend/ai/SpeechToText";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -53,11 +53,9 @@ export function ChatInputField() {
         let uuid       = ctx.topicUUID;
 
         const newMessages = [ ...ctx.messages, {
-            message: {
                 role: 'user',
                 content: prompt
-            }
-        } as ChatContextMessageType ];
+        } as Message ];
         ctx.setMessages(() => newMessages);
 
         /**
@@ -75,7 +73,6 @@ export function ChatInputField() {
                         } ]
                     }) as ChatResponse;
             topicTitle     = response.choices[ 0 ].message.content as string;
-            console.log('Generated topic title:', topicTitle);
             ctx.setConversationTopic(topicTitle);
 
             uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -93,7 +90,7 @@ export function ChatInputField() {
         const chunk  = async (_: any, message: StreamedChatResponse) => {
             const delta = message.choices[ 0 ].delta;
 
-            if ( delta.content && ctx.lastMessageRef.current)
+            if ( delta.content && ctx.lastMessageRef.current )
                 ctx.lastMessageRef.current!.innerHTML = (response += delta.content ?? '');
         };
         window.electron.ipcRenderer.on('ai:completion-chunk', chunk);
@@ -101,21 +98,16 @@ export function ChatInputField() {
             window.electron.ipcRenderer.removeListener('ai:completion-chunk', chunk);
             ctx.setLiveChatActive(false);
 
-            console.log('Received completion from AI model:', response);
-
             // Update the conversation topic with the new message,
             // and save the conversation to the conversation history.
             ctx.setMessages(() => {
-                const updatedMessages = [ ...newMessages, {
-                    message: { role: 'assistant', content: response }
-                } as ChatContextMessageType ];
+                const updatedMessages = [ ...newMessages, { role: 'assistant', content: response } as Message ];
                 window[ 'conversations' ].save(
                     {
                         topic: topicTitle,
                         date: Date.now(),
                         uuid: uuid,
                         messages: updatedMessages
-                            .map(message => message.message)
                     } as ConversationTopic);
 
                 return updatedMessages;
@@ -123,7 +115,7 @@ export function ChatInputField() {
             if ( ctx.spokenResponse ) {
                 const { data } = await window[ 'ai' ].audio.textToSpeech(
                     { input: response, model: 'tts-1', voice: 'nova' });
-                const blob = new Blob([ window.Buffer.from(data, 'base64') ]);
+                const blob     = new Blob([ window.Buffer.from(data, 'base64') ]);
 
                 window[ 'audio' ].play(blob);
             }
@@ -131,7 +123,7 @@ export function ChatInputField() {
         window[ 'ai' ].completion(
             {
                 model: 'gpt-4o-mini',
-                messages: newMessages.map($message => $message.message),
+                messages: newMessages,
                 stream: true
             });
     }, [ ctx.spokenResponse, ctx.messages, ctx.conversationTopic ]);
@@ -177,7 +169,7 @@ export function ChatInputField() {
                 chunks.push(event.data);
                 totalBytes += event.data.size;
 
-                if ( totalBytes > window['ai']['audio'].speechToTextFileLimit ) {
+                if ( totalBytes > window[ 'ai' ][ 'audio' ].speechToTextFileLimit ) {
                     audioDevice.current!.stop();
                 }
             }
@@ -185,8 +177,8 @@ export function ChatInputField() {
             // When the recording is stopped, send the request.
             audioDevice.current.onstop = async () => {
                 const audioString = await new Blob(chunks).text();
-                await handleSendRequest(await window[ 'ai' ]['audio'].speechToText(
-                    { file: audioString, fileName: 'audio.wav'} as SpeechToTextRequest));
+                await handleSendRequest(await window[ 'ai' ][ 'audio' ].speechToText(
+                    { file: audioString, fileName: 'audio.wav' } as SpeechToTextRequest));
             }
         }
 
@@ -199,13 +191,13 @@ export function ChatInputField() {
             audioDevice.current.stop!();
         }
         else {
-            audioDevice.current.start!(window['ai'][ 'audio' ].audioSegmentationIntervalMs);
+            audioDevice.current.start!(window[ 'ai' ][ 'audio' ].audioSegmentationIntervalMs);
         }
         setRecording( !recording);
     }, [ ctx.spokenResponse, ctx.messages, recording ]);
 
     return (
-        <div className="flex flex-col justify-center items-center mb-3 mt-1 max-w-screen-md w-full mx-auto">
+        <div className="flex flex-col justify-center items-center mb-3 mt-1 max-w-screen-md w-full">
             <div className="flex justify-start w-full items-center flex-wrap max-w-screen-sm mx-auto my-1">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
@@ -217,7 +209,7 @@ export function ChatInputField() {
                 ))}
             </div>
             <div
-                className="flex flex-col justify-end items-center bg-gray-900 rounded-3xl max-w-screen-md overflow-hidden border-[1px] border-solid border-gray-700">
+                className="flex flex-col justify-end items-center bg-gray-900 rounded-3xl max-w-screen-md mx-4 overflow-hidden border-[1px] border-solid border-gray-700">
                 <div
                     className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <ChatAlternativeOption
