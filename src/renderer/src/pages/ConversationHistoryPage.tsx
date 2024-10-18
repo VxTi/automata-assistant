@@ -3,16 +3,18 @@
  * @author Luca Warmenhoven
  * @date Created on Wednesday, October 16 - 12:08
  */
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { ChatContext }                                          from "./assistant/Conversation";
-import { CreateSequence, useAnimationSequence }                 from "../util/AnimationSequence";
-import { AnnotatedIcon }                                        from "../components/AnnotatedIcon";
-import { ConversationTopic }                                    from "../../../backend/ai/ChatCompletion";
-import { Message }                                              from "../../../backend/ai/ChatCompletionDefinitions";
-import { AssistantPage }                                        from "./assistant/AssistantPage";
-import { ApplicationContext }                                   from "../util/ApplicationContext";
-import { FilterButton }                                         from "../components/functional/FilterButton";
-import { Icons }                                                from "../components/cosmetic/Icons";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { ChatContext }                                                   from "./assistant/Conversation";
+import { CreateSequence, useAnimationSequence }                          from "../util/AnimationSequence";
+import { TemporaryAnnotatedIcon }                                        from "../components/AnnotatedIcon";
+import { ConversationTopic }                                             from "../../../backend/ai/ChatCompletion";
+import {
+    Message
+}                                                                        from "../../../backend/ai/ChatCompletionDefinitions";
+import { AssistantPage }                                                 from "./assistant/AssistantPage";
+import { ApplicationContext }                                            from "../util/ApplicationContext";
+import { FilterButton }                                                  from "../components/functional/FilterButton";
+import { Icons }                                                         from "../components/cosmetic/Icons";
 
 export function ConversationHistoryPage() {
     const [ conversationTopics, setConversationTopics ]
@@ -105,15 +107,15 @@ export function ConversationHistoryPage() {
             <div className="flex flex-row justify-center items-start w-full">
                 <div className="flex flex-col justify-start grow items-stretch max-w-screen-md">
                     <div
-                        className="bg-gray-200 col-start-2 col-end-3 flex items-center justify-start overflow-hidden text-black py-2 px-3 rounded-lg mx-auto w-[80%]">
+                        className="content-container apply-stroke sticky top-0 col-start-2 z-50 col-end-3 flex items-center justify-start overflow-hidden py-2 px-3 rounded-lg mx-auto w-[80%]">
                         <FilterButton options={[
                             { title: 'Date created', onClick: () => void 0 },
                             { title: 'Alphabetical', onClick: () => void 0 },
                             { title: 'Most messages', onClick: () => void 0 },
-                            ]}/>
-                        <Icons.MagnifyingGlass className="w-6 h-6 mr-2 fill-none stroke-black"/>
+                        ]}/>
+                        <Icons.MagnifyingGlass className="w-6 h-6 mr-2 fill-none"/>
                         <input type="text" placeholder="Search conversation topics" ref={inputRef}
-                               className="bg-transparent col-start-2 placeholder:text-gray-500 col-end-3 focus:outline-none mx-1 px-1 text-black grow rounded-xl"/>
+                               className="bg-transparent col-start-2 placeholder:text-gray-500 col-end-3 focus:outline-none mx-1 px-1 grow rounded-xl"/>
                     </div>
                     <div
                         className="grow relative overflow-scroll flex flex-col justify-start items-stretch"
@@ -154,31 +156,30 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
         setDeleted(true);
     }, []);
 
-    // Load the conversation topic into the chat context.
-    const loadTopic       = useCallback(() => {
-        // If the topic is already loaded, do not reload it.
-        if ( topicUUID === entry.uuid )
-            return;
-
-        setContent(<AssistantPage conversationTopic={entry.topic} topicUUID={entry.uuid} messages={entry.messages}/>);
-    }, []);
-    const topicDateString = (() => {
+    const topicDateString = useMemo(() => {
         const date = new Date(entry.date);
         return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date.getUTCMinutes() < 10 ? '0' + date.getUTCMinutes() : date.getUTCMinutes()}`;
-    })();
+    }, [ entry.date ]);
 
     return (
         <div
-            className={`text-black text-sm flex flex-row rounded mx-auto w-[80%] overflow-hidden card-container hover:bg-gray-200 hover:cursor-pointer duration-200 transition-all justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-1 p-2 border-[1px]'}`}
-            onClick={loadTopic}
+            className={`flex bg-[#1b1b1f] border-[#3c3f44] border-solid hover:bg-gray-200 dark:hover:bg-gray-900 transition-colors duration-200 hover:cursor-pointer hover:border-blue-500 text-sm flex-row rounded mx-auto w-[80%] overflow-hidden justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-1 p-2 border-[1px]'}`}
+            onClick={() => {
+                if ( topicUUID === entry.uuid )
+                    return;
+
+                setContent(<AssistantPage conversationTopic={entry.topic} topicUUID={entry.uuid}
+                                          messages={entry.messages}/>);
+            }}
             {...CreateSequence('fadeIn', 700, 30 * props.index)}>
             <span className="font-sans">{entry.topic}</span>
             <div className="flex flex-row justify-end items-center">
                 <span>{topicDateString}</span>
-                <AnnotatedIcon
-                    className="opacity-50 hover:opacity-100 duration-200 transition-opacity"
-                    path="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                    annotation="Delete topic" side='left' onClick={(e) => deleteTopic(e)}/>
+                <TemporaryAnnotatedIcon
+                    icon={<Icons.TrashBin/>}
+                    annotation="Delete topic"
+                    side='left'
+                    onClick={(e) => deleteTopic(e)}/>
             </div>
         </div>
     )

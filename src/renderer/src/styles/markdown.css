@@ -60,8 +60,20 @@
 
 .markdown code {
     font-family: 'JetBrains Mono', monospace;
-    background-color: #ddd;
     margin: 0 .1rem;
     padding: 0.1em 0.3em;
+}
+
+.markdown pre code:not(.hljs)
+{
+    text-wrap: wrap;
+    background-color: unset;
+}
+
+.markdown code.hljs {
+    color: #fff;
+}
+.markdown code:not(.hljs) {
+    background-color: #ddd;
     border-radius: 0.4em;
 }

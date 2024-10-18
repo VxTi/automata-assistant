@@ -3,44 +3,52 @@
  * @author Luca Warmenhoven
  * @date Created on Thursday, October 17 - 17:00
  */
-import { ReactNode } from "react";
-import { AssistantPage }       from "./assistant/AssistantPage";
-import { LiveAssistantPage }   from "./LiveAssistantPage";
+import { ReactNode }               from "react";
+import { AssistantPage }           from "./assistant/AssistantPage";
+import { LiveAssistantPage }       from "./LiveAssistantPage";
 import { AutomationsListPage }     from "./automations/AutomationsListPage";
 import { ConversationHistoryPage } from "./ConversationHistoryPage";
 import { ImageLibraryPage }        from "./ImageLibraryPage";
-import { Icons } from "../components/cosmetic/Icons";
+import { Icons }                   from "../components/cosmetic/Icons";
+import { SettingsPage }            from "./SettingsPage";
 
 export interface Page {
     title: string,
-    visible?: boolean,
-    icon?: ReactNode,
-    pageComponent: ReactNode
+    hidden?: boolean,
+    icon: ReactNode,
+    pageComponent: ReactNode,
 }
 
 export const PagesConfig: Page[] = [
     {
         title: 'Assistant',
-        pageComponent: <AssistantPage />,
-        icon: <Icons.ChatBubbles />
+        pageComponent: <AssistantPage/>,
+        icon: <Icons.ChatBubbles/>
     },
     {
         title: 'Live Chat',
-        pageComponent: <LiveAssistantPage />
+        pageComponent: <LiveAssistantPage/>,
+        icon: <Icons.Signal/>
     },
     {
         title: 'Automations',
-        pageComponent: <AutomationsListPage />,
-        icon: <Icons.WrenchScrew />
+        pageComponent: <AutomationsListPage/>,
+        icon: <Icons.WrenchScrew/>
     },
     {
         title: 'Conversation History',
-        pageComponent: <ConversationHistoryPage />,
-        icon: <Icons.BookOpen />
+        pageComponent: <ConversationHistoryPage/>,
+        icon: <Icons.BookOpen/>
     },
     {
         title: 'Browse Images',
-        pageComponent: <ImageLibraryPage />,
-        icon: <Icons.Camera />
+        pageComponent: <ImageLibraryPage/>,
+        icon: <Icons.Camera/>
+    },
+    {
+        title: 'Settings',
+        pageComponent: <SettingsPage/>,
+        icon: <Icons.Gear/>,
+        hidden: true
     }
 ]

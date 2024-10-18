@@ -11,6 +11,7 @@ import { TextToSpeech, TTSRequest }          from "../ai/TextToSpeech";
 import { SpeechToText, SpeechToTextRequest } from "../ai/SpeechToText";
 import { ipcMain }                           from "electron";
 import { ChatResponse, CompletionRequest }   from "../ai/ChatCompletionDefinitions";
+import { RegisteredTools }                   from "../ai/RegisteredTools";
 
 dotenv.config({ path: resolve('.env') });
 
@@ -22,6 +23,7 @@ const tts        = new TextToSpeech(ctx);
 const stt        = new SpeechToText(ctx);
 
 ipcMain.handle('ai:completion', async (_: Electron.IpcMainInvokeEvent, request: CompletionRequest) => {
+    request.tools ??= RegisteredTools;
     const response = await completion.create(request);
     console.log(response);
     if ( typeof response !== 'function' )

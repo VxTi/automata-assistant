@@ -111,28 +111,17 @@ export function LiveAssistantPage() {
                  });
 
 
-        const size  = Math.floor(Math.min(canvas.width / 50, canvas.height / 50));
-        const cells = Array(size * 2).fill(0).map(_ => Array(size * 2).fill(0));
+        const bars = 200;
 
         const render = () => {
             gl.clearRect(0, 0, canvas.width, canvas.height);
             analyzer.getByteFrequencyData(dataArray);
 
-
-            for ( let y = -size; y < size; y++ ) {
-                for ( let x = -size; x < size; x++ ) {
-                    const theta                   = Math.atan2(y, x);
-                    const index                   = Math.floor((Math.abs(Math.cos(theta)) + Math.abs(Math.sin(theta))) * dataArray.length / 2);
-                    const intensity               = Math.pow(dataArray[ index % dataArray.length ] / 255 * size * size, 1.2);
-                    cells[ y + size ][ x + size ] = (cells[ y + size ][ x + size ] + intensity) / 2;
-                    if ( x * x + y * y <= cells[ y + size ][ x + size ] * 2 ) {
-                        gl.beginPath();
-                        gl.fillStyle = `hsl(${360 * (index / dataArray.length)}, 50%, 50%)`;
-                        gl.moveTo(canvas.width / 2 + (x) * 20, canvas.height / 2 + (y + 1) * 20);
-                        gl.arc(canvas.width / 2 + (x) * 20, canvas.height / 2 + (y + 1) * 20, 10, 0, 2 * Math.PI);
-                        gl.fill();
-                    }
-                }
+            for ( let i = 0; i < bars; i++)
+            {
+                const amplitude = dataArray[Math.floor(i / bars * dataArray.length)] ;
+                gl.fillStyle = `rgb(${amplitude * 2} ${amplitude * .5} ${Math.max(0, 255 - .8 * amplitude)})`;
+                gl.fillRect(canvas.width / bars * i, canvas.height - amplitude * canvas.height / 255, canvas.width / bars, amplitude * canvas.height / 255);
             }
 
             requestAnimationFrame(render);

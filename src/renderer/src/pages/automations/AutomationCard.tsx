@@ -21,7 +21,7 @@ export function AutomationCard(props: Automation)
     return (
         <div
             {...CreateSequence('fadeIn', 500, 35)}
-            className="card-container group relative flex m-1 p-2 flex-col justify-start items-center rounded-lg"
+            className="content-container group relative flex m-1 p-2 flex-col justify-start items-center rounded-lg"
             onClick={() => setContent(<AutomationPageWrapper automation={props} />)}>
             <div className="flex absolute top-0 left-0 w-full h-full justify-end">
                 {props.enabled && <span className="bg-green-600 w-1 h-1 animate-pulse rounded-full p-1 mt-2 mr-2" />}
@@ -29,7 +29,7 @@ export function AutomationCard(props: Automation)
             <div className="w-16 h-16 flex">{props.icon}</div>
             <p className="text-md">{props.name}</p>
             <span
-                className="absolute opacity-0 w-full h-full left-0 top-0 p-3 backdrop-blur-md backdrop-brightness-50 group-hover:cursor-pointer transition-all duration-500 group-hover:opacity-100 text-sm">
+                className="absolute opacity-0 w-full h-full left-0 top-0 p-3 backdrop-blur-md backdrop-brightness-80 group-hover:cursor-pointer transition-all duration-500 group-hover:opacity-100 text-sm">
                 {props.description}
             </span>
         </div>

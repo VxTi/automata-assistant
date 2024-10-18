@@ -24,11 +24,6 @@
     animation: fadeIn 0.5s ease-in-out 1 forwards;
 }
 
-.card-container {
-    border: 1px solid rgba(5, 5, 6, .1);
-    background-color: rgb(251 250 253);
-    color: #000;
-}
 
 .header-grid {
     display: grid;
@@ -47,4 +42,52 @@
 .no-scrollbar {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
+}
+
+body {
+    background-color: #fff;
+    color: #000;
+}
+
+.content-container,
+.sidebar {
+    display: flex;
+}
+
+
+.content-container {
+    border: 1px solid rgba(5, 5, 6, .1);
+    background-color: rgb(251 250 253);
+}
+
+.content-container.hoverable {
+    transition: background-color .3s ease-in-out;
+}
+
+.content-container.hoverable:hover {
+    cursor: pointer;
+    background-color: rgb(229 231 235);
+}
+
+.apply-stroke {
+    stroke: #fff;
+}
+
+body[data-theme="dark"] {
+    background-color: #141417;
+    color: #fff;
+}
+
+body[data-theme="dark"] .content-container {
+    border-color: #3c3f44;
+    background-color: #1b1b1f;
+    color: #fff;
+}
+
+body[data-theme="dark"] .content-container.hoverable:hover {
+    background-color: rgb(29 29 31);
+}
+
+body[data-theme="dark"] .apply-stroke {
+    stroke: #fff;
 }

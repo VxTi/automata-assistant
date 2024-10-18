@@ -85,6 +85,12 @@ export function AssistantPage(props: {
                     <div
                         ref={chatContainerRef}
                         className="absolute left-0 top-0 h-full w-full flex flex-col justify-start items-stretch grow shrink overflow-x-hidden no-scrollbar">
+                        {messages.length === 0 && !liveChatActive &&
+                            <div className="justify-self-center mx-auto">
+                                <div className="text-2xl font-bold text-gray-500">Start a conversation</div>
+                                <div className="text-lg text-gray-400">Ask me anything</div>
+
+                            </div>}
                         {messages.map((entry, index) =>
                                           <ChatMessage key={index} entry={entry}/>)}
                         <LiveChatMessage contentRef={lastMessageRef} active={liveChatActive}/>

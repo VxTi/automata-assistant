@@ -8,8 +8,9 @@ import { useContext, useEffect, useRef } from "react";
 import { ApplicationContext }            from "../../util/ApplicationContext";
 import { AutomationsContext }            from "./Automations";
 import { AutomationCard }                from "./AutomationCard";
-import { AnnotatedIcon }                 from "../../components/AnnotatedIcon";
+import { TemporaryAnnotatedIcon }        from "../../components/AnnotatedIcon";
 import { EditAutomationPage }            from "../edit-automations/EditAutomationPage";
+import { Icons }                         from "../../components/cosmetic/Icons";
 
 /**
  * The automations list page.
@@ -31,9 +32,11 @@ export function AutomationsListPage() {
                         <span className="text-lg">
                             {automations.reduce((acc, prev) => acc + (prev.enabled ? 1 : 0), 0)} active
                         </span>
-                        <AnnotatedIcon path="M12 4.5v15m7.5-7.5h-15"
-                                       annotation="New automation" side='left'
-                                       onClick={() => setContent(<EditAutomationPage/>)}/>
+                        <TemporaryAnnotatedIcon
+                            icon={<Icons.Plus/>}
+                            annotation='New automation'
+                            side='left'
+                            onClick={() => setContent(<EditAutomationPage/>)}/>
                     </>
                 )
             }

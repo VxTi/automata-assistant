@@ -6,13 +6,13 @@
 
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { ChatContext, ChatContextMessageType }                  from "./Conversation";
+import { ChatResponse, Message, StreamedChatResponse }          from "../../../../backend/ai/ChatCompletionDefinitions";
+import { SpeechToTextRequest }                                  from "../../../../backend/ai/SpeechToText";
+import { ConversationTopic }                                    from "../../../../backend/ai/ChatCompletion";
+import { ChatContext }                                          from "./Conversation";
 import { BaseStyles }                                           from "../../util/BaseStyles";
 
 import '../../styles/code-highlighting.css';
-import { ConversationTopic }                           from "../../../../backend/ai/ChatCompletion";
-import { ChatResponse, Message, StreamedChatResponse } from "../../../../backend/ai/ChatCompletionDefinitions";
-import { SpeechToTextRequest }                         from "../../../../backend/ai/SpeechToText";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -53,8 +53,8 @@ export function ChatInputField() {
         let uuid       = ctx.topicUUID;
 
         const newMessages = [ ...ctx.messages, {
-                role: 'user',
-                content: prompt
+            role: 'user',
+            content: prompt
         } as Message ];
         ctx.setMessages(() => newMessages);
 
@@ -86,9 +86,19 @@ export function ChatInputField() {
          * Stream the messages to the AI model.
          */
 
-        let response = '';
-        const chunk  = async (_: any, message: StreamedChatResponse) => {
+        let tools: { name: string, value: string }[] = [];
+        let response                                 = '';
+        const chunk                                  = async (_: any, message: StreamedChatResponse) => {
             const delta = message.choices[ 0 ].delta;
+
+            if ( delta.tool_calls && delta.tool_calls.length > 0 ) {
+                console.log('Tool calls:', JSON.stringify(delta));
+                if ( delta.tool_calls[ 0 ].index < tools.length && delta.tool_calls[ 0 ].function.name )
+                    tools.push({ name: delta.tool_calls[ 0 ].function.name, value: '' });
+                else if ( delta.tool_calls[ 0 ].index < tools.length )
+                    tools[ delta.tool_calls[ 0 ].index ].value += delta.tool_calls[ 0 ].function.name;
+
+            }
 
             if ( delta.content && ctx.lastMessageRef.current )
                 ctx.lastMessageRef.current!.innerHTML = (response += delta.content ?? '');
@@ -97,6 +107,8 @@ export function ChatInputField() {
         window.electron.ipcRenderer.once('ai:completion-chunk-end', async () => {
             window.electron.ipcRenderer.removeListener('ai:completion-chunk', chunk);
             ctx.setLiveChatActive(false);
+
+            console.log('final: ', tools.map(tool => tool.name + ": " + tool.value).join('\n'));
 
             // Update the conversation topic with the new message,
             // and save the conversation to the conversation history.

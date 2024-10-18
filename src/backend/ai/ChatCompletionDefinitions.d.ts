@@ -75,6 +75,8 @@ interface ToolCall {
     }
 }
 
+type ContentType = string | string[] | { type: 'text', text: string } | { type: 'image_url', image_url: { url: string } }
+
 /**
  * Message interface.
  * This interface is used to define the message object for the AI.
@@ -88,7 +90,7 @@ export interface Message {
     /**
      * Content of the message.
      */
-    content: string | string[];
+    content: ContentType;
 
     /**
      * An optional name for the participant. Provides the model information to differentiate between participants of

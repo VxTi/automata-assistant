@@ -20,7 +20,9 @@ mdParser.use(
             nonStandard: true,
             displayMode: true,
             output: 'html',
-        }),
+        })
+);
+mdParser.use(
     markedHighlight(
         {
             langPrefix: 'hljs language-',

@@ -3,14 +3,15 @@
  * @author Luca Warmenhoven
  * @date Created on Saturday, October 05 - 01:45
  */
-import { mdParser }                                  from "./Conversation";
-import { RefObject, useCallback, useMemo, useState } from "react";
-import { CreateSequence }                            from "../../util/AnimationSequence";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { CreateSequence }                                      from "../../util/AnimationSequence";
 
+import { Icons }           from "../../components/cosmetic/Icons";
+import { Message }         from "../../../../backend/ai/ChatCompletionDefinitions";
+import renderMathInElement from "katex/contrib/auto-render";
+import { mdParser }        from "./Conversation";
 import '../../styles/markdown.css'
-import { Icons }                                     from "../../components/cosmetic/Icons";
-import { Message }                                   from "../../../../backend/ai/ChatCompletionDefinitions";
-
+import 'katex/dist/katex.min.css'
 /**
  * The chat message.
  * This component is used to display a chat message.
@@ -22,31 +23,45 @@ export function ChatMessage(props: { entry: Message }) {
     const [ copiedToClipboard, setCopiedToClipboard ] = useState(false);
 
     const saveToClipboardCb = useCallback(async () => {
+        if ( typeof props.entry.content === 'object' && !Array.isArray(props.entry.content) )
+            return;
+
         setCopiedToClipboard(true);
-        await navigator.clipboard.writeText(
-            Array.isArray(props.entry.content) ?
-            props.entry.content.join("\n") : props.entry.content);
+        await navigator.clipboard.writeText(Array.isArray(props.entry.content) ? props.entry.content.join("\n") : props.entry.content);
+
         setTimeout(() => setCopiedToClipboard(false), 1000);
     }, []);
 
-    const htmlContent = useMemo(() => {
-        return mdParser.parse(
-            Array.isArray(
-                props.entry.content) ?
-            props.entry.content.join('\n') :
-            props.entry.content
-        );
-    }, [ props.entry ]);
+    const contentRef = useRef<HTMLSpanElement>(null);
+
+    useEffect(() => {
+        if ( !contentRef.current ) return;
+
+        renderMathInElement(contentRef.current, {
+            delimiters: [
+                { left: '[', right: ']', display: true },
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: true }
+            ],
+            output: 'html',
+            throwOnError: false
+        });
+
+        if ( !(typeof props.entry.content === 'object' && !Array.isArray(props.entry.content)) )
+            contentRef.current.innerHTML = mdParser.parse(Array.isArray(props.entry.content) ? props.entry.content.join("\n") : props.entry.content) as string
+
+
+    }, [ contentRef ]);
 
     return (
         <div
-            className="group flex flex-row justify-between items-start border-gray-200 bg-[#fbfafd] border-[1px] border-solid rounded-md py-2 px-4 my-1 w-full"
+            className="group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 w-full"
             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start text-wrap overflow-hidden">
                         <span
-                            className="text-black font-bold font-sans text-md">{props.entry.role === 'user' ? 'You' : 'Assistant'}</span>
-                <div className="not-prose text-black text-sm mt-2 mb-1 w-full">
-                    <span className="markdown" dangerouslySetInnerHTML={{ __html: htmlContent }}/>
+                            className="font-bold font-sans text-md">{props.entry.role === 'user' ? 'You' : 'Assistant'}</span>
+                <div className="not-prose text-sm mt-2 mb-1 w-full">
+                    <span className="markdown" ref={contentRef}/>
                 </div>
             </div>
             <div onClick={saveToClipboardCb}
