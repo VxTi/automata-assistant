@@ -6,8 +6,8 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { CreateSequence }                                      from "../../util/AnimationSequence";
 
-import { Icons }           from "../../components/cosmetic/Icons";
-import { Message }         from "../../../../backend/ai/ChatCompletionDefinitions";
+import { Icons }   from "../../components/Icons";
+import { Message } from "../../../../backend/ai/ChatCompletionDefinitions";
 import renderMathInElement from "katex/contrib/auto-render";
 import { mdParser }        from "./Conversation";
 import '../../styles/markdown.css'

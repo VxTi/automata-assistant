@@ -4,7 +4,7 @@
  * @date Created on Wednesday, October 16 - 11:17
  */
 import { useContext }         from "react";
-import { ApplicationContext } from "../util/ApplicationContext";
+import { ApplicationContext } from "../contexts/ApplicationContext";
 import { PageHeader }         from "../components/PageHeader";
 import { Sidebar }            from "../components/Sidebar";
 

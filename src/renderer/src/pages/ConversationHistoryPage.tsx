@@ -12,8 +12,10 @@ import {
     Message
 }                                                                        from "../../../backend/ai/ChatCompletionDefinitions";
 import { AssistantPage }                                                 from "./assistant/AssistantPage";
-import { ApplicationContext }                                            from "../util/ApplicationContext";
-import { Icons }                                                         from "../components/cosmetic/Icons";
+import { ApplicationContext }                                            from "../contexts/ApplicationContext";
+import { Icons }                                                         from "../components/Icons";
+import { FilterButton }                                                  from "../components/FilterButton";
+import { ScrollableContainer }                                           from "../components/ScrollableContainer";
 
 export function ConversationHistoryPage() {
     const [ conversationTopics, setConversationTopics ]
@@ -86,8 +88,10 @@ export function ConversationHistoryPage() {
                               ...topic,
                               hidden: !(topic.topic.toLowerCase().includes(value) ||
                                   topic.messages.some((message: Message) =>
-                                                          (Array.isArray(message.content) ? message.content.join(", ") : message.content!).toLowerCase()
-                                                                                                                                          .includes(value)
+                                                          typeof message.content !== 'object' &&
+                                                          (Array.isArray(message.content) ? message.content.join(", ") : message.content!)
+                                                              .toLowerCase()
+                                                              .includes(value)
                                   ))
                           };
                       }));
@@ -103,30 +107,30 @@ export function ConversationHistoryPage() {
     return (
         <div
             className={`transition-all duration-500 flex z-20 flex-col justify-start items-stretch w-full grow`}>
-            <div
-                className="content-container apply-stroke sticky top-0 col-start-2 z-50 col-end-3 flex items-center justify-start overflow-hidden py-2 px-3 rounded-lg mx-auto w-[80%]">
-                <Icons.MagnifyingGlass className="w-6 h-6 mr-2 fill-none"/>
-                <input type="text" placeholder="Search conversation topics" ref={inputRef}
-                       className="bg-transparent col-start-2 placeholder:text-gray-500 col-end-3 focus:outline-none mx-1 px-1 grow rounded-xl"/>
-            </div>
-            <div className="grow relative">
-
+            <div className="flex flex-row justify-start items-center w-[80%] mx-auto">
+                <FilterButton options={[
+                    'All', 'Today', 'Yesterday', 'This week', 'This month', 'This year'
+                ]}/>
                 <div
-                    className="grow absolute w-full h-full left-0 top-0 flex flex-col justify-start items-stretch overflow-y-scroll no-scrollbar"
-                    ref={containerRef}>
-                    {conversationTopics.length === 0 ?
-                     <span className="text-black text-center mt-5 text-md">No previous conversations found.</span> :
-                     <div
-                         className="flex flex-col justify-start z-30 items-stretch w-full mt-4">
-                         {
-                             conversationTopics
-                                 .map((entry, index) =>
-                                          ( !entry.hidden && <Topic key={index} topic={entry} index={index}/>))
-                         }
-                     </div>
-                    }
+                    className="content-container grow apply-stroke sticky top-0 col-start-2 z-50 col-end-3 flex items-center justify-start overflow-hidden py-2 px-3 rounded-lg ">
+                    <Icons.MagnifyingGlass className="w-6 h-6 mr-2 fill-none"/>
+                    <input type="text" placeholder="Search conversation topics" ref={inputRef}
+                           className="bg-transparent col-start-2 placeholder:text-gray-500 col-end-3 focus:outline-none mx-1 px-1 grow rounded-xl"/>
                 </div>
             </div>
+            <ScrollableContainer blurEdges ref={containerRef}>
+                {conversationTopics.length === 0 ?
+                 <span className="text-black text-center mt-5 text-md">No previous conversations found.</span> :
+                 <div
+                     className="flex flex-col justify-start z-30 items-stretch w-full py-14">
+                     {
+                         conversationTopics
+                             .map((entry, index) =>
+                                      ( !entry.hidden && <Topic key={index} topic={entry} index={index}/>))
+                     }
+                 </div>
+                }
+            </ScrollableContainer>
         </div>
     )
 }
@@ -157,7 +161,7 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
 
     return (
         <div
-            className={`flex bg-[#1b1b1f] border-[#3c3f44] border-solid hover:bg-gray-200 dark:hover:bg-gray-900 transition-colors duration-200 hover:cursor-pointer hover:border-blue-500 text-sm flex-row rounded mx-auto w-[80%] overflow-hidden justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-1 p-2 border-[1px]'}`}
+            className={`flex bg-[#fafbfd] dark:bg-[#1b1b1f] border-[rgba(0,0,0,0.2)] border-[#3c3f44] border-solid hover:bg-gray-200 dark:hover:bg-gray-900 transition-colors duration-200 hover:cursor-pointer hover:border-blue-500 text-sm flex-row rounded mx-auto w-[80%] overflow-hidden justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-1 p-2 border-[1px]'}`}
             onClick={() => {
                 if ( topicUUID === entry.uuid )
                     return;

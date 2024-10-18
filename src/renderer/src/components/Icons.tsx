@@ -55,15 +55,11 @@ export const Icons = {
             <StrokePath d="m15.75 4.5-7.5 7.5 7.5 7.5"></StrokePath>
         </IconWrapper>
     ),
-    BarsArrowDown: (props: BasicIconProps) => (
-        <IconWrapper props={props}>
-            <StrokePath d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25"/>
-        </IconWrapper>
-    ),
-    BarsArrowUp: (props: BasicIconProps) => (
-        <IconWrapper props={props}>
-            <StrokePath d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12"/>
-        </IconWrapper>
+    ChevronUpDown: (props: BasicIconProps) => (
+       <IconWrapper props={props}>
+           <StrokePath d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"/>
+       </IconWrapper>
+
     ),
     MagnifyingGlass: (props: BasicIconProps) => (
         <IconWrapper props={props}>
@@ -135,6 +131,21 @@ export const Icons = {
     Disable: (props: BasicIconProps) => (
         <IconWrapper props={props}>
             <StrokePath d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+        </IconWrapper>
+    ),
+    FolderOpen: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
+        </IconWrapper>
+    ),
+    User: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+        </IconWrapper>
+    ),
+    PencilSquare: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
         </IconWrapper>
     )
 }

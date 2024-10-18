@@ -7,13 +7,13 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { ChatInputField }                          from "./InputField";
 import { ChatContext }                             from "./Conversation";
 import { ChatMessage, LiveChatMessage }            from "./ChatMessage";
-import { useAnimationSequence }                  from "../../util/AnimationSequence";
-import { AnnotatedIcon, TemporaryAnnotatedIcon } from "../../components/AnnotatedIcon";
-import { ApplicationContext }                    from "../../util/ApplicationContext";
+import { useAnimationSequence }                    from "../../util/AnimationSequence";
+import { TemporaryAnnotatedIcon }                  from "../../components/AnnotatedIcon";
+import { ApplicationContext }                      from "../../contexts/ApplicationContext";
 
 import '../../styles/utilities.css'
-import { Message }                                 from "../../../../backend/ai/ChatCompletionDefinitions";
-import { Icons }                                   from "../../components/cosmetic/Icons";
+import { Message } from "../../../../backend/ai/ChatCompletionDefinitions";
+import { Icons }   from "../../components/Icons";
 
 /**
  * The assistant page.
@@ -49,8 +49,8 @@ export function AssistantPage(props: {
         setHeaderConfig(() => {
                             return {
                                 leftHeaderContent: messages.length > 0 ? (
-                                    <AnnotatedIcon
-                                        path="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                                    <TemporaryAnnotatedIcon
+                                        icon={<Icons.PencilSquare/>}
                                         annotation="New topic" side='right' onClick={() => {
                                         setConversationTopic('New conversation');
                                         setMessages(() => []);
@@ -58,13 +58,13 @@ export function AssistantPage(props: {
                                 pageTitle:
                                 conversationTopic,
                                 rightHeaderContent:
-                                <TemporaryAnnotatedIcon
-                                    icon={!spokenResponse ? <Icons.SpeakerCross/> : <Icons.Speaker/>}
-                                    annotation={(spokenResponse ? 'Disable' : 'Enable') + " sound"}
-                                    side='left'
-                                    onClick={() => {
-                                        setSpokenResponse( !spokenResponse);
-                                    }}/>
+                                    <TemporaryAnnotatedIcon
+                                        icon={!spokenResponse ? <Icons.SpeakerCross/> : <Icons.Speaker/>}
+                                        annotation={(spokenResponse ? 'Disable' : 'Enable') + " sound"}
+                                        side='left'
+                                        onClick={() => {
+                                            setSpokenResponse( !spokenResponse);
+                                        }}/>
                             }
                         }
         );

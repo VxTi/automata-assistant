@@ -1,6 +1,6 @@
 import { Page }               from "../pages/PagesConfig";
 import { useContext }         from "react";
-import { ApplicationContext } from "../util/ApplicationContext";
+import { ApplicationContext } from "../contexts/ApplicationContext";
 
 /**
  * @fileoverview SidebarMenuItem.tsx

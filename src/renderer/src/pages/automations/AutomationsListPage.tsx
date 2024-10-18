@@ -5,12 +5,12 @@
  */
 import { useAnimationSequence }          from "../../util/AnimationSequence";
 import { useContext, useEffect, useRef } from "react";
-import { ApplicationContext }            from "../../util/ApplicationContext";
+import { ApplicationContext }            from "../../contexts/ApplicationContext";
 import { AutomationsContext }            from "./Automations";
 import { AutomationCard }                from "./AutomationCard";
 import { TemporaryAnnotatedIcon }        from "../../components/AnnotatedIcon";
-import { EditAutomationPage }            from "../edit-automations/EditAutomationPage";
-import { Icons }                         from "../../components/cosmetic/Icons";
+import { EditAutomationPage } from "../edit-automations/EditAutomationPage";
+import { Icons }              from "../../components/Icons";
 
 /**
  * The automations list page.

@@ -4,8 +4,8 @@
  * @date Created on Saturday, October 05 - 13:36
  */
 
-import { ApplicationContext } from "../../util/ApplicationContext";
-import { useContext } from "react";
+import { ApplicationContext } from "../../contexts/ApplicationContext";
+import { useContext }         from "react";
 import { Automation } from "./Automations";
 import { AutomationPageWrapper } from "./AutomationPageWrapper";
 import { CreateSequence } from "../../util/AnimationSequence";

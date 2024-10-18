@@ -5,11 +5,11 @@
  */
 import { Automation, AutomationRegistry }  from "./Automations";
 import { useContext, useEffect, useState } from "react";
-import { ApplicationContext }              from "../../util/ApplicationContext";
+import { ApplicationContext }              from "../../contexts/ApplicationContext";
 import { AutomationsListPage }             from "./AutomationsListPage";
 import { TemporaryAnnotatedIcon }          from "../../components/AnnotatedIcon";
-import { EditAutomationPage }              from "../edit-automations/EditAutomationPage";
-import { Icons }                           from "../../components/cosmetic/Icons";
+import { EditAutomationPage } from "../edit-automations/EditAutomationPage";
+import { Icons }              from "../../components/Icons";
 
 /**
  * The automation page wrapper.

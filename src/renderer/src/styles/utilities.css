@@ -1,13 +1,23 @@
 @font-face {
-    font-family: 'Sohne';
-    src: url('../resources/fonts/Sohne.woff2') format('woff2');
+    font-family: 'SK Modernist';
+    src: url('../resources/fonts/SK Modernist.woff') format('woff');
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: 'Grotesk Neue';
+    src: url('../resources/fonts/Grotesk Neue Medium.ttf') format('truetype');
     font-weight: 300;
     font-style: normal;
     font-display: swap;
 }
 
-.font-sohne {
-    font-family: Helvetica Neue, Helvetica, sans-serif;
+.font-sk-modernist {
+    font-family: 'SK Modernist', sans-serif;
+}
+
+.font-grotesk-neue {
+    font-family: /*'SK Modernist', */'Grotesk Neue', Helvetica Neue, Helvetica, sans-serif;
 }
 
 @keyframes fadeIn {
@@ -96,3 +106,9 @@ body[data-theme="dark"] .content-container.hoverable:hover {
 body[data-theme="dark"] .apply-stroke {
     stroke: #fff;
 }
+
+
+.h-gradient-clip {
+    mask-image: linear-gradient(180deg, transparent 1%, #000 15%, #000 85%, transparent 98%);
+}
+

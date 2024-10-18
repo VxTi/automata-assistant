@@ -5,7 +5,7 @@
  */
 
 import { useContext, useEffect, useRef } from "react";
-import { ApplicationContext }            from "../util/ApplicationContext";
+import { ApplicationContext }            from "../contexts/ApplicationContext";
 
 /**
  * Convert a float32 array to a 16-bit PCM array.
@@ -72,7 +72,7 @@ export function LiveAssistantPage() {
 
         const audioContext = new (window.AudioContext || window[ 'webkitAudioContext' ])();
         const analyzer     = audioContext.createAnalyser();
-        analyzer.fftSize   = 256;
+        analyzer.fftSize   = 512//256;
         const dataArray    = new Uint8Array(analyzer.frequencyBinCount);
 
         /** Acquire the audio stream from the user's microphone. */
@@ -131,7 +131,7 @@ export function LiveAssistantPage() {
 
     return (
         <div className="mx-auto max-w-screen-md w-full flex flex-col grow justify-start">
-            <div className="flex flex-col grow justify-center items-center relative">
+            <div className="flex flex-col grow justify-center items-center relative mx-2">
                 <canvas className="absolute w-full aspect-video content-container p-3 rounded-lg" ref={canvasRef}/>
             </div>
         </div>

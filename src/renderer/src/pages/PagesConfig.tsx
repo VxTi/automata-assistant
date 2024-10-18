@@ -8,9 +8,9 @@ import { AssistantPage }           from "./assistant/AssistantPage";
 import { LiveAssistantPage }       from "./LiveAssistantPage";
 import { AutomationsListPage }     from "./automations/AutomationsListPage";
 import { ConversationHistoryPage } from "./ConversationHistoryPage";
-import { ImageLibraryPage }        from "./ImageLibraryPage";
-import { Icons }                   from "../components/cosmetic/Icons";
-import { SettingsPage }            from "./SettingsPage";
+import { ImageLibraryPage } from "./ImageLibraryPage";
+import { Icons }            from "../components/Icons";
+import { SettingsPage }     from "./SettingsPage";
 
 export interface Page {
     title: string,
@@ -41,14 +41,20 @@ export const PagesConfig: Page[] = [
         icon: <Icons.BookOpen/>
     },
     {
-        title: 'Browse Images',
+        title: 'Files & Images',
         pageComponent: <ImageLibraryPage/>,
-        icon: <Icons.Camera/>
+        icon: <Icons.FolderOpen/>
     },
     {
         title: 'Settings',
         pageComponent: <SettingsPage/>,
         icon: <Icons.Gear/>,
+        hidden: true
+    },
+    {
+        title: 'Account',
+        pageComponent: <SettingsPage/>,
+        icon: <Icons.User />,
         hidden: true
     }
 ]

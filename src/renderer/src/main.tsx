@@ -1,5 +1,5 @@
 import { createRoot }                 from 'react-dom/client'
-import { ApplicationContextProvider } from "./util/ApplicationContext";
+import { ApplicationContextProvider } from "./contexts/ApplicationContext";
 import './styles/styles.css'
 import { AutomationsContextProvider } from "./pages/automations/Automations";
 import { PageWrapper }                from "./pages/PageWrapper";

@@ -268,7 +268,7 @@ export function ChatInputField() {
                         }}
                         placeholder="Ask me anything..."
                         rows={1} cols={50} ref={inputContentRef}
-                        className="resize-none mx-2 w-full max-h-52 my-auto grow focus:outline-none bg-transparent text-white p-2"/>
+                        className="resize-none mx-2 w-full max-h-52 my-auto grow focus:outline-none bg-transparent text-black dark:text-white p-2"/>
                     <svg xmlns="http://www.w3.org/2000/svg" fill={recording ? '#fff' : 'none'} viewBox="0 0 24 24"
                          strokeWidth={recording ? 0 : 1.5}
                          onClick={handleMicrophoneAccess}
@@ -313,7 +313,7 @@ function ChatAlternativeOption(props: { path: string, text: string, onClick: () 
                 <path strokeLinecap="round" strokeLinejoin="round"
                       d={props.path}/>
             </svg>
-            <div className="text-white ml-1 text-xs text-nowrap">{props.text}</div>
+            <div className="text-black dark:text-white ml-1 text-xs text-nowrap">{props.text}</div>
         </div>
     )
 }

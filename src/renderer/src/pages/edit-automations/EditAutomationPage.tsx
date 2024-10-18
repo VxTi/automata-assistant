@@ -4,7 +4,7 @@
  * @date Created on Sunday, October 06 - 12:31
  */
 import { AnnotatedIcon }         from "../../components/AnnotatedIcon";
-import { ApplicationContext }    from "../../util/ApplicationContext";
+import { ApplicationContext }    from "../../contexts/ApplicationContext";
 import { useContext, useEffect } from "react";
 import { AutomationsListPage }   from "../automations/AutomationsListPage";
 import { Automation, AutomationsContext } from "../automations/Automations";
