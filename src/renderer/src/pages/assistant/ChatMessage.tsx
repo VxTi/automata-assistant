@@ -83,12 +83,12 @@ export function LiveChatMessage(props: { contentRef: RefObject<HTMLDivElement>, 
 
     return (
         <div
-            className="group flex flex-row justify-between items-start bg-gray-300 rounded-md py-2 px-4 my-1 transition-all"
+            className="group flex flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 transition-all"
             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start overflow-x-scroll">
                         <span
-                            className="text-black font-bold font-sans text-md">Assistant</span>
-                <div className="not-prose text-black text-sm mt-2 mb-1">
+                            className="font-bold font-sans text-md">Assistant</span>
+                <div className="not-prose text-sm mt-2 mb-1">
                     <div ref={props.contentRef}/>
                 </div>
             </div>

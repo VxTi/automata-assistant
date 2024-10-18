@@ -220,8 +220,9 @@ export function ChatInputField() {
                                   onDelete={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== index))}/>
                 ))}
             </div>
+
             <div
-                className="flex flex-col justify-end items-center bg-gray-900 rounded-3xl max-w-screen-md mx-4 overflow-hidden border-[1px] border-solid border-gray-700">
+                className="flex flex-col justify-end items-center rounded-3xl max-w-screen-md mx-4 overflow-hidden border-solid border-[1px] border-blue-500 dark:bg-[#161b22]">
                 <div
                     className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <ChatAlternativeOption

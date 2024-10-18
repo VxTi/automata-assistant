@@ -31,7 +31,8 @@
     margin-top: 16px;
     margin-left: 16px;
     margin-right: 16px;
-    grid-template-columns: minmax(70px, 1fr) 1fr minmax(70px, 1fr);
+    grid-template-columns: minmax(70px, 1fr) auto minmax(70px, 1fr);
+    grid-template-rows: 1fr;
 }
 
 /* Chrome, Safari and Opera */
@@ -45,8 +46,13 @@
 }
 
 body {
+    font-family: 'Sohne', sans-serif;
+    width: 100dvw;
+    height: 100dvh;
     background-color: #fff;
     color: #000;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 10px;
 }
 
 .content-container,
@@ -75,13 +81,12 @@ body {
 
 body[data-theme="dark"] {
     background-color: #141417;
-    color: #fff;
+    color: #dad7d7;
 }
 
 body[data-theme="dark"] .content-container {
     border-color: #3c3f44;
     background-color: #1b1b1f;
-    color: #fff;
 }
 
 body[data-theme="dark"] .content-container.hoverable:hover {

@@ -17,7 +17,7 @@ export function PageHeader(props: { config: PageHeaderConfig }) {
             <div className="flex flex-row items-center justify-start">
                 {props.config.leftHeaderContent}
             </div>
-            <h1 className="text-center text-xl md:text-2xl">{props.config.pageTitle}</h1>
+            <h1 className="text-center text-xl mb-2">{props.config.pageTitle}</h1>
             <div className="flex flex-row items-center justify-end">
                 {props.config.rightHeaderContent}
             </div>

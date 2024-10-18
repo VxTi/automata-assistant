@@ -111,17 +111,17 @@ export function LiveAssistantPage() {
                  });
 
 
-        const bars = 200;
 
         const render = () => {
             gl.clearRect(0, 0, canvas.width, canvas.height);
             analyzer.getByteFrequencyData(dataArray);
 
-            for ( let i = 0; i < bars; i++)
+            for ( let i = 0; i < dataArray.length; i++)
             {
-                const amplitude = dataArray[Math.floor(i / bars * dataArray.length)] ;
+                const amplitude = Math.max(1, dataArray[i]);
                 gl.fillStyle = `rgb(${amplitude * 2} ${amplitude * .5} ${Math.max(0, 255 - .8 * amplitude)})`;
-                gl.fillRect(canvas.width / bars * i, canvas.height - amplitude * canvas.height / 255, canvas.width / bars, amplitude * canvas.height / 255);
+                gl.fillRect(canvas.width / dataArray.length * i, canvas.height - amplitude * canvas.height / 255,
+                            canvas.width / dataArray.length / 2, amplitude * canvas.height / 255);
             }
 
             requestAnimationFrame(render);
@@ -132,7 +132,7 @@ export function LiveAssistantPage() {
     return (
         <div className="mx-auto max-w-screen-md w-full flex flex-col grow justify-start">
             <div className="flex flex-col grow justify-center items-center relative">
-                <canvas className="absolute h-full aspect-video" ref={canvasRef}/>
+                <canvas className="absolute w-full aspect-video content-container p-3 rounded-lg" ref={canvasRef}/>
             </div>
         </div>
     )

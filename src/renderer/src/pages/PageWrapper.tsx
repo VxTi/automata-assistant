@@ -21,6 +21,8 @@ const WindowDraggableArea = () => (
 
 /**
  * Wrapper for the page.
+ * This is the main component that contains the content of the page,
+ * the window header (for macOS) and the sidebar.
  * @constructor
  */
 export function PageWrapper() {
@@ -28,12 +30,14 @@ export function PageWrapper() {
     const { headerConfig, content } = useContext(ApplicationContext);
 
     return (
-        <div className="flex relative w-screen h-screen flex-col justify-start">
+        <div className="flex relative grow flex-col justify-start overflow-scroll">
             <WindowDraggableArea/>
-            <Sidebar />
-            <PageHeader config={headerConfig}/>
-            <div className="flex flex-col justify-start items-stretch grow overflow-y-scroll">
-                {content}
+            <div className="flex flex-row justify-start items-stretch grow">
+                <Sidebar/>
+                <div className="flex flex-col justify-start items-stretch grow overflow-scroll">
+                    <PageHeader config={headerConfig}/>
+                    {content}
+                </div>
             </div>
         </div>
     )

@@ -13,7 +13,6 @@ import {
 }                                                                        from "../../../backend/ai/ChatCompletionDefinitions";
 import { AssistantPage }                                                 from "./assistant/AssistantPage";
 import { ApplicationContext }                                            from "../util/ApplicationContext";
-import { FilterButton }                                                  from "../components/functional/FilterButton";
 import { Icons }                                                         from "../components/cosmetic/Icons";
 
 export function ConversationHistoryPage() {
@@ -103,34 +102,29 @@ export function ConversationHistoryPage() {
 
     return (
         <div
-            className={`transition-all duration-500 flex z-20 flex-col justify-start items-stretch w-full`}>
-            <div className="flex flex-row justify-center items-start w-full">
-                <div className="flex flex-col justify-start grow items-stretch max-w-screen-md">
-                    <div
-                        className="content-container apply-stroke sticky top-0 col-start-2 z-50 col-end-3 flex items-center justify-start overflow-hidden py-2 px-3 rounded-lg mx-auto w-[80%]">
-                        <FilterButton options={[
-                            { title: 'Date created', onClick: () => void 0 },
-                            { title: 'Alphabetical', onClick: () => void 0 },
-                            { title: 'Most messages', onClick: () => void 0 },
-                        ]}/>
-                        <Icons.MagnifyingGlass className="w-6 h-6 mr-2 fill-none"/>
-                        <input type="text" placeholder="Search conversation topics" ref={inputRef}
-                               className="bg-transparent col-start-2 placeholder:text-gray-500 col-end-3 focus:outline-none mx-1 px-1 grow rounded-xl"/>
-                    </div>
-                    <div
-                        className="grow relative overflow-scroll flex flex-col justify-start items-stretch"
-                        ref={containerRef}>
-                        {conversationTopics.length === 0 ?
-                         <span className="text-black text-center mt-5 text-md">No previous conversations found.</span> :
-                         <div
-                             className="flex flex-col justify-start z-30 items-stretch overflow-y-scroll w-full mt-4">
-                             {conversationTopics
+            className={`transition-all duration-500 flex z-20 flex-col justify-start items-stretch w-full grow`}>
+            <div
+                className="content-container apply-stroke sticky top-0 col-start-2 z-50 col-end-3 flex items-center justify-start overflow-hidden py-2 px-3 rounded-lg mx-auto w-[80%]">
+                <Icons.MagnifyingGlass className="w-6 h-6 mr-2 fill-none"/>
+                <input type="text" placeholder="Search conversation topics" ref={inputRef}
+                       className="bg-transparent col-start-2 placeholder:text-gray-500 col-end-3 focus:outline-none mx-1 px-1 grow rounded-xl"/>
+            </div>
+            <div className="grow relative">
+
+                <div
+                    className="grow absolute w-full h-full left-0 top-0 flex flex-col justify-start items-stretch overflow-y-scroll no-scrollbar"
+                    ref={containerRef}>
+                    {conversationTopics.length === 0 ?
+                     <span className="text-black text-center mt-5 text-md">No previous conversations found.</span> :
+                     <div
+                         className="flex flex-col justify-start z-30 items-stretch w-full mt-4">
+                         {
+                             conversationTopics
                                  .map((entry, index) =>
                                           ( !entry.hidden && <Topic key={index} topic={entry} index={index}/>))
-                             }
-                         </div>
-                        }
-                    </div>
+                         }
+                     </div>
+                    }
                 </div>
             </div>
         </div>

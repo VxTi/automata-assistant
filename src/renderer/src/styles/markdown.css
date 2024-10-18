@@ -3,10 +3,20 @@
     color: #333;
 }
 
+body[data-theme="dark"] .markdown h1,
+body[data-theme="dark"] .markdown h2,
+body[data-theme="dark"] .markdown h3,
+body[data-theme="dark"] .markdown h4,
+body[data-theme="dark"] .markdown h5,
+body[data-theme="dark"] .markdown h6 {
+    color: #fff;
+}
+
 .markdown h1 {
     font-size: 4em;
     margin: 0.67em 0;
 }
+
 .markdown h2 {
     font-size: 2em;
     margin: 0.83em 0;
@@ -51,6 +61,7 @@
     display: block;
     margin: 0.5em 0;
 }
+
 .markdown li:before {
     content: "-";
     display: inline;
@@ -64,8 +75,7 @@
     padding: 0.1em 0.3em;
 }
 
-.markdown pre code:not(.hljs)
-{
+.markdown pre code:not(.hljs) {
     text-wrap: wrap;
     background-color: unset;
 }
@@ -73,7 +83,17 @@
 .markdown code.hljs {
     color: #fff;
 }
+
 .markdown code:not(.hljs) {
     background-color: #ddd;
     border-radius: 0.4em;
 }
+
+body[data-theme="dark"] .markdown code:not(.hljs) {
+    background-color: #333;
+}
+
+body[data-theme="dark"] .markdown pre code {
+    background-color: #222;
+}
+
