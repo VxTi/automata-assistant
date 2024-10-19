@@ -1,5 +1,5 @@
-import { Page }               from "../pages/PagesConfig";
-import { useContext }         from "react";
+import { Page }       from "../pages/Config";
+import { useContext } from "react";
 import { ApplicationContext } from "../contexts/ApplicationContext";
 
 /**

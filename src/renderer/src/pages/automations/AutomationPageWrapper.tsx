@@ -6,9 +6,9 @@
 import { Automation, AutomationRegistry }  from "./Automations";
 import { useContext, useEffect, useState } from "react";
 import { ApplicationContext }              from "../../contexts/ApplicationContext";
-import { AutomationsListPage }             from "./AutomationsListPage";
-import { TemporaryAnnotatedIcon }          from "../../components/AnnotatedIcon";
-import { EditAutomationPage } from "../edit-automations/EditAutomationPage";
+import { AutomationsListPage } from "./AutomationsListPage";
+import { AnnotatedIcon }       from "../../components/AnnotatedIcon";
+import { EditAutomationPage }  from "../edit-automations/EditAutomationPage";
 import { Icons }              from "../../components/Icons";
 
 /**
@@ -27,20 +27,20 @@ export function AutomationPageWrapper(props: { automation: Automation }) {
         setHeaderConfig(() => {
             return {
                 leftHeaderContent: (
-                    <TemporaryAnnotatedIcon icon={<Icons.LeftArrow/>}
-                                            annotation='Back to automations'
-                                            side='right'
-                                            onClick={() => setContent(<AutomationsListPage/>)}/>
+                    <AnnotatedIcon icon={<Icons.LeftArrow/>}
+                                   annotation='Back to automations'
+                                   side='right'
+                                   onClick={() => setContent(<AutomationsListPage/>)}/>
                 ),
                 pageTitle: props.automation.name,
                 rightHeaderContent: (
                     <>
-                        <TemporaryAnnotatedIcon
+                        <AnnotatedIcon
                             icon={<Icons.Gear/>}
                             annotation='Edit automation'
                             side='left'
                             onClick={() => setContent(<EditAutomationPage automation={props.automation}/>)}/>
-                        <TemporaryAnnotatedIcon
+                        <AnnotatedIcon
                             icon={!active ? <Icons.Disable/> : <Icons.Play/>}
                             annotation={(active ? 'Disable' : 'Enable') + ' automation'}
                             side='left'

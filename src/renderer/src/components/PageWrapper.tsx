@@ -5,8 +5,8 @@
  */
 import { useContext }         from "react";
 import { ApplicationContext } from "../contexts/ApplicationContext";
-import { PageHeader }         from "../components/PageHeader";
-import { Sidebar }            from "../components/Sidebar";
+import { PageHeader }         from "./PageHeader";
+import { Sidebar }            from "./Sidebar";
 
 /**
  * Draggable area for the window.
@@ -34,7 +34,7 @@ export function PageWrapper() {
             <WindowDraggableArea/>
             <div className="flex flex-row justify-start items-stretch grow">
                 <Sidebar/>
-                <div className="flex flex-col justify-start items-stretch grow overflow-scroll">
+                <div className="flex flex-col justify-start items-center grow overflow-scroll">
                     <PageHeader config={headerConfig}/>
                     {content}
                 </div>

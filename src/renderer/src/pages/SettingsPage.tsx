@@ -4,9 +4,9 @@
  * @date Created on Friday, October 18 - 09:16
  */
 import { useContext, useEffect } from "react";
-import { ApplicationContext } from "../contexts/ApplicationContext";
-import { Switch }             from "../components/Switch";
-import { ScrollableContainer }   from "../components/ScrollableContainer";
+import { ApplicationContext }  from "../contexts/ApplicationContext";
+import { ToggleableSwitch }    from "../components/ToggleableSwitch";
+import { ScrollableContainer } from "../components/ScrollableContainer";
 
 export function SettingsPage() {
 
@@ -21,7 +21,7 @@ export function SettingsPage() {
     }, []);
 
     return (
-        <ScrollableContainer className="max-w-screen-sm gap-4 p-4">
+        <ScrollableContainer className="gap-4 p-4" size='sm'>
             <OptionalSetting title="Personalized messages"
                              description="Allow the assistant to generate a personal profile to create more accurate and personalized responses."
                              enabled={false}
@@ -75,7 +75,7 @@ function OptionalSetting(props: {
                 <span aria-label={props.description}>{props.title}</span>
                 <span className="text-gray-400 text-sm">{props.description}</span>
             </div>
-            <Switch onStateChange={props.onChange} checked={props.enabled}/>
+            <ToggleableSwitch onStateChange={props.onChange} checked={props.enabled}/>
         </div>
     )
 }

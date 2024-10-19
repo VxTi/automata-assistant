@@ -147,5 +147,25 @@ export const Icons = {
         <IconWrapper props={props}>
             <StrokePath d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
         </IconWrapper>
+    ),
+    Stop: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z"/>
+        </IconWrapper>
+    ),
+    Microphone: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"/>
+        </IconWrapper>
+    ),
+    PaperAirplane: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/>
+        </IconWrapper>
+    ),
+    ThreeDots: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+        </IconWrapper>
     )
 }

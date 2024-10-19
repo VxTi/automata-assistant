@@ -5,11 +5,12 @@
  */
 import { useContext }         from "react";
 import { ApplicationContext } from "../contexts/ApplicationContext";
-import { Icons }              from "./Icons";
-import { PagesConfig }        from "../pages/PagesConfig";
-import { SidebarMenuItem }        from "./SidebarMenuItem";
-import { TemporaryAnnotatedIcon } from "./AnnotatedIcon";
-import { SettingsPage }           from "../pages/SettingsPage";
+import { Icons }             from "./Icons";
+import { Config, ConfigMap } from "../pages/Config";
+import { SidebarMenuItem } from "./SidebarMenuItem";
+import { AnnotatedIcon }   from "./AnnotatedIcon";
+import { SettingsPage }    from "../pages/SettingsPage";
+import { AccountPage }        from "../pages/AccountPage";
 
 export function Sidebar() {
     const {
@@ -35,21 +36,21 @@ export function Sidebar() {
                 </div>
 
                 <hr className="mt-3 mb-6 bg-gradient-to-r from-transparent via-blue-500 to-transparent h-[1px] border-none"/>
-                {PagesConfig.map((page, i) =>
+                {Config.map((page, i) =>
                                      !page.hidden && <SidebarMenuItem page={page} key={i}/>)}
             </div>
 
             <div className="flex flex-row justify-between items-center my-2 mx-2 mt-auto">
-                <TemporaryAnnotatedIcon
+                <AnnotatedIcon
                     icon={<Icons.Gear/>}
                     annotation='Settings'
                     side='right'
                     onClick={() => setContent(<SettingsPage/>)}/>
-                <TemporaryAnnotatedIcon
+                <AnnotatedIcon
                     icon={<Icons.User/>}
                     annotation='Account'
                     side='left'
-                    onClick={() => setContent(<SettingsPage/>)}/>
+                    onClick={() => setContent(<AccountPage />)}/>
 
             </div>
         </div>

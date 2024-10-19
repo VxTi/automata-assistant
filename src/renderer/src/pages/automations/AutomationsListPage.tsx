@@ -7,8 +7,8 @@ import { useAnimationSequence }          from "../../util/AnimationSequence";
 import { useContext, useEffect, useRef } from "react";
 import { ApplicationContext }            from "../../contexts/ApplicationContext";
 import { AutomationsContext }            from "./Automations";
-import { AutomationCard }                from "./AutomationCard";
-import { TemporaryAnnotatedIcon }        from "../../components/AnnotatedIcon";
+import { AutomationCard }     from "./AutomationCard";
+import { AnnotatedIcon }      from "../../components/AnnotatedIcon";
 import { EditAutomationPage } from "../edit-automations/EditAutomationPage";
 import { Icons }              from "../../components/Icons";
 
@@ -32,7 +32,7 @@ export function AutomationsListPage() {
                         <span className="text-lg">
                             {automations.reduce((acc, prev) => acc + (prev.enabled ? 1 : 0), 0)} active
                         </span>
-                        <TemporaryAnnotatedIcon
+                        <AnnotatedIcon
                             icon={<Icons.Plus/>}
                             annotation='New automation'
                             side='left'

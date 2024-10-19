@@ -1,5 +1,5 @@
 /**
- * @fileoverview PagesConfig.tsx
+ * @fileoverview Config.tsx
  * @author Luca Warmenhoven
  * @date Created on Thursday, October 17 - 17:00
  */
@@ -8,9 +8,10 @@ import { AssistantPage }           from "./assistant/AssistantPage";
 import { LiveAssistantPage }       from "./LiveAssistantPage";
 import { AutomationsListPage }     from "./automations/AutomationsListPage";
 import { ConversationHistoryPage } from "./ConversationHistoryPage";
-import { ImageLibraryPage } from "./ImageLibraryPage";
-import { Icons }            from "../components/Icons";
+import { FilesAndImagesPage }      from "./FilesAndImagesPage";
+import { Icons }                   from "../components/Icons";
 import { SettingsPage }     from "./SettingsPage";
+import { AccountPage }             from "./AccountPage";
 
 export interface Page {
     title: string,
@@ -19,7 +20,7 @@ export interface Page {
     pageComponent: ReactNode,
 }
 
-export const PagesConfig: Page[] = [
+const Config: Page[] = [
     {
         title: 'Assistant',
         pageComponent: <AssistantPage/>,
@@ -41,8 +42,8 @@ export const PagesConfig: Page[] = [
         icon: <Icons.BookOpen/>
     },
     {
-        title: 'Files & Images',
-        pageComponent: <ImageLibraryPage/>,
+        title: 'Files and Images',
+        pageComponent: <FilesAndImagesPage/>,
         icon: <Icons.FolderOpen/>
     },
     {
@@ -53,8 +54,14 @@ export const PagesConfig: Page[] = [
     },
     {
         title: 'Account',
-        pageComponent: <SettingsPage/>,
+        pageComponent: <AccountPage/>,
         icon: <Icons.User />,
         hidden: true
     }
-]
+];
+
+const ConfigMap = new Map(Config.map((entry => {
+    return [entry.title.toLowerCase().replaceAll(' ', ''), entry];
+})));
+
+export { ConfigMap, Config };

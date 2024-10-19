@@ -5,17 +5,17 @@
  */
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ChatContext }                                                   from "./assistant/Conversation";
-import { CreateSequence, useAnimationSequence }                          from "../util/AnimationSequence";
-import { TemporaryAnnotatedIcon }                                        from "../components/AnnotatedIcon";
-import { ConversationTopic }                                             from "../../../backend/ai/ChatCompletion";
+import { CreateSequence, useAnimationSequence } from "../util/AnimationSequence";
+import { AnnotatedIcon }                        from "../components/AnnotatedIcon";
+import { ConversationTopic }                    from "../../../backend/ai/ChatCompletion";
 import {
     Message
 }                                                                        from "../../../backend/ai/ChatCompletionDefinitions";
 import { AssistantPage }                                                 from "./assistant/AssistantPage";
 import { ApplicationContext }                                            from "../contexts/ApplicationContext";
-import { Icons }                                                         from "../components/Icons";
-import { FilterButton }                                                  from "../components/FilterButton";
-import { ScrollableContainer }                                           from "../components/ScrollableContainer";
+import { Icons }               from "../components/Icons";
+import { DropdownSelectable }  from "../components/DropdownSelectable";
+import { ScrollableContainer } from "../components/ScrollableContainer";
 
 export function ConversationHistoryPage() {
     const [ conversationTopics, setConversationTopics ]
@@ -106,9 +106,9 @@ export function ConversationHistoryPage() {
 
     return (
         <div
-            className={`transition-all duration-500 flex z-20 flex-col justify-start items-stretch w-full grow`}>
+            className={`transition-all duration-500 flex z-20 flex-col justify-start items-center max-w-screen-lg w-full grow`}>
             <div className="flex flex-row justify-start items-center w-[80%] mx-auto">
-                <FilterButton options={[
+                <DropdownSelectable options={[
                     'All', 'Today', 'Yesterday', 'This week', 'This month', 'This year'
                 ]}/>
                 <div
@@ -118,7 +118,7 @@ export function ConversationHistoryPage() {
                            className="bg-transparent col-start-2 placeholder:text-gray-500 col-end-3 focus:outline-none mx-1 px-1 grow rounded-xl"/>
                 </div>
             </div>
-            <ScrollableContainer blurEdges ref={containerRef}>
+            <ScrollableContainer blurEdges elementRef={containerRef} size='lg'>
                 {conversationTopics.length === 0 ?
                  <span className="text-black text-center mt-5 text-md">No previous conversations found.</span> :
                  <div
@@ -173,7 +173,7 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
             <span className="font-sans">{entry.topic}</span>
             <div className="flex flex-row justify-end items-center">
                 <span>{topicDateString}</span>
-                <TemporaryAnnotatedIcon
+                <AnnotatedIcon
                     icon={<Icons.TrashBin/>}
                     annotation="Delete topic"
                     side='left'

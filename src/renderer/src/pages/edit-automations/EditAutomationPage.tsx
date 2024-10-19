@@ -3,12 +3,13 @@
  * @author Luca Warmenhoven
  * @date Created on Sunday, October 06 - 12:31
  */
-import { AnnotatedIcon }         from "../../components/AnnotatedIcon";
-import { ApplicationContext }    from "../../contexts/ApplicationContext";
-import { useContext, useEffect } from "react";
-import { AutomationsListPage }   from "../automations/AutomationsListPage";
+import { AnnotatedIcon }      from "../../components/AnnotatedIcon";
+import { ApplicationContext } from "../../contexts/ApplicationContext";
+import { useContext, useEffect }          from "react";
+import { AutomationsListPage }            from "../automations/AutomationsListPage";
 import { Automation, AutomationsContext } from "../automations/Automations";
 import { AutomationPageWrapper }          from "../automations/AutomationPageWrapper";
+import { Icons }                          from "../../components/Icons";
 
 /**
  * The edit automation page.
@@ -18,17 +19,19 @@ import { AutomationPageWrapper }          from "../automations/AutomationPageWra
  */
 export function EditAutomationPage(props: { automation?: Automation }) {
     const { setContent, setHeaderConfig } = useContext(ApplicationContext);
-    const { automations } = useContext(AutomationsContext);
+    const { automations }                 = useContext(AutomationsContext);
 
     useEffect(() => {
         setHeaderConfig(() => {
             return {
                 leftHeaderContent: (
-                    <AnnotatedIcon path="M15.75 19.5 8.25 12l7.5-7.5"
-                                   annotation={"Back to " + (props.automation?.name ?? 'automations')} side='right'
+                    <AnnotatedIcon icon={<Icons.LeftArrow/>}
+                                   annotation={"Back to " + (props.automation?.name ?? 'automations')}
+                                   side='right'
                                    onClick={() => setContent(props.automation ?
-                                                             <AutomationPageWrapper automation={props.automation}/> :
-                                                             <AutomationsListPage/>)}/>
+                                                                      <AutomationPageWrapper
+                                                                          automation={props.automation}/> :
+                                                                      <AutomationsListPage/>)}/>
                 ),
                 pageTitle: 'Edit automation' + (props.automation ? ' for \'' + props.automation.name + '\'' : ''),
             }
@@ -40,7 +43,9 @@ export function EditAutomationPage(props: { automation?: Automation }) {
             <div className="flex flex-col justify-start items-stretch max-w-screen-sm mx-auto text-black">
                 <div className="flex flex-row justify-center mb-5 items-center text-lg">
                     <span>Name of automation: </span>
-                    <input type="text" className="ml-2 px-2 border-b-[1px] border-solid border-black focus:outline-none bg-transparent" placeholder="Automation name" defaultValue={`My automation #${automations.length + 1}`}/>
+                    <input type="text"
+                           className="ml-2 px-2 border-b-[1px] border-solid border-black focus:outline-none bg-transparent"
+                           placeholder="Automation name" defaultValue={`My automation #${automations.length + 1}`}/>
                 </div>
 
                 <div className="flex flex-col justify-start items-start relative w-max p-4 rounded-lg bg-gray-800">

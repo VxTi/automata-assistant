@@ -1,11 +1,11 @@
 /**
- * @fileoverview Switch.tsx
+ * @fileoverview ToggleableSwitch.tsx
  * @author Luca Warmenhoven
  * @date Created on Friday, October 18 - 12:43
  */
 import { RefObject, useState } from "react";
 
-export function Switch(props: {
+export function ToggleableSwitch(props: {
     ref?: RefObject<HTMLDivElement>,
     className?: string,
     onStateChange?: (newState: boolean) => void,

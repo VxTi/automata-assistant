@@ -8,12 +8,13 @@ import { ChatInputField }                          from "./InputField";
 import { ChatContext }                             from "./Conversation";
 import { ChatMessage, LiveChatMessage }            from "./ChatMessage";
 import { useAnimationSequence }                    from "../../util/AnimationSequence";
-import { TemporaryAnnotatedIcon }                  from "../../components/AnnotatedIcon";
+import { AnnotatedIcon }                           from "../../components/AnnotatedIcon";
 import { ApplicationContext }                      from "../../contexts/ApplicationContext";
 
 import '../../styles/utilities.css'
-import { Message } from "../../../../backend/ai/ChatCompletionDefinitions";
-import { Icons }   from "../../components/Icons";
+import { Message }                                 from "../../../../backend/ai/ChatCompletionDefinitions";
+import { Icons }                                   from "../../components/Icons";
+import { ScrollableContainer }                     from "../../components/ScrollableContainer";
 
 /**
  * The assistant page.
@@ -49,7 +50,7 @@ export function AssistantPage(props: {
         setHeaderConfig(() => {
                             return {
                                 leftHeaderContent: messages.length > 0 ? (
-                                    <TemporaryAnnotatedIcon
+                                    <AnnotatedIcon
                                         icon={<Icons.PencilSquare/>}
                                         annotation="New topic" side='right' onClick={() => {
                                         setConversationTopic('New conversation');
@@ -58,7 +59,7 @@ export function AssistantPage(props: {
                                 pageTitle:
                                 conversationTopic,
                                 rightHeaderContent:
-                                    <TemporaryAnnotatedIcon
+                                    <AnnotatedIcon
                                         icon={!spokenResponse ? <Icons.SpeakerCross/> : <Icons.Speaker/>}
                                         annotation={(spokenResponse ? 'Disable' : 'Enable') + " sound"}
                                         side='left'
@@ -77,20 +78,15 @@ export function AssistantPage(props: {
             topicUUID, setTopicUUID, lastMessageRef, setLiveChatActive
         }}>
             <div className="flex flex-col relative justify-start items-center grow">
-                <div
-                    className="grow relative flex flex-col w-[80%] mx-auto my-auto items-stretch overflow-hidden justify-start max-w-screen-md">
-                    <div
-                        ref={chatContainerRef}
-                        className="absolute left-0 top-0 h-full w-full flex flex-col justify-start items-stretch grow shrink overflow-x-hidden no-scrollbar">
-                        {messages.length === 0 && !liveChatActive &&
-                            <div className="justify-self-center mx-auto">
+                <ScrollableContainer elementRef={chatContainerRef} size='lg'>
+                    {messages.length === 0 && !liveChatActive &&
+                        <div className="justify-self-center mx-auto">
 
-                            </div>}
-                        {messages.map((entry, index) =>
-                                          <ChatMessage key={index} entry={entry}/>)}
-                        <LiveChatMessage contentRef={lastMessageRef} active={liveChatActive}/>
-                    </div>
-                </div>
+                        </div>}
+                    {messages.map((entry, index) =>
+                                      <ChatMessage key={index} entry={entry}/>)}
+                    <LiveChatMessage contentRef={lastMessageRef} active={liveChatActive}/>
+                </ScrollableContainer>
                 <ChatInputField/>
             </div>
         </ChatContext.Provider>

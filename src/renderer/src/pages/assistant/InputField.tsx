@@ -13,6 +13,7 @@ import { ChatContext }                                          from "./Conversa
 import { BaseStyles }                                           from "../../util/BaseStyles";
 
 import '../../styles/code-highlighting.css';
+import { Icons }                                                from "../../components/Icons";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -248,17 +249,11 @@ export function ChatInputField() {
                     }}/>
                 </div>
                 <div
-                    className="flex justify-center items-end text-white mx-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                         className={BaseStyles.ICON + ` ${optionsShown ? 'bg-gray-600' : ''}`}
-                         onClick={() => setOptionsShown( !optionsShown)}>
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                              d="m19.5 8.25-7.5 7.5-7.5-7.5"
-                              className={(optionsShown ? 'opacity-100' : 'opacity-0') + ' transition-all duration-500'}/>
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                              className={(optionsShown ? 'opacity-0' : 'opacity-100') + ' transition-all duration-500'}
-                              d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/>
-                    </svg>
+                    className="flex justify-center items-end text-white dark:text-black mx-2">
+                    <div className='shrink-0 self-center w-8 h-8 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 duration-300 transition-colors stroke-black dark:stroke-white'
+                        onClick={() => setOptionsShown( !optionsShown)}>
+                        <Icons.ThreeDots />
+                    </div>
                     <textarea
                         onKeyDown={async event => {
                             if ( event.key === 'Enter' && !event.shiftKey ) {
@@ -269,28 +264,16 @@ export function ChatInputField() {
                         placeholder="Ask me anything..."
                         rows={1} cols={50} ref={inputContentRef}
                         className="resize-none mx-2 w-full max-h-52 my-auto grow focus:outline-none bg-transparent text-black dark:text-white p-2"/>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill={recording ? '#fff' : 'none'} viewBox="0 0 24 24"
-                         strokeWidth={recording ? 0 : 1.5}
-                         onClick={handleMicrophoneAccess}
-                         className={BaseStyles.ICON}>
-                        {recording ? (
-                                       <>
-                                           <path fill="#0c80b6"
-                                                 d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z"></path>
-                                           <path
-                                               d="M6 10.5a.75.75 0 0 1 .75.75v1.5a5.25 5.25 0 1 0 10.5 0v-1.5a.75.75 0 0 1 1.5 0v1.5a6.751 6.751 0 0 1-6 6.709v2.291h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-2.291a6.751 6.751 0 0 1-6-6.709v-1.5A.75.75 0 0 1 6 10.5Z"></path>
-                                       </>
-                                   ) :
-                         <path strokeLinecap="round" strokeLinejoin="round"
-                               d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"/>
-                        }
-                    </svg>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                         className={BaseStyles.ICON}
-                         onClick={handleSend}>
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"></path>
-                    </svg>
+                    <div
+                        className={`shrink-0 self-center w-8 h-8 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 duration-300 transition-colors ${recording ? 'stroke-red-600 stroke-2' : 'stroke-black dark:stroke-white'}`}
+                        onClick={handleMicrophoneAccess}>
+                        {recording ? <Icons.Stop/> : <Icons.Microphone/>}
+                    </div>
+                    <div
+                        className='shrink-0 self-center w-8 h-8 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 duration-300 transition-colors stroke-black dark:stroke-white'
+                        onClick={handleSend}>
+                        <Icons.PaperAirplane />
+                    </div>
                 </div>
             </div>
         </div>
