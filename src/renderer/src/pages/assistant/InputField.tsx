@@ -14,6 +14,8 @@ import { BaseStyles }                                           from "../../util
 
 import '../../styles/code-highlighting.css';
 import { Icons }                                                from "../../components/Icons";
+import { audioDevice, playAudio } from "../../util/Audio";
+import { encodeBase64Blob }       from "../../../../shared/Encoding";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -27,7 +29,6 @@ export function ChatInputField() {
     const [ selectedFiles, setSelectedFiles ]         = useState<string[]>([]);
     const [ recording, setRecording ]                 = useState(false);
     const inputContentRef                             = useRef<HTMLTextAreaElement>(null);
-    const audioDevice                                 = useRef<MediaRecorder | null | undefined>(null);
 
     useEffect(() => {
         if ( !inputContentRef.current ) return;
@@ -48,15 +49,10 @@ export function ChatInputField() {
      */
     const handleSendRequest = useCallback(async (prompt: string) => {
 
-        console.log("Sending request")
-
         let topicTitle = ctx.conversationTopic;
         let uuid       = ctx.topicUUID;
 
-        const newMessages = [ ...ctx.messages, {
-            role: 'user',
-            content: prompt
-        } as Message ];
+        const newMessages = [ ...ctx.messages, { role: 'user', content: prompt } as Message ];
         ctx.setMessages(() => newMessages);
 
         /**
@@ -130,15 +126,11 @@ export function ChatInputField() {
                     { input: response, model: 'tts-1', voice: 'nova' });
                 const blob     = new Blob([ window.Buffer.from(data, 'base64') ]);
 
-                window[ 'audio' ].play(blob);
+                playAudio(blob);
             }
         });
-        window[ 'ai' ].completion(
-            {
-                model: 'gpt-4o-mini',
-                messages: newMessages,
-                stream: true
-            });
+        window[ 'ai' ].completion({ model: 'gpt-4o-mini', messages: newMessages, stream: true });
+
     }, [ ctx.spokenResponse, ctx.messages, ctx.conversationTopic ]);
 
     /**
@@ -167,46 +159,41 @@ export function ChatInputField() {
      * If the spoken response option is enabled, the response will also be spoken.
      */
     const handleMicrophoneAccess = useCallback(async () => {
-        // If we're going to start recording, request microphone access.
-        if ( audioDevice.current === null ) {
-            audioDevice.current = await window[ 'audio' ].requestMicrophone();
 
-            // If the audio device is still not available, it probably means the user denied access.
-            if ( !audioDevice.current )
-                return;
+        const device = await audioDevice;
 
-            const chunks: BlobPart[] = [];
-            let totalBytes           = 0;
-
-            audioDevice.current.ondataavailable = event => {
-                chunks.push(event.data);
-                totalBytes += event.data.size;
-
-                if ( totalBytes > window[ 'ai' ][ 'audio' ].speechToTextFileLimit ) {
-                    audioDevice.current!.stop();
-                }
-            }
-
-            // When the recording is stopped, send the request.
-            audioDevice.current.onstop = async () => {
-                const audioString = await new Blob(chunks).text();
-                await handleSendRequest(await window[ 'ai' ][ 'audio' ].speechToText(
-                    { file: audioString, fileName: 'audio.wav' } as SpeechToTextRequest));
-            }
-        }
-
-        // If the audio device is not available, return.
-        if ( audioDevice.current === undefined || !(audioDevice.current instanceof MediaRecorder) )
+        // Audio device access must be granted when the application starts.
+        // If the user declines, we can't record audio.
+        if ( !device ) {
+            // TODO: Add visual aid letting the user know audio recording is disabled.
             return;
-
-
-        if ( recording ) {
-            audioDevice.current.stop!();
         }
-        else {
-            audioDevice.current.start!(window[ 'ai' ][ 'audio' ].audioSegmentationIntervalMs);
+
+        const chunks: BlobPart[] = [];
+        let totalBytes           = 0;
+
+        device.ondataavailable = event => {
+            chunks.push(event.data);
+            totalBytes += event.data.size;
+
+            if ( totalBytes > window[ 'ai' ][ 'audio' ].speechToTextFileLimit ) {
+                device.stop();
+            }
         }
+
+        // When the recording is stopped, send the request.
+        device.onstop = async () => {
+            const audioBlob = new Blob(chunks);
+            const audioB64 = await encodeBase64Blob(audioBlob);
+            const transcription = await window[ 'ai' ][ 'audio' ]
+                .speechToText({ file: audioB64, fileName: 'audio.wav' } as SpeechToTextRequest);
+
+            await handleSendRequest(transcription);
+        }
+
+        device[ recording ? 'stop' : 'start' ].call(device, window[ 'ai' ][ 'audio' ].audioSegmentationIntervalMs);
         setRecording( !recording);
+
     }, [ ctx.spokenResponse, ctx.messages, recording ]);
 
     return (
@@ -250,9 +237,10 @@ export function ChatInputField() {
                 </div>
                 <div
                     className="flex justify-center items-end text-white dark:text-black mx-2">
-                    <div className='shrink-0 self-center w-8 h-8 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 duration-300 transition-colors stroke-black dark:stroke-white'
+                    <div
+                        className='shrink-0 self-center w-8 h-8 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 duration-300 transition-colors stroke-black dark:stroke-white'
                         onClick={() => setOptionsShown( !optionsShown)}>
-                        <Icons.ThreeDots />
+                        <Icons.ThreeDots/>
                     </div>
                     <textarea
                         onKeyDown={async event => {
@@ -272,7 +260,7 @@ export function ChatInputField() {
                     <div
                         className='shrink-0 self-center w-8 h-8 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 duration-300 transition-colors stroke-black dark:stroke-white'
                         onClick={handleSend}>
-                        <Icons.PaperAirplane />
+                        <Icons.PaperAirplane/>
                     </div>
                 </div>
             </div>
@@ -290,13 +278,13 @@ function ChatAlternativeOption(props: { path: string, text: string, onClick: () 
     return (
         <div
             onClick={props.onClick}
-            className="flex flex-row justify-center items-center mx-1 py-1 px-2 my-1 basis-24 shrink-0 bg-gray-700 rounded-xl hover:brightness-125 hover:cursor-pointer duration-500 transition-all">
+            className="content-container hoverable apply-stroke flex-row justify-center items-center mx-1 py-0.5 px-2 my-1 basis-24 shrink-0 rounded-xl duration-300 transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                 className="w-6 h-6 mb-1 stroke-white shrink-0 transition-colors duration-500 rounded-full">
+                 className="w-6 h-6 mb-1 shrink-0 transition-colors duration-300 rounded-full">
                 <path strokeLinecap="round" strokeLinejoin="round"
                       d={props.path}/>
             </svg>
-            <div className="text-black dark:text-white ml-1 text-xs text-nowrap">{props.text}</div>
+            <div className="ml-1 text-xs text-nowrap">{props.text}</div>
         </div>
     )
 }
@@ -325,7 +313,7 @@ function AttachedFile(props: { filePath: string, onDelete: () => void, directory
                              " 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0" +
                              " 0 0-9-9Z"}/>
             </svg>
-            <div className="text-white truncate text-xs mx-0.5">{fileName}</div>
+            <div className="truncate text-xs mx-0.5">{fileName}</div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                  className={BaseStyles.ICON_NO_MARGIN}
                  onClick={props.onDelete}>

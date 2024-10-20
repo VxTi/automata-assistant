@@ -72,7 +72,7 @@ export function LiveAssistantPage() {
 
         const audioContext = new (window.AudioContext || window[ 'webkitAudioContext' ])();
         const analyzer     = audioContext.createAnalyser();
-        analyzer.fftSize   = 512//256;
+        analyzer.fftSize   = 256;
         const dataArray    = new Uint8Array(analyzer.frequencyBinCount);
 
         /** Acquire the audio stream from the user's microphone. */
@@ -111,6 +111,7 @@ export function LiveAssistantPage() {
                  });
 
 
+        console.log(dataArray.length);
 
         const render = () => {
             gl.clearRect(0, 0, canvas.width, canvas.height);

@@ -1,10 +1,10 @@
 import { contextBridge, ipcMain } from 'electron'
-import { electronAPI }         from '@electron-toolkit/preload'
-import { SpeechToTextRequest } from "../ai/SpeechToText";
-import { TTSRequest }          from "../ai/TextToSpeech";
-import { sep }                 from 'path';
-import { ConversationTopic }   from "../ai/ChatCompletion";
-import { CompletionRequest }   from "../ai/ChatCompletionDefinitions";
+import { electronAPI }            from '@electron-toolkit/preload'
+import { SpeechToTextRequest }    from "../ai/SpeechToText";
+import { TTSRequest }             from "../ai/TextToSpeech";
+import { sep }                    from 'path';
+import { ConversationTopic }      from "../ai/ChatCompletion";
+import { CompletionRequest }      from "../ai/ChatCompletionDefinitions";
 import '../../renderer/src/util/Audio'
 
 

@@ -4,40 +4,37 @@
  * @date Created on Friday, October 04 - 15:07
  */
 
-/**
- * The audio API.
- * This API is used to play audio and request the microphone.
- */
-window['audio'] = {
-    /**
-     * Play the given audio blob.
-     * @param audioBlob The audio blob to play.
-     * @returns The audio element that is playing the audio.
-     */
-    play: function playAudio(audioBlob: Blob): HTMLAudioElement {
-        const audioElem   = document.createElement('audio');
-        audioElem.src     = URL.createObjectURL(audioBlob);
-        let revokeUrl     = () => URL.revokeObjectURL(audioElem.src);
-        audioElem.onended = revokeUrl;
-        audioElem.play().catch(_ => revokeUrl())
-        return audioElem;
-    },
 
-    /**
-     * Request the audio device and return the media recorder,
-     * or null if the device is not available.
-     */
-    requestMicrophone: async function(): Promise<MediaRecorder | null> {
-        // Request microphone access
+/**
+ * Play an audio blob
+ * @param audioBlob The audio blob to play
+ */
+export function playAudio(audioBlob: Blob): HTMLAudioElement {
+    const audioElem   = document.createElement('audio');
+    audioElem.src     = URL.createObjectURL(audioBlob);
+    let revokeUrl     = () => URL.revokeObjectURL(audioElem.src);
+    audioElem.onended = revokeUrl;
+    audioElem.play().catch(_ => revokeUrl())
+    return audioElem;
+}
+
+/**
+ * Audio device for recording.
+ * This can be null if permissions aren't granted.
+ * To acquire the MediaRecorder object, one can call
+ * `await audioDevice` and then use the MediaRecorder object.
+ */
+export const audioDevice = new Promise((resolve) => {
+    window!.addEventListener('load', async () => {
         const devices  = await navigator.mediaDevices.enumerateDevices();
         const deviceId = devices.find(device =>
                                           device.kind === 'audioinput')?.deviceId;
 
-        return await window.navigator.mediaDevices
-                           .getUserMedia({ audio: (deviceId ? { deviceId: { exact: deviceId } } : true) })
-                           .then(mediaStream =>
-                                     new MediaRecorder(mediaStream, { audioBitsPerSecond: 16000 })
-                           )
-                           .catch(_ => null);
-    }
-}
+        resolve(await window.navigator.mediaDevices
+                             .getUserMedia({ audio: (deviceId ? { deviceId: { exact: deviceId } } : true) })
+                             .then(mediaStream =>
+                                       new MediaRecorder(mediaStream, { audioBitsPerSecond: 16000 })
+                             )
+                             .catch(_ => null));
+    })
+});

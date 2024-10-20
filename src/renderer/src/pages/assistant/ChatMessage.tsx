@@ -55,7 +55,7 @@ export function ChatMessage(props: { entry: Message }) {
 
     return (
         <div
-            className="group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 w-full"
+            className="group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 m-1"
             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start text-wrap overflow-hidden">
                         <span

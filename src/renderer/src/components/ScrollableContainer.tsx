@@ -16,7 +16,7 @@ export function ScrollableContainer(props: {
     return (
         <div
             ref={props.elementRef}
-            className={`flex flex-col justify-start items-center grow gap-4 overflow-y-auto w-full max-w-screen-${props.size ?? 'lg'} ${props.blurEdges ? 'h-gradient-clip' : ''}`}>
+            className={`flex flex-col justify-start items-center no-scrollbar grow gap-4 overflow-y-auto w-full max-w-screen-${props.size ?? 'lg'} ${props.blurEdges ? 'h-gradient-clip' : ''}`}>
             <div className="relative grow w-full">
                 <div className={`flex flex-col justify-start items-stretch absolute top-0 left-0 w-full ${props.className ?? ''}`}>
                     {props.children}

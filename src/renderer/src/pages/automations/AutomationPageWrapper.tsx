@@ -7,8 +7,8 @@ import { Automation, AutomationRegistry }  from "./Automations";
 import { useContext, useEffect, useState } from "react";
 import { ApplicationContext }              from "../../contexts/ApplicationContext";
 import { AutomationsListPage } from "./AutomationsListPage";
-import { AnnotatedIcon }       from "../../components/AnnotatedIcon";
-import { EditAutomationPage }  from "../edit-automations/EditAutomationPage";
+import { AnnotatedIcon }      from "../../components/AnnotatedIcon";
+import { EditAutomationPage } from "../EditAutomationPage";
 import { Icons }              from "../../components/Icons";
 
 /**

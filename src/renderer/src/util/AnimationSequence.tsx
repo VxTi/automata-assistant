@@ -11,6 +11,34 @@ export interface AnimationSequenceConfig {
     observerOptions?: IntersectionObserverInit;
 }
 
+/**
+ * @description This function will create a fade in sequence for elements that are intersecting with the viewport.
+ * @param duration The duration of the fade in animation
+ * @param delay The delay of the fade in animation
+ */
+export function FadeIn(duration: number = 700, delay: number = 25) {
+    const targetStyling = document.querySelector('style#fade-in-sequence');
+    if (!targetStyling)
+    {
+        const styling = document.createElement('style');
+        styling.id = 'fade-in-sequence';
+        styling.innerHTML = `
+            @keyframes fade-in {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            .fade-in { opacity: 0; animation-name: fade-in; }
+        `;
+        document.head.appendChild(styling);
+    }
+
+    return {
+        'data-sequence-animation': 'fade-in',
+        'data-sequence-duration-ms': duration,
+        'data-sequence-delay-ms': delay
+    }
+}
+
 export function CreateSequence(animation: string, duration: number, delay: number) {
     return {
         'data-sequence-animation': animation,

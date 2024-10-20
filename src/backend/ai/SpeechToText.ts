@@ -4,6 +4,7 @@
  * @date Created on Friday, October 11 - 16:43
  */
 import { AIContext, AIModel } from "./AIContext";
+import { decodeBase64Blob }   from "../../shared/Encoding";
 
 type SpeechToTextModelType = 'whisper-1';
 
@@ -46,9 +47,12 @@ export class SpeechToText extends AIModel {
     public async create(config: SpeechToTextRequest): Promise<SpeechToTextResponse> {
         const formData = new FormData();
         if ( typeof config[ 'file' ] === 'string' ) {
-            const blob =  new Blob([ config[ 'file' ] ], { type: 'audio/wav' });
+
+            // Convert base64 string to blob
+            const blob = decodeBase64Blob(config[ 'file' ], 'audio/wav');
             formData.append('file', blob, config[ 'fileName' ]);
-        } else {
+        }
+        else {
             formData.append('file', config[ 'file' ], config[ 'fileName' ]);
         }
         formData.append('language', config[ 'language' ] ?? 'en');

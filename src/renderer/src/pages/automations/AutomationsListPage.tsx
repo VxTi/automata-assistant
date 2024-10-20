@@ -9,7 +9,7 @@ import { ApplicationContext }            from "../../contexts/ApplicationContext
 import { AutomationsContext }            from "./Automations";
 import { AutomationCard }     from "./AutomationCard";
 import { AnnotatedIcon }      from "../../components/AnnotatedIcon";
-import { EditAutomationPage } from "../edit-automations/EditAutomationPage";
+import { EditAutomationPage } from "../EditAutomationPage";
 import { Icons }              from "../../components/Icons";
 
 /**
@@ -29,7 +29,7 @@ export function AutomationsListPage() {
                 pageTitle: 'Automations',
                 rightHeaderContent: (
                     <>
-                        <span className="text-lg">
+                        <span className="text-sm">
                             {automations.reduce((acc, prev) => acc + (prev.enabled ? 1 : 0), 0)} active
                         </span>
                         <AnnotatedIcon
@@ -46,8 +46,8 @@ export function AutomationsListPage() {
     return (
         <div className="mx-auto max-w-screen-md w-full flex flex-col justify-start">
             <div className="grid grid-cols-3 gap-4 m-4" ref={containerRef}>
-                {automations.map(automation => (
-                    <AutomationCard key={automation.id} {...automation}/>))}
+                {automations.map((automation, i) => (
+                    <AutomationCard key={i} index={i} {...automation}/>))}
             </div>
         </div>
     )

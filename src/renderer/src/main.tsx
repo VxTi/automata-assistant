@@ -13,5 +13,6 @@ createRoot(document.getElementById('root')!).render(
     </ApplicationContextProvider>
 );
 
-
-
+window.addEventListener('DOMContentLoaded', () => {
+    document.body.dataset.theme = window.localStorage.getItem('theme') || 'dark';
+})
