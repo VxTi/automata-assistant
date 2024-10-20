@@ -1,17 +1,17 @@
 /**
- * @fileoverview Config.tsx
+ * @fileoverview PagesConfig.tsx
  * @author Luca Warmenhoven
  * @date Created on Thursday, October 17 - 17:00
  */
 import { ReactNode }               from "react";
-import { AssistantPage }           from "./assistant/AssistantPage";
-import { LiveAssistantPage }       from "./LiveAssistantPage";
-import { AutomationsListPage }     from "./automations/AutomationsListPage";
-import { ConversationHistoryPage } from "./ConversationHistoryPage";
-import { FilesAndImagesPage }      from "./FilesAndImagesPage";
+import { AssistantPage }           from "../pages/assistant/AssistantPage";
+import { LiveAssistantPage }       from "../pages/LiveAssistantPage";
+import { AutomationsListPage }     from "../pages/automations/AutomationsListPage";
+import { ConversationHistoryPage } from "../pages/ConversationHistoryPage";
+import { FilesAndImagesPage }      from "../pages/FilesAndImagesPage";
 import { Icons }                   from "../components/Icons";
-import { SettingsPage }     from "./SettingsPage";
-import { AccountPage }             from "./AccountPage";
+import { SettingsPage }            from "../pages/SettingsPage";
+import { AccountPage }             from "../pages/AccountPage";
 
 export interface Page {
     title: string,
@@ -20,7 +20,7 @@ export interface Page {
     pageComponent: ReactNode,
 }
 
-const Config: Page[] = [
+const PagesConfig: Page[] = [
     {
         title: 'Assistant',
         pageComponent: <AssistantPage/>,
@@ -60,8 +60,8 @@ const Config: Page[] = [
     }
 ];
 
-const ConfigMap = new Map(Config.map((entry => {
+const ConfigMap = new Map(PagesConfig.map((entry => {
     return [entry.title.toLowerCase().replaceAll(' ', ''), entry];
 })));
 
-export { ConfigMap, Config };
+export { ConfigMap, PagesConfig };

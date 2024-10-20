@@ -10,7 +10,6 @@ import { ChatResponse, Message, StreamedChatResponse }          from "../../../.
 import { SpeechToTextRequest }                                  from "../../../../backend/ai/SpeechToText";
 import { ConversationTopic }                                    from "../../../../backend/ai/ChatCompletion";
 import { ChatContext }                                          from "./Conversation";
-import { BaseStyles }                                           from "../../util/BaseStyles";
 
 import '../../styles/code-highlighting.css';
 import { Icons }                                                from "../../components/Icons";
@@ -199,7 +198,7 @@ export function ChatInputField() {
 
     return (
         <div className="flex flex-col justify-center items-center mb-3 mt-1 max-w-screen-md w-full">
-            <div className="flex justify-start w-full items-center flex-wrap max-w-screen-sm mx-auto my-1">
+            <div className="flex justify-start self-stretch items-center flex-wrap max-w-screen-sm my-1 mx-4">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
                                   directory/>
@@ -281,7 +280,7 @@ function ChatAlternativeOption(props: { path: string, text: string, onClick: () 
             onClick={props.onClick}
             className="content-container hoverable apply-stroke flex-row justify-center items-center mx-1 py-0.5 px-2 my-1 basis-24 shrink-0 rounded-xl duration-300 transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                 className="w-6 h-6 mb-1 shrink-0 transition-colors duration-300 rounded-full">
+                 className="w-6 h-6 p-0.5 mb-1 shrink-0 transition-colors duration-300 rounded-full">
                 <path strokeLinecap="round" strokeLinejoin="round"
                       d={props.path}/>
             </svg>
@@ -300,9 +299,9 @@ function AttachedFile(props: { filePath: string, onDelete: () => void, directory
     const fileName = props.filePath.substring(props.filePath.lastIndexOf(window[ 'fs' ].separator) + 1);
     return (
         <div
-            className="flex flex-row justify-between items-center bg-gray-700 mx-0.5 my-1 rounded-3xl">
+            className="content-container flex-row justify-between items-center mx-0.5 my-1 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                 className={BaseStyles.ICON_NO_MARGIN}
+                 className='w-7 h-7 p-1 apply-stroke shrink-0 transition-colors duration-300 rounded-full'
                  onClick={props.onDelete}>
                 <path strokeLinecap="round" strokeLinejoin="round"
                       d={props.directory ?
@@ -315,12 +314,11 @@ function AttachedFile(props: { filePath: string, onDelete: () => void, directory
                              " 0 0-9-9Z"}/>
             </svg>
             <div className="truncate text-xs mx-0.5">{fileName}</div>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
-                 className={BaseStyles.ICON_NO_MARGIN}
-                 onClick={props.onDelete}>
-                <path strokeLinecap="round" strokeLinejoin="round"
-                      d="M6 6l12 12M6 18l12-12"/>
-            </svg>
+            <div
+                onClick={props.onDelete}
+                className='w-7 h-7 p-1 apply-stroke shrink-0 transition-colors duration-300 rounded-full hover:brightness-75 hover:cursor-pointer'>
+                <Icons.Cross/>
+            </div>
         </div>
     );
 }

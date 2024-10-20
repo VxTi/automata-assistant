@@ -11,5 +11,5 @@ export interface BasicElementProps {
     style?: CSSProperties;
     children?: ReactNode;
     id?: string;
-    ref?: RefObject<any>;
+    elementRef?: RefObject<any>;
 }

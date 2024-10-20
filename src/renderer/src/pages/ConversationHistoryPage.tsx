@@ -19,6 +19,7 @@ import {
 }                                                                        from "../components/interactive/DropdownSelectable";
 import { ScrollableContainer }                                           from "../components/ScrollableContainer";
 import { debounce }                                                      from "@renderer/util/Debounce";
+import { SearchBar }                                                     from "@renderer/components/SearchBar";
 
 export function ConversationHistoryPage() {
 
@@ -119,17 +120,11 @@ export function ConversationHistoryPage() {
     return (
         <div
             className={`transition-all duration-500 flex z-20 flex-col justify-start items-center max-w-screen-lg w-full grow`}>
-            <div className="flex flex-row justify-start items-center w-[80%] mx-auto">
+            <div className="flex flex-row justify-start items-center w-[80%] mx-auto sticky top-0 z-30">
                 <DropdownSelectable options={[
                     'All', 'Today', 'Yesterday', 'This week', 'This month', 'This year'
                 ]}/>
-                <div
-                    className="content-container grow apply-stroke sticky top-0 col-start-2 z-50 col-end-3 flex items-center justify-start overflow-hidden py-2 px-3 rounded-lg ">
-                    <Icons.MagnifyingGlass className="w-6 h-6 mr-2 fill-none"/>
-                    <input type="text" placeholder="Search conversation topics" ref={inputRef}
-                           tabIndex={0}
-                           className="bg-transparent col-start-2 placeholder:text-gray-500 col-end-3 focus:outline-none mx-1 px-1 grow"/>
-                </div>
+                <SearchBar placeholder={'Search conversation topics'} elementRef={inputRef}/>
             </div>
             <ScrollableContainer blurEdges elementRef={containerRef} size='lg'>
                 {conversationTopics.length === 0 ?

@@ -87,6 +87,10 @@ body {
     border-color:  rgb(59 130 246);
 }
 
+.content-container.selectable:has(:focus) {
+    border-color:  rgb(59 130 246);
+}
+
 .apply-stroke {
     stroke: #000;
 }

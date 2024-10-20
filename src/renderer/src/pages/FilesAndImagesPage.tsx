@@ -3,16 +3,18 @@
  * @author Luca Warmenhoven
  * @date Created on Wednesday, October 16 - 19:57
  */
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { CreateSequence, useAnimationSequence }                 from "../util/AnimationSequence";
-import { ApplicationContext }                                   from "../contexts/ApplicationContext";
-import { ScrollableContainer }                                  from "../components/ScrollableContainer";
-import { DropdownSelectable }                                   from "../components/interactive/DropdownSelectable";
-import { SearchBar }                                            from "../components/SearchBar";
-import { Icons }                                                from "../components/Icons";
+import { useContext, useEffect, useRef, useState } from "react";
+import { CreateSequence, useAnimationSequence }    from "../util/AnimationSequence";
+import { ApplicationContext }                      from "../contexts/ApplicationContext";
+import { ScrollableContainer }                     from "../components/ScrollableContainer";
+import { DropdownSelectable }                      from "../components/interactive/DropdownSelectable";
+import { SearchBar }                               from "../components/SearchBar";
+import { Icons }                                   from "../components/Icons";
+
+type ResourceType = 'image' | 'spreadsheet' | 'file';
 
 export interface ResourceInfo {
-    type: 'image' | 'spreadsheet' | 'file',
+    type: ResourceType,
     name?: string,
     thumbnailSrc: string,
     tags: string[],
@@ -20,6 +22,8 @@ export interface ResourceInfo {
 
 export function FilesAndImagesPage() {
 
+    const [ searchQuery, setSearchQuery ]             = useState<string>('');
+    const [ filterType, setFilterType ]               = useState<ResourceType | 'none'>('none');
     const [ resources, setResources ]                 = useState<ResourceInfo[]>([]);
     const [ filteredResources, setFilteredResources ] = useState<ResourceInfo[]>([]);
 
@@ -39,7 +43,7 @@ export function FilesAndImagesPage() {
         // TODO: Replace this with actual data from the main process.
         const resources = Array(50).fill(0).map((_, i) => {
             return {
-                type: [ 'file', 'image', 'spreadsheet' ][ Math.floor(Math.random() * 3) ] as any,
+                type: [ 'file', 'image', 'spreadsheet' ][ Math.floor(Math.random() * 3) ] as ResourceType,
                 tags: [ 'tag1', 'tag2', 'tag3', 'tag1', 'balls', 'something' ],
                 thumbnailSrc: `https://placehold.co/600x400?text=${i}`,
             }
@@ -47,30 +51,28 @@ export function FilesAndImagesPage() {
 
         setResources(resources);
         setFilteredResources(resources);
-
     }, []);
 
-    /**
-     * Handler for when the filter changes.
-     * This function updates the `filteredResources` state based on the filter index.
-     */
-    const handleChangeFilter = useCallback((filterIdx: number) => {
-        if ( filterIdx === 0 ) {
-            setFilteredResources(resources);
-            return;
-        }
-
-        const filter = [ 'file', 'image', 'spreadsheet' ][ filterIdx - 1 ];
-        setFilteredResources(resources.filter(r => r.type === filter));
-    }, []);
+    useEffect(() => {
+        setFilteredResources(resources.filter(resource => {
+            return (searchQuery.length === 0 ||
+                    (resource.tags.some(tag => tag.includes(searchQuery))) ||
+                    (resource.name && resource.name.toLowerCase().includes(searchQuery))) &&
+                (filterType === 'none' || resource.type === filterType);
+        }));
+    }, [ searchQuery, filterType, resources ]);
 
     return (
-        <>
-            <div className="flex flex-row justify-start items-center max-w-screen-sm w-full mx-auto">
+        <div className="w-full max-w-screen-lg flex flex-col justify-start items-stretch grow">
+            <div className="flex flex-row justify-start items-center w-[80%] mx-auto">
                 <DropdownSelectable options={[
                     "All Files", "Images", "Spreadsheets", "PDFs"
-                ]} onClick={(_, index) => handleChangeFilter(index)}/>
-                <SearchBar placeholder="Search for tags and files "/>
+                ]} onClick={(_, index) => {
+                    setFilterType(
+                        index === 0 ? 'none' : [ 'file', 'image', 'spreadsheet' ][ index - 1 ] as ResourceType)
+                }}/>
+                <SearchBar placeholder="Search for tags and files"
+                           onInput={(value) => setSearchQuery(value.toLowerCase())}/>
             </div>
             <ScrollableContainer className="py-10" blurEdges elementRef={containerRef} size='lg'>
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 rounded-xl mx-2">
@@ -79,7 +81,7 @@ export function FilesAndImagesPage() {
                     )}
                 </div>
             </ScrollableContainer>
-        </>
+        </div>
     )
 }
 

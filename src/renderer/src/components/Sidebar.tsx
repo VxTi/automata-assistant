@@ -5,9 +5,9 @@
  */
 import { useContext }         from "react";
 import { ApplicationContext } from "../contexts/ApplicationContext";
-import { Icons }              from "./Icons";
-import { Config }             from "../pages/Config";
-import { SidebarMenuItem }    from "./SidebarMenuItem";
+import { Icons }           from "./Icons";
+import { PagesConfig }     from "../util/PagesConfig";
+import { SidebarMenuItem } from "./SidebarMenuItem";
 import { AnnotatedIcon }      from "./AnnotatedIcon";
 import { SettingsPage }       from "../pages/SettingsPage";
 import { AccountPage }        from "../pages/AccountPage";
@@ -36,7 +36,7 @@ export function Sidebar() {
                 </div>
 
                 <hr className="mt-3 mb-6 bg-gradient-to-r from-transparent via-blue-500 to-transparent h-[1px] border-none"/>
-                {Config.map((page, i) =>
+                {PagesConfig.map((page, i) =>
                                 !page.hidden && <SidebarMenuItem page={page} key={i}/>)}
             </div>
 

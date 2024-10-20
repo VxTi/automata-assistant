@@ -1,4 +1,4 @@
-import { Page }       from "../pages/Config";
+import { Page }       from "../util/PagesConfig";
 import { useContext } from "react";
 import { ApplicationContext } from "../contexts/ApplicationContext";
 
