@@ -3,15 +3,15 @@
  * @author Luca Warmenhoven
  * @date Created on Monday, October 14 - 09:25
  */
-import { AIContext }                         from "../ai/AIContext";
+import { AIContext }                         from "./AIContext";
 import { resolve }                           from "path";
 import * as dotenv                           from 'dotenv';
-import { ChatCompletion }                    from "../ai/ChatCompletion";
-import { TextToSpeech, TTSRequest }          from "../ai/TextToSpeech";
-import { SpeechToText, SpeechToTextRequest } from "../ai/SpeechToText";
+import { ChatCompletion }                    from "./ChatCompletion";
+import { TextToSpeech, TTSRequest }          from "./TextToSpeech";
+import { SpeechToText, SpeechToTextRequest } from "./SpeechToText";
 import { ipcMain }                           from "electron";
-import { ChatResponse, CompletionRequest }   from "../ai/ChatCompletionDefinitions";
-import { RegisteredTools }                   from "../ai/RegisteredTools";
+import { ChatResponse, CompletionRequest }   from "./ChatCompletionDefinitions";
+import { RegisteredTools }                   from "./RegisteredTools";
 
 dotenv.config({ path: resolve('.env') });
 
@@ -25,7 +25,6 @@ const stt        = new SpeechToText(ctx);
 ipcMain.handle('ai:completion', async (_: Electron.IpcMainInvokeEvent, request: CompletionRequest) => {
     request.tools ??= RegisteredTools;
     const response = await completion.create(request);
-    console.log(response);
     if ( typeof response !== 'function' )
         return response as ChatResponse;
     return null;
@@ -37,6 +36,8 @@ ipcMain.handle('ai:completion', async (_: Electron.IpcMainInvokeEvent, request: 
  */
 ipcMain.handle('ai:text-to-speech', async (_: any, request: TTSRequest | string) => {
     const blob = await tts.create(request);
+    const data = (await blob.arrayBuffer().then(arrBuf => Buffer.from(arrBuf))).toString('base64')
+    console.log('Generated data: ', data);
     return { data: (await blob.arrayBuffer().then(arrBuf => Buffer.from(arrBuf))).toString('base64') };
 });
 

@@ -49,7 +49,7 @@ export class SpeechToText extends AIModel {
         if ( typeof config[ 'file' ] === 'string' ) {
 
             // Convert base64 string to blob
-            const blob = decodeBase64Blob(config[ 'file' ], 'audio/wav');
+            const blob = decodeBase64Blob(config[ 'file' ], 'audio/mpeg');
             formData.append('file', blob, config[ 'fileName' ]);
         }
         else {

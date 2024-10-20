@@ -14,8 +14,8 @@ import { BaseStyles }                                           from "../../util
 
 import '../../styles/code-highlighting.css';
 import { Icons }                                                from "../../components/Icons";
-import { audioDevice, playAudio } from "../../util/Audio";
-import { encodeBase64Blob }       from "../../../../shared/Encoding";
+import { audioDevice, playAudio }                               from "../../util/Audio";
+import { encodeBase64Blob }                                     from "../../../../shared/Encoding";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -124,12 +124,13 @@ export function ChatInputField() {
             if ( ctx.spokenResponse ) {
                 const { data } = await window[ 'ai' ].audio.textToSpeech(
                     { input: response, model: 'tts-1', voice: 'nova' });
-                const blob     = new Blob([ window.Buffer.from(data, 'base64') ]);
 
+                const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0)).buffer;
+                const blob        = new Blob([ arrayBuffer ], { type: 'audio/mpeg' });
                 playAudio(blob);
             }
         });
-        window[ 'ai' ].completion({ model: 'gpt-4o-mini', messages: newMessages, stream: true });
+        await window[ 'ai' ].completion({ model: 'gpt-4o-mini', messages: newMessages, stream: true });
 
     }, [ ctx.spokenResponse, ctx.messages, ctx.conversationTopic ]);
 
@@ -183,8 +184,8 @@ export function ChatInputField() {
 
         // When the recording is stopped, send the request.
         device.onstop = async () => {
-            const audioBlob = new Blob(chunks);
-            const audioB64 = await encodeBase64Blob(audioBlob);
+            const audioBlob     = new Blob(chunks);
+            const audioB64      = await encodeBase64Blob(audioBlob);
             const transcription = await window[ 'ai' ][ 'audio' ]
                 .speechToText({ file: audioB64, fileName: 'audio.wav' } as SpeechToTextRequest);
 

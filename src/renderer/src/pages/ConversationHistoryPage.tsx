@@ -175,7 +175,7 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
     return (
         <div
             tabIndex={props.index + 1}
-            className={`conversation-topic flex content-container hoverable transition-colors duration-200 hover:cursor-pointer hover:border-blue-500 focus:border-blue-500 outline-none text-sm flex-row rounded mx-auto w-[80%] overflow-hidden justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-1 p-2 border-[1px]'}`}
+            className={`conversation-topic flex content-container hoverable transition-all duration-200 hover:cursor-pointer hover:border-blue-500 focus:border-blue-500 outline-none text-sm flex-row rounded mx-auto w-[80%] overflow-hidden justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-1 p-2 border-[1px]'}`}
             onClick={() => {
                 if ( topicUUID === entry.uuid )
                     return;

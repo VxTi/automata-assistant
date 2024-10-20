@@ -65,7 +65,7 @@ export function ChatMessage(props: { entry: Message }) {
                 </div>
             </div>
             <div onClick={saveToClipboardCb}
-                 className="stroke-black fill-none rounded-full hover:cursor-pointer hover:bg-gray-200 duration-300 transition-colors">
+                 className="w-8 h-8 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:cursor-pointer hover:bg-gray-200 duration-300 transition-all ">
                 {copiedToClipboard ? <Icons.Checkmark/> : <Icons.Clipboard/>}
             </div>
         </div>
@@ -83,7 +83,7 @@ export function LiveChatMessage(props: { contentRef: RefObject<HTMLDivElement>, 
 
     return (
         <div
-            className="group flex flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 transition-all"
+            className="group flex flex-row justify-between items-start content-container rounded-md py-2 px-4 m-1 transition-all"
             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start overflow-x-scroll">
                         <span
