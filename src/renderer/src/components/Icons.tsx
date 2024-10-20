@@ -23,11 +23,6 @@ const StrokePath = (cfg: { d: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" className="stroke-black fill-none dark:stroke-white" d={cfg.d}/>
 );
 
-export const IconStyles = {
-    LIGHT: 'stroke-black w-9 h-9 p-1 rounded-full hover:bg-gray-200 transition-colors duration-300 cursor-pointer' +
-        ' fill-none stroke-[1.5px]'
-}
-
 /**
  * A collection of icons, from Heroicons.
  * These icons are used in the application to display various elements.
@@ -42,17 +37,17 @@ export const Icons = {
     ),
     Cross: (props: BasicIconProps) => (
         <IconWrapper props={props}>
-            <StrokePath d="M6 18 18 6M6 6l12 12"></StrokePath>
+            <StrokePath d="M6 18 18 6M6 6l12 12" />
         </IconWrapper>
     ),
     RightArrow: (props: BasicIconProps) => (
         <IconWrapper props={props}>
-            <StrokePath d="m8.25 4.5 7.5 7.5-7.5 7.5"></StrokePath>
+            <StrokePath d="m8.25 4.5 7.5 7.5-7.5 7.5" />
         </IconWrapper>
     ),
     LeftArrow: (props: BasicIconProps) => (
         <IconWrapper props={props}>
-            <StrokePath d="m15.75 4.5-7.5 7.5 7.5 7.5"></StrokePath>
+            <StrokePath d="m15.75 4.5-7.5 7.5 7.5 7.5" />
         </IconWrapper>
     ),
     ChevronUpDown: (props: BasicIconProps) => (
@@ -166,6 +161,11 @@ export const Icons = {
     ThreeDots: (props: BasicIconProps) => (
         <IconWrapper props={props}>
             <StrokePath d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+        </IconWrapper>
+    ),
+    ArrowTopRightSquare: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
         </IconWrapper>
     )
 }
