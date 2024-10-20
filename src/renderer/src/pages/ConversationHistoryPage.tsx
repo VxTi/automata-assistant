@@ -13,13 +13,17 @@ import {
 }                                                                        from "../../../backend/ai/ChatCompletionDefinitions";
 import { AssistantPage }                                                 from "./assistant/AssistantPage";
 import { ApplicationContext }                                            from "../contexts/ApplicationContext";
-import { Icons }               from "../components/Icons";
-import { DropdownSelectable }  from "../components/interactive/DropdownSelectable";
-import { ScrollableContainer } from "../components/ScrollableContainer";
+import { Icons }                                                         from "../components/Icons";
+import {
+    DropdownSelectable
+}                                                                        from "../components/interactive/DropdownSelectable";
+import { ScrollableContainer }                                           from "../components/ScrollableContainer";
+import { debounce }                                                      from "@renderer/util/Debounce";
 
 export function ConversationHistoryPage() {
-    const [ conversationTopics, setConversationTopics ]
-              = useState<(ConversationTopic & { hidden: boolean })[]>([]);
+
+    const [ visibleTopics, setVisibleTopics ]           = useState<ConversationTopic[]>([]);
+    const [ conversationTopics, setConversationTopics ] = useState<ConversationTopic[]>([]);
 
     const { setHeaderConfig } = useContext(ApplicationContext);
 
@@ -27,17 +31,6 @@ export function ConversationHistoryPage() {
     const containerRef = useRef<HTMLDivElement>(null);
 
     useAnimationSequence({ containerRef: containerRef }, [ conversationTopics ]);
-
-    /**
-     * Debounce function for filtering the conversation topics.
-     */
-    const debounce = useCallback((func: Function, delay: number) => {
-        let timeout: NodeJS.Timeout;
-        return function (...args: any[]) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func(...args), delay);
-        };
-    }, []);
 
     /**
      * Load the conversation topics from the main process.
@@ -55,14 +48,11 @@ export function ConversationHistoryPage() {
         // and filter out any faulty topics.
         window[ 'conversations' ]
             .list()
-            .then((topics: ConversationTopic[]) =>
-                      setConversationTopics(
-                          topics
-                              .map(topic => {
-                                  return { ...topic, hidden: false };
-                              })
-                              .sort((a, b) =>
-                                        b.date - a.date)));
+            .then((topics: ConversationTopic[]) => {
+                const orderedTopics = topics.sort((a, b) => b.date - a.date);
+                setConversationTopics(orderedTopics);
+                setVisibleTopics(orderedTopics);
+            });
     }, []);
 
     /**
@@ -74,32 +64,55 @@ export function ConversationHistoryPage() {
         if ( !inputRef.current ) return;
         const input = inputRef.current;
 
+        const handleKeydown = (event: KeyboardEvent) => {
+            switch ( event.key ) {
+                case 'Enter':
+                    (document.querySelector('.conversation-topic:focus') as (HTMLElement | null))?.click();
+                    break;
+                case 'ArrowDown':
+                    ((document.activeElement?.nextElementSibling as (HTMLElement | null)) ?? (
+                        document.querySelector('.conversation-topic') as HTMLElement
+                    )).focus();
+                    break;
+                case 'ArrowUp':
+                    ((document.activeElement?.previousElementSibling as (HTMLElement | null)) ?? (
+                        document.querySelector('.conversation-topic:last-of-type') as HTMLElement
+                    )).focus();
+                    break;
+                case 'Escape':
+                    (document.activeElement as (HTMLElement | null))?.blur();
+                    break;
+                default: // Prevent default behavior
+                    return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
         const handleInput = debounce(() => {
             const value = input.value.toLowerCase().trim();
 
-            const updatedTopics =
-                      value.length === 0 ?
-                      (conversationTopics.map(topic => {
-                          return { ...topic, hidden: false };
-                      })) :
-                      (conversationTopics.map(topic => {
-                          return {
-                              ...topic,
-                              hidden: !(topic.topic.toLowerCase().includes(value) ||
-                                  topic.messages.some((message: Message) =>
-                                                          typeof message.content !== 'object' &&
-                                                          (Array.isArray(message.content) ? message.content.join(", ") : message.content!)
-                                                              .toLowerCase()
-                                                              .includes(value)
-                                  ))
-                          };
-                      }));
-            setConversationTopics(updatedTopics);
+            setVisibleTopics(
+                value.length === 0 ?
+                conversationTopics :
+                conversationTopics
+                    .filter(topic =>
+                                topic.topic.toLowerCase().includes(value) ||
+                                topic.messages.some((message: Message) =>
+                                                        typeof message.content !== 'object' &&
+                                                        (Array.isArray(message.content) ?
+                                                         message.content.join(", ") : message.content!)
+                                                            .toLowerCase()
+                                                            .includes(value))
+                    ));
         }, 300);
+
+        window.addEventListener('keydown', handleKeydown);
 
         input.addEventListener('input', handleInput);
         return () => {
-            input.removeEventListener('input', handleInput);
+            input?.removeEventListener('input', handleInput);
+            window.removeEventListener('keydown', handleKeydown);
         }
     }, [ conversationTopics ]);
 
@@ -124,9 +137,9 @@ export function ConversationHistoryPage() {
                  <div
                      className="flex flex-col justify-start z-30 items-stretch w-full py-14">
                      {
-                         conversationTopics
+                         visibleTopics
                              .map((entry, index) =>
-                                      ( !entry.hidden && <Topic key={index} topic={entry} index={index}/>))
+                                      <Topic key={index} topic={entry} index={index}/>)
                      }
                  </div>
                 }
@@ -162,7 +175,7 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
     return (
         <div
             tabIndex={props.index + 1}
-            className={`flex content-container hoverable transition-colors duration-200 hover:cursor-pointer hover:border-blue-500 focus:border-blue-500 outline-none text-sm flex-row rounded mx-auto w-[80%] overflow-hidden justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-1 p-2 border-[1px]'}`}
+            className={`conversation-topic flex content-container hoverable transition-colors duration-200 hover:cursor-pointer hover:border-blue-500 focus:border-blue-500 outline-none text-sm flex-row rounded mx-auto w-[80%] overflow-hidden justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-1 p-2 border-[1px]'}`}
             onClick={() => {
                 if ( topicUUID === entry.uuid )
                     return;
