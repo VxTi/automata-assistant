@@ -10,11 +10,10 @@ import { ChatResponse, Message, StreamedChatResponse }          from "../../../.
 import { SpeechToTextRequest }                                  from "../../../../backend/ai/SpeechToText";
 import { ConversationTopic }                                    from "../../../../backend/ai/ChatCompletion";
 import { ChatContext }                                          from "./Conversation";
+import { Icons, InteractiveIcon }                               from "../../components/Icons";
+import { audioDevice, playAudio }                               from "../../util/Audio";
 
 import '../../styles/code-highlighting.css';
-import { Icons }                                                from "../../components/Icons";
-import { audioDevice, playAudio }                               from "../../util/Audio";
-import { encodeBase64Blob }                                     from "../../../../shared/Encoding";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -172,10 +171,12 @@ export function ChatInputField() {
         const chunks: BlobPart[] = [];
         let totalBytes           = 0;
 
+        // Append incoming audio chunks to the chunks array.
         device.ondataavailable = event => {
             chunks.push(event.data);
             totalBytes += event.data.size;
 
+            // Prevent file size from getting too large, currently capped at 25MB.
             if ( totalBytes > window[ 'ai' ][ 'audio' ].speechToTextFileLimit ) {
                 device.stop();
             }
@@ -184,9 +185,9 @@ export function ChatInputField() {
         // When the recording is stopped, send the request.
         device.onstop = async () => {
             const audioBlob     = new Blob(chunks);
-            const audioB64      = await encodeBase64Blob(audioBlob);
+            const base64        = btoa(String.fromCharCode(...new Uint8Array(await audioBlob.arrayBuffer())));
             const transcription = await window[ 'ai' ][ 'audio' ]
-                .speechToText({ file: audioB64, fileName: 'audio.wav' } as SpeechToTextRequest);
+                .speechToText({ file: base64, fileName: 'audio.wav' } as SpeechToTextRequest);
 
             await handleSendRequest(transcription);
         }
@@ -237,11 +238,9 @@ export function ChatInputField() {
                 </div>
                 <div
                     className="flex justify-center items-end text-white dark:text-black mx-2">
-                    <div
-                        className='shrink-0 self-center w-8 h-8 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 duration-300 transition-colors stroke-black dark:stroke-white'
-                        onClick={() => setOptionsShown( !optionsShown)}>
-                        <Icons.ThreeDots/>
-                    </div>
+                    <InteractiveIcon icon={<Icons.ThreeDots/>}
+                                     onClick={() => setOptionsShown( !optionsShown)}
+                                     className="self-center"/>
                     <textarea
                         onKeyDown={async event => {
                             if ( event.key === 'Enter' && !event.shiftKey ) {
@@ -252,16 +251,13 @@ export function ChatInputField() {
                         placeholder="Ask me anything..."
                         rows={1} cols={50} ref={inputContentRef}
                         className="resize-none mx-2 w-full max-h-52 my-auto grow focus:outline-none bg-transparent text-black dark:text-white p-2"/>
-                    <div
-                        className={`shrink-0 self-center w-8 h-8 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 duration-300 transition-colors ${recording ? 'stroke-red-600 stroke-2' : 'stroke-black dark:stroke-white'}`}
-                        onClick={handleMicrophoneAccess}>
-                        {recording ? <Icons.Stop/> : <Icons.Microphone/>}
-                    </div>
-                    <div
-                        className='shrink-0 self-center w-8 h-8 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 duration-300 transition-colors stroke-black dark:stroke-white'
-                        onClick={handleSend}>
-                        <Icons.PaperAirplane/>
-                    </div>
+
+                    <InteractiveIcon icon={recording ? <Icons.Stop/> : <Icons.Microphone/>}
+                                     onClick={handleMicrophoneAccess}
+                                     className="self-center"
+                    />
+                    <InteractiveIcon icon={<Icons.PaperAirplane/>} onClick={handleSend}
+                                     className="self-center"/>
                 </div>
             </div>
         </div>

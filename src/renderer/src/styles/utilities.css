@@ -39,8 +39,6 @@
     display: grid;
     align-items: center;
     margin-top: 16px;
-    margin-left: 16px;
-    margin-right: 16px;
     grid-template-columns: minmax(70px, 1fr) auto minmax(70px, 1fr);
     grid-template-rows: 1fr;
 }

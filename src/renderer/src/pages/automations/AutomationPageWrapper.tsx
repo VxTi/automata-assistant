@@ -41,7 +41,7 @@ export function AutomationPageWrapper(props: { automation: Automation }) {
                             side='left'
                             onClick={() => setContent(<EditAutomationPage automation={props.automation}/>)}/>
                         <AnnotatedIcon
-                            icon={!active ? <Icons.Disable/> : <Icons.Play/>}
+                            icon={!active ? <Icons.Play/> : <Icons.Disable/>}
                             annotation={(active ? 'Disable' : 'Enable') + ' automation'}
                             side='left'
                             onClick={() => setActive( !active)}/>

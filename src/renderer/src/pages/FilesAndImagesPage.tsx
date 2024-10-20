@@ -6,9 +6,9 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { CreateSequence, useAnimationSequence }    from "../util/AnimationSequence";
 import { ApplicationContext }                      from "../contexts/ApplicationContext";
-import { ScrollableContainer }                     from "../components/ScrollableContainer";
-import { DropdownSelectable }                      from "../components/interactive/DropdownSelectable";
-import { SearchBar }                               from "../components/SearchBar";
+import { ScrollableContainer } from "../components/ScrollableContainer";
+import { FilterSelection }     from "../components/interactive/FilterSelection";
+import { SearchBar }           from "../components/SearchBar";
 import { Icons }                                   from "../components/Icons";
 
 type ResourceType = 'image' | 'spreadsheet' | 'file';
@@ -65,7 +65,7 @@ export function FilesAndImagesPage() {
     return (
         <div className="w-full max-w-screen-lg flex flex-col justify-start items-stretch grow">
             <div className="flex flex-row justify-start items-center w-[80%] mx-auto">
-                <DropdownSelectable options={[
+                <FilterSelection options={[
                     "All Files", "Images", "Spreadsheets", "PDFs"
                 ]} onClick={(_, index) => {
                     setFilterType(
@@ -85,11 +85,19 @@ export function FilesAndImagesPage() {
     )
 }
 
+/**
+ * The resource component.
+ * A resource is a file, image, or spreadsheet,
+ * that is saved from the assistant.
+ */
 function Resource(props: { resource: ResourceInfo }) {
 
     return (
         <div
-            className="group relative flex flex-col justify-start items-center content-container hoverable duration-300 transition-colors rounded-xl p-4 pb-2">
+            className="group relative flex flex-col justify-start items-center content-container hoverable duration-300 transition-colors rounded-xl p-4 pb-2"
+        onClick={() => {
+            // TODO: Add navigation to file on local file system
+        }}>
             <div className="absolute left-0 top-0 w-full z-10">
                 <div
                     className="opacity-0 group-hover:opacity-100 w-9 h-9 p-2 float-right m-5 rounded-full backdrop-brightness-90 hover:backdrop-brightness-75 transition-all duration-300">

@@ -24,7 +24,7 @@ export function playAudio(audioBlob: Blob): HTMLAudioElement {
  * To acquire the MediaRecorder object, one can call
  * `await audioDevice` and then use the MediaRecorder object.
  */
-export const audioDevice = new Promise((resolve) => {
+export const audioDevice: Promise<MediaRecorder | null> = new Promise((resolve) => {
     window!.addEventListener('load', async () => {
         const devices  = await navigator.mediaDevices.enumerateDevices();
         const deviceId = devices.find(device =>

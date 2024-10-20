@@ -3,12 +3,15 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 18 - 09:16
  */
-import { useContext, useEffect, useRef } from "react";
-import { ApplicationContext }            from "../contexts/ApplicationContext";
+import { useContext, useEffect, useRef, useState } from "react";
+import { ApplicationContext }                      from "../contexts/ApplicationContext";
 import { ScrollableContainer }           from "../components/ScrollableContainer";
 import { FadeIn, useAnimationSequence }  from "../util/AnimationSequence";
 import { HLine }                         from "../components/HLine";
-import { BooleanSetting }                from "../components/interactive/BooleanSetting";
+import { BooleanSetting }                from "../components/interactive/settings/BooleanSetting";
+import { MultiSelectionSetting }  from "@renderer/components/interactive/settings/MultiSelectionSetting";
+import { Icons, InteractiveIcon } from "@renderer/components/Icons";
+import { s }                                       from "vite/dist/node/types.d-aGj9QkWt";
 
 export function SettingsPage() {
 
@@ -64,6 +67,37 @@ export function SettingsPage() {
                             props={FadeIn()}
                             enabled={Boolean(window.localStorage.getItem('continuousConversation') ?? 'true')}
                             onChange={(newState) => window.localStorage.setItem('continuousConversation', newState.toString())}/>
+            <MultiSelectionSetting title='Voice recognition language'
+                                   description='The language that the voice recognition system should use.'
+                                   onChange={() => {
+                                   }}
+                                   currentValue={0}
+                                   props={FadeIn()}
+                                   options={[
+                                       'English', 'Dutch', 'German', 'French', 'Spanish', 'Italian', 'Russian', 'Chinese', 'Japanese', 'Korean'
+                                   ]}
+            />
+
+            <MultiSelectionSetting title='Assistant Voice'
+                                   description='The voice that the assistant should use.'
+                                   onChange={() => {
+                                   }}
+                                   props={FadeIn()}
+                                   options={[ 'Nova', 'Alloy', 'Echo', 'Fable', 'Onyx', 'Shimmer' ]}
+                                   currentValue={0}
+                                   extraOption={<PlayableVoice/>}
+            />
         </ScrollableContainer>
     );
+}
+
+function PlayableVoice() {
+    const [ playing, setPlaying ] = useState<boolean>(false);
+    return (
+        <div className="flex flex-row items-center rounded-lg max-w-max px-1">
+            <InteractiveIcon icon={playing ? <Icons.Stop /> : <Icons.Play/>} onClick={() => {
+                setPlaying(!playing);
+            }} />
+        </div>
+    )
 }

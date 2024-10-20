@@ -23,7 +23,7 @@ export const ApplicationContext = createContext<{
 }>({
        content: <AssistantPage/>,
        setContent: () => void 0,
-       sidebarExpanded: false,
+       sidebarExpanded: true,
        setSidebarExpanded: () => void 0,
        setHeaderConfig: (_: () => PageHeaderConfig) => void 0,
        headerConfig: {}
@@ -35,7 +35,7 @@ export const ApplicationContext = createContext<{
  */
 export function ApplicationContextProvider({ children }: { children: ReactNode }) {
     const [ content, setContent ]                 = useState<ReactNode>(<AssistantPage/>);
-    const [ sidebarExpanded, setSidebarExpanded ] = useState<boolean>(false);
+    const [ sidebarExpanded, setSidebarExpanded ] = useState<boolean>(true);
     const [ headerConfig, setHeaderConfig ]       = useState<PageHeaderConfig>({});
 
     const updateHeaderConfigCallback = useCallback((updateFn: () => PageHeaderConfig) => {

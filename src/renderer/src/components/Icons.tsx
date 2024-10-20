@@ -23,6 +23,17 @@ const StrokePath = (cfg: { d: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" className="stroke-black fill-none dark:stroke-white" d={cfg.d}/>
 );
 
+export function InteractiveIcon(props: {
+    icon: ReactNode,
+    className?: string,
+    onClick?: () => void }) {
+    return (
+        <div className={`rounded-full w-8 h-8 p-1 cursor-pointer apply-stroke shrink-0 hover:bg-gray-200 dark:hover:bg-gray-800 duration-300 transition-colors ${props.className ?? ''}`} onClick={props.onClick}>
+            {props.icon}
+        </div>
+    )
+}
+
 /**
  * A collection of icons, from Heroicons.
  * These icons are used in the application to display various elements.
@@ -120,12 +131,12 @@ export const Icons = {
     ),
     Play: (props: BasicIconProps) => (
         <IconWrapper props={props}>
-            <StrokePath d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9" />
+            <StrokePath d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
         </IconWrapper>
     ),
     Disable: (props: BasicIconProps) => (
         <IconWrapper props={props}>
-            <StrokePath d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+            <StrokePath d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9" />
         </IconWrapper>
     ),
     FolderOpen: (props: BasicIconProps) => (
@@ -166,6 +177,11 @@ export const Icons = {
     ArrowTopRightSquare: (props: BasicIconProps) => (
         <IconWrapper props={props}>
             <StrokePath d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+        </IconWrapper>
+    ),
+    TwoBars: (props: BasicIconProps) => (
+        <IconWrapper props={props}>
+            <StrokePath d="M3.75 9h16.5m-16.5 6.75h16.5" />
         </IconWrapper>
     )
 }

@@ -6,12 +6,13 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { CreateSequence }                                      from "../../util/AnimationSequence";
 
-import { Icons }   from "../../components/Icons";
-import { Message } from "../../../../backend/ai/ChatCompletionDefinitions";
-import renderMathInElement from "katex/contrib/auto-render";
-import { mdParser }        from "./Conversation";
+import { Icons, InteractiveIcon } from "../../components/Icons";
+import { Message }                from "../../../../backend/ai/ChatCompletionDefinitions";
+import renderMathInElement        from "katex/contrib/auto-render";
+import { mdParser }               from "./Conversation";
 import '../../styles/markdown.css'
 import 'katex/dist/katex.min.css'
+
 /**
  * The chat message.
  * This component is used to display a chat message.
@@ -55,19 +56,17 @@ export function ChatMessage(props: { entry: Message }) {
 
     return (
         <div
-            className="group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 m-1"
+            className="group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 mx-2"
             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start text-wrap overflow-hidden">
-                        <span
-                            className="font-bold font-sans text-md">{props.entry.role === 'user' ? 'You' : 'Assistant'}</span>
+                <span className="font-bold font-sans text-md">{props.entry.role === 'user' ? 'You' : 'Assistant'}</span>
                 <div className="not-prose text-sm mt-2 mb-1 w-full">
                     <span className="markdown" ref={contentRef}/>
                 </div>
             </div>
-            <div onClick={saveToClipboardCb}
-                 className="w-8 h-8 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:cursor-pointer hover:bg-gray-200 duration-300 transition-all ">
-                {copiedToClipboard ? <Icons.Checkmark/> : <Icons.Clipboard/>}
-            </div>
+            <InteractiveIcon icon={copiedToClipboard ? <Icons.Checkmark/> : <Icons.Clipboard/>}
+                             onClick={saveToClipboardCb}
+                             className='opacity-0 group-hover:opacity-100 transition-all'/>
         </div>
     )
 }
@@ -83,7 +82,7 @@ export function LiveChatMessage(props: { contentRef: RefObject<HTMLDivElement>, 
 
     return (
         <div
-            className="group flex flex-row justify-between items-start content-container rounded-md py-2 px-4 m-1 transition-all"
+            className="group flex flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 mx-2 transition-all"
             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start overflow-x-scroll">
                         <span

@@ -13,11 +13,11 @@ import {
 }                                                                        from "../../../backend/ai/ChatCompletionDefinitions";
 import { AssistantPage }                                                 from "./assistant/AssistantPage";
 import { ApplicationContext }                                            from "../contexts/ApplicationContext";
-import { Icons }                                                         from "../components/Icons";
+import { Icons }               from "../components/Icons";
 import {
-    DropdownSelectable
-}                                                                        from "../components/interactive/DropdownSelectable";
-import { ScrollableContainer }                                           from "../components/ScrollableContainer";
+    FilterSelection
+}                              from "../components/interactive/FilterSelection";
+import { ScrollableContainer } from "../components/ScrollableContainer";
 import { debounce }                                                      from "@renderer/util/Debounce";
 import { SearchBar }                                                     from "@renderer/components/SearchBar";
 
@@ -121,7 +121,7 @@ export function ConversationHistoryPage() {
         <div
             className={`transition-all duration-500 flex z-20 flex-col justify-start items-center max-w-screen-lg w-full grow`}>
             <div className="flex flex-row justify-start items-center w-[80%] mx-auto sticky top-0 z-30">
-                <DropdownSelectable options={[
+                <FilterSelection options={[
                     'All', 'Today', 'Yesterday', 'This week', 'This month', 'This year'
                 ]}/>
                 <SearchBar placeholder={'Search conversation topics'} elementRef={inputRef}/>

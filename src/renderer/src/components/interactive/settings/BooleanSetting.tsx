@@ -5,7 +5,7 @@
  */
 
 
-import { ToggleableSwitch } from "./ToggleableSwitch";
+import { ToggleableSwitch } from "../ToggleableSwitch";
 
 /**
  * A boolean setting component.

@@ -1,12 +1,12 @@
 /**
- * @fileoverview DropdownSelectable.tsx
+ * @fileoverview FilterSelection.tsx
  * @author Luca Warmenhoven
  * @date Created on Thursday, October 17 - 23:17
  */
 import { useState } from "react";
 import { Icons }    from "../Icons";
 
-export function DropdownSelectable(props: { options: string[], onClick?: (value: string, index: number) => void }) {
+export function FilterSelection(props: { options: string[], onClick?: (value: string, index: number) => void }) {
 
     const [ selectedIdx, setSelectedIdx ] = useState<number>(0);
 
