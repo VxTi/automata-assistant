@@ -1,8 +1,8 @@
 import { contextBridge, ipcMain } from 'electron'
 import { electronAPI }            from '@electron-toolkit/preload'
-import { SpeechToTextRequest }    from "../ai/SpeechToText";
-import { TTSRequest }             from "../ai/TextToSpeech";
-import { sep }                    from 'path';
+import { SpeechToTextRequest }   from "../ai/SpeechToText";
+import { TTSRequest, VoiceType } from "../ai/TextToSpeech";
+import { sep }                   from 'path';
 import { ConversationTopic }      from "../ai/ChatCompletion";
 import { CompletionRequest }      from "../ai/ChatCompletionDefinitions";
 import '../../renderer/src/util/Audio'
@@ -78,6 +78,9 @@ contextBridge.exposeInMainWorld('ai', {
         return await electronAPI.ipcRenderer.invoke('ai:completion', request);
     },
     audio: {
+        getVoiceAssistantExamples: async (): Promise<{ data: Map<VoiceType, string> }> => {
+            return await electronAPI.ipcRenderer.invoke('ai:voice-assistant-examples');
+        },
         /**
          * Handle the text-to-speech request.
          * @param request The text-to-speech request to handle.

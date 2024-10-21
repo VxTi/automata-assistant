@@ -4,3 +4,5 @@ declare global {
         export default value;
     }
 }
+
+export type ISOLanguageCodes = 'en' | 'nl' | ''

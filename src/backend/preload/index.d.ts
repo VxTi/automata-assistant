@@ -1,11 +1,11 @@
 import { ElectronAPI }                                               from '@electron-toolkit/preload'
 import { ChatCompletion, ChatCompletionResponse, ConversationTopic } from "../ai/ChatCompletion";
-import { SpeechToText, SpeechToTextRequest }                         from "../ai/SpeechToText";
-import { TextToSpeech, TTSRequest }                                  from "../ai/TextToSpeech";
+import { SpeechToText, SpeechToTextRequest }   from "../ai/SpeechToText";
+import { TextToSpeech, TTSRequest, VoiceType } from "../ai/TextToSpeech";
 import {
     ChatResponse,
     CompletionRequest
-}                                                                    from "../ai/ChatCompletionDefinitions";
+}                                              from "../ai/ChatCompletionDefinitions";
 
 declare global {
     interface Window {
@@ -27,6 +27,7 @@ declare global {
         ai: {
             completion: (request: CompletionRequest | string) => Promise<ChatResponse | null>,
             audio: {
+                getVoiceAssistantExamples: () => Promise<{ data: Map<VoiceType, string> }>,
                 textToSpeech: (request: TTSRequest) => Promise<{ data: string }>,
                 speechToText: (request: SpeechToTextRequest) => Promise<string>,
                 speechToTextFileLimit: number,

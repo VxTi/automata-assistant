@@ -14,6 +14,7 @@ import { Icons, InteractiveIcon }                               from "../../comp
 import { audioDevice, playAudio }                               from "../../util/Audio";
 
 import '../../styles/code-highlighting.css';
+import { Voices, VoiceType }                                    from "../../../../backend/ai/TextToSpeech";
 
 /**
  * The interactive field where the user can input text or voice.
@@ -121,7 +122,11 @@ export function ChatInputField() {
             });
             if ( ctx.spokenResponse ) {
                 const { data } = await window[ 'ai' ].audio.textToSpeech(
-                    { input: response, model: 'tts-1', voice: 'nova' });
+                    {
+                        input: response,
+                        model: 'tts-1',
+                        voice: (Voices[ parseInt(window.localStorage.getItem('voiceIndex') ?? '0') ] ?? 'nova') as VoiceType
+                    });
 
                 const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0)).buffer;
                 const blob        = new Blob([ arrayBuffer ], { type: 'audio/mpeg' });

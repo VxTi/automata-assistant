@@ -9,7 +9,9 @@ import '../ai/AIHandlers'
 
 dotenv.config({ path: join(__dirname, '../../.env') });
 
-const conversationDirectoryPath = join(app.getPath('userData'), 'conversations');
+export const appDirectory = app.getPath('userData');
+
+const conversationDirectoryPath = join(appDirectory, 'conversations');
 
 export let mainWindow: BrowserWindow | null = null;
 

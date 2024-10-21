@@ -5,13 +5,16 @@
  */
 import { useContext, useEffect, useRef, useState } from "react";
 import { ApplicationContext }                      from "../contexts/ApplicationContext";
-import { ScrollableContainer }           from "../components/ScrollableContainer";
-import { FadeIn, useAnimationSequence }  from "../util/AnimationSequence";
-import { HLine }                         from "../components/HLine";
-import { BooleanSetting }                from "../components/interactive/settings/BooleanSetting";
-import { MultiSelectionSetting }  from "@renderer/components/interactive/settings/MultiSelectionSetting";
-import { Icons, InteractiveIcon } from "@renderer/components/Icons";
-import { s }                                       from "vite/dist/node/types.d-aGj9QkWt";
+import { ScrollableContainer }                     from "../components/ScrollableContainer";
+import { FadeIn, useAnimationSequence }            from "../util/AnimationSequence";
+import { HLine }                                   from "../components/HLine";
+import { BooleanSetting }                          from "../components/interactive/settings/BooleanSetting";
+import {
+    MultiSelectionSetting
+}                                                  from "@renderer/components/interactive/settings/MultiSelectionSetting";
+import { Icons, InteractiveIcon }                  from "@renderer/components/Icons";
+import { playAudio }         from "@renderer/util/Audio";
+import { Voices, VoiceType } from "../../../backend/ai/TextToSpeech";
 
 export function SettingsPage() {
 
@@ -78,26 +81,80 @@ export function SettingsPage() {
                                    ]}
             />
 
-            <MultiSelectionSetting title='Assistant Voice'
-                                   description='The voice that the assistant should use.'
-                                   onChange={() => {
-                                   }}
-                                   props={FadeIn()}
-                                   options={[ 'Nova', 'Alloy', 'Echo', 'Fable', 'Onyx', 'Shimmer' ]}
-                                   currentValue={0}
-                                   extraOption={<PlayableVoice/>}
-            />
+            <PlayableVoice/>
         </ScrollableContainer>
     );
 }
 
 function PlayableVoice() {
-    const [ playing, setPlaying ] = useState<boolean>(false);
+    const [ playing, setPlaying ]             = useState<boolean>(false);
+    const [ selectedVoice, setSelectedVoice ] = useState<VoiceType>('Nova');
+
+    useEffect(() => {
+        /*
+         * If the voice assistant cache isn't available, we'll have to
+         */
+        if ( !window[ 'speechSynthesisCache' ] || typeof window[ 'speechSynthesisCache' ] !== 'object' ||
+            !('data' in window[ 'speechSynthesisCache' ]) ) {
+            window[ 'speechSynthesisCache' ] = {};
+
+            window[ 'ai' ]
+                .audio
+                .getVoiceAssistantExamples()
+                .then(result => {
+                    result.data.keys()
+                        .forEach(key => {
+                            const voiceDataB64 = result.data.get(key)!;
+                            const voiceDataBytes = atob(voiceDataB64);
+                            const byteArray = new Uint8Array([ ...voiceDataBytes ].map((_, i) => voiceDataBytes.charCodeAt(i)));
+
+                            window['speechSynthesisCache'][key.toLowerCase()] = new Blob([ byteArray ], { type: 'audio/wav' });
+                        });
+                });
+        }
+    }, []);
+
+
     return (
-        <div className="flex flex-row items-center rounded-lg max-w-max px-1">
-            <InteractiveIcon icon={playing ? <Icons.Stop /> : <Icons.Play/>} onClick={() => {
-                setPlaying(!playing);
-            }} />
-        </div>
+        <MultiSelectionSetting
+            title='Assistant Voice'
+            description='The voice that the assistant should use.'
+            onChange={(voice: string, idx: number) => {
+                setSelectedVoice(voice as VoiceType);
+                window.localStorage.setItem('voiceIndex', idx.toString());
+            }}
+            props={FadeIn()}
+            options={Voices}
+            currentValue={parseInt(window.localStorage.getItem('voiceIndex') ?? '0')}
+            extraOption={
+                <div className="flex flex-row items-center rounded-lg max-w-max px-1">
+                    <InteractiveIcon icon={playing ? <Icons.Stop/> : <Icons.Play/>} onClick={() => {
+                        setPlaying( !playing);
+                        if ( !playing ) {
+                            if ( !window[ 'speechSynthesisCache' ] ) {
+                                console.error('Voice data not found in cache');
+                                return;
+                            }
+
+                            const voiceBlob = window[ 'speechSynthesisCache' ][ selectedVoice.toLowerCase() ];
+
+                            if (!voiceBlob) {
+                                console.error('Voice not found in cache', voiceBlob, selectedVoice);
+                                return;
+                            }
+
+                            window[ 'speechSynthesisCache' ].playing = playAudio(voiceBlob);
+                            window['speechSynthesisCache'].playing!.onended = () => {
+                                setPlaying(false);
+                            }
+                        }
+                        else {
+                            window[ 'speechSynthesisCache' ].playing!.stop!();
+                            window[ 'speechSynthesisCache' ].playing! = null;
+                        }
+                    }}/>
+                </div>
+            }
+        />
     )
 }

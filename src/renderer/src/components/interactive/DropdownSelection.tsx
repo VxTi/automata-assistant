@@ -67,7 +67,7 @@ export function DropdownSelection(props: {
             </div>
             <div
                 onClick={() => setExpanded( !expanded)}
-                className="relative mx-1 cursor-pointer z-auto content-container rounded-lg h-full stroke-black fill-none group flex flex-row items-center pr-2">
+                className="relative mx-1 cursor-pointer z-10 content-container hoverable transition-colors duration-300 rounded-lg h-full stroke-black fill-none group flex flex-row items-center pr-2">
                 <div className="w-8 h-8 p-1 mr-1">
                     <Icons.ChevronUpDown/>
                 </div>

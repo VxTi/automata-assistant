@@ -64,7 +64,7 @@ export function FilesAndImagesPage() {
 
     return (
         <div className="w-full max-w-screen-lg flex flex-col justify-start items-stretch grow">
-            <div className="flex flex-row justify-start items-center w-[80%] mx-auto">
+            <div className="flex flex-row justify-start items-center w-[80%] mx-auto z-10">
                 <FilterSelection options={[
                     "All Files", "Images", "Spreadsheets", "PDFs"
                 ]} onClick={(_, index) => {
@@ -75,7 +75,7 @@ export function FilesAndImagesPage() {
                            onInput={(value) => setSearchQuery(value.toLowerCase())}/>
             </div>
             <ScrollableContainer className="py-10" blurEdges elementRef={containerRef} size='lg'>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 rounded-xl mx-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 rounded-xl mx-2">
                     {filteredResources.map((resource, i) => (
                         <Resource key={i} resource={resource}/>)
                     )}

@@ -8,6 +8,8 @@ import { AIContext, AIModel } from "./AIContext";
 export type VoiceType = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
 export type VoiceModel = 'tts-1' | 'tts-1-hd';
 
+export const Voices = [ 'Nova', 'Alloy', 'Echo', 'Fable', 'Onyx', 'Shimmer' ];
+
 /**
  * The text-to-speech request.
  * This is the request object that is used to generate speech from text.
