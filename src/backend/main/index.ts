@@ -1,11 +1,11 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
-import { ConversationTopic }                          from "../../../declarations";
 import { electronApp, is, optimizer }                 from '@electron-toolkit/utils'
 import { join }                                       from 'path'
 import icon                                           from '../../../resources/icon.png'
 import * as dotenv                                    from 'dotenv';
 import * as fs                                        from "node:fs";
 import '../ai/AIHandlers'
+import { ConversationTopic }                          from 'llm';
 
 dotenv.config({ path: join(__dirname, '../../.env') });
 

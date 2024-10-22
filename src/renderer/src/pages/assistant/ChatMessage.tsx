@@ -5,11 +5,10 @@
  */
 import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { CreateSequence }                                      from "../../util/AnimationSequence";
-
-import { Icons, InteractiveIcon } from "../../components/Icons";
-import { Message }                from "../../../../backend/ai/ChatCompletionDefinitions";
-import renderMathInElement        from "katex/contrib/auto-render";
-import { mdParser }               from "./Conversation";
+import { Icons, InteractiveIcon }                              from "../../components/Icons";
+import renderMathInElement                                     from "katex/contrib/auto-render";
+import { mdParser }                                            from "../../contexts/ChatContext";
+import { Message }                                             from "llm";
 import '../../styles/markdown.css'
 import 'katex/dist/katex.min.css'
 

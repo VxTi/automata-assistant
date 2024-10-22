@@ -1,5 +1,5 @@
 /**
- * @fileoverview Conversation.ts
+ * @fileoverview ChatContext.ts
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 18:31
  */
@@ -9,8 +9,7 @@ import { Marked }                   from "marked";
 import markedKatex                  from "marked-katex-extension";
 import hljs                         from "highlight.js";
 import { markedHighlight }          from "marked-highlight";
-import { Message }                  from "../../../../backend/ai/ChatCompletionDefinitions";
-
+import { Message }                  from "llm";
 
 export const mdParser = new Marked();
 mdParser.use(

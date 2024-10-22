@@ -4,6 +4,7 @@ import './styles/styles.css'
 import { AutomationsContextProvider } from "./pages/automations/Automations";
 import { PageWrapper }                from "./components/PageWrapper";
 import './util/Audio'
+import { Settings }                   from "@renderer/util/Settings";
 
 createRoot(document.getElementById('root')!).render(
     <ApplicationContextProvider>
@@ -14,5 +15,5 @@ createRoot(document.getElementById('root')!).render(
 );
 
 window.addEventListener('DOMContentLoaded', () => {
-    document.body.dataset.theme = window.localStorage.getItem('theme') || 'dark';
+    document.body.dataset.theme = Settings.get(Settings.THEME)
 })

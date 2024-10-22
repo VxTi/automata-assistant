@@ -4,22 +4,7 @@
  * @date Created on Friday, October 11 - 14:46
  */
 import { AIContext, AIModel } from "./AIContext";
-
-export type VoiceType = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
-export type VoiceModel = 'tts-1' | 'tts-1-hd';
-
-export const Voices = [ 'Nova', 'Alloy', 'Echo', 'Fable', 'Onyx', 'Shimmer' ];
-
-/**
- * The text-to-speech request.
- * This is the request object that is used to generate speech from text.
- */
-export interface TTSRequest {
-    input: string;
-    model: VoiceModel;
-    voice: VoiceType;
-    speed?: number
-}
+import { TTSRequest }         from "tts";
 
 /**
  * Default configuration for the text-to-speech request.
@@ -29,6 +14,8 @@ const defaultConfiguration: TTSRequest = {
     model: 'tts-1',
     voice: 'nova'
 };
+
+export const Voices = [ 'Nova', 'Alloy', 'Echo', 'Fable', 'Onyx', 'Shimmer' ];
 
 /**
  * The text-to-speech class.

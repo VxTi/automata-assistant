@@ -3,17 +3,19 @@
  * @author Luca Warmenhoven
  * @date Created on Monday, October 14 - 09:25
  */
-import { AIContext }                           from "./AIContext";
-import { join, resolve }                       from "path";
-import * as dotenv                             from 'dotenv';
-import { ChatCompletion }                      from "./ChatCompletion";
-import { TextToSpeech, TTSRequest, VoiceType } from "./TextToSpeech";
-import { SpeechToText, SpeechToTextRequest }   from "./SpeechToText";
-import { ipcMain }                             from "electron";
-import { ChatResponse, CompletionRequest }     from "./ChatCompletionDefinitions";
-import { RegisteredTools }                     from "./RegisteredTools";
-import { appDirectory }                        from "../main";
-import * as fs                                 from "node:fs";
+import { ChatCompletion }                  from "./ChatCompletion";
+import { TextToSpeech, Voices }            from "./TextToSpeech";
+import { SpeechToText }                    from "./SpeechToText";
+import { AIContext }                       from "./AIContext";
+import { RegisteredTools }                 from "./RegisteredTools";
+import { appDirectory }                    from "../main";
+import { ipcMain }                         from "electron";
+import { join, resolve }                   from "path";
+import * as dotenv                         from 'dotenv';
+import * as fs                             from "node:fs";
+import { ChatResponse, CompletionRequest } from "llm";
+import { TTSRequest, VoiceType }           from "tts";
+import { SpeechToTextRequest }             from "stt";
 
 dotenv.config({ path: resolve('.env') });
 
@@ -59,7 +61,6 @@ const bufferToBase64 = (buffer: Buffer) => {
 
 ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Map<VoiceType, string> }> => {
     const examplesPath = join(appDirectory, 'voice-assistant-cache');
-    const voices       = [ 'alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer' ];
 
     console.log(examplesPath)
 
@@ -71,17 +72,17 @@ ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Ma
     let audioBuffers: Buffer[] = [];
 
     // If cache files are missing, we'll just renew all of them.
-    if ( fs.readdirSync(examplesPath).length !== voices.length ) {
+    if ( fs.readdirSync(examplesPath).length !== Voices.length ) {
         for ( const file of fs.readdirSync(examplesPath) )
             fs.unlinkSync(join(examplesPath, file));
 
         // Generate files
-        audioBuffers = await Promise.all(voices.map(async (voice, i) => {
+        audioBuffers = await Promise.all(Voices.map(async (voice, i) => {
             return new Promise<Buffer>((resolve) => {
                 setTimeout(async () => {
                     const audioBlob = await tts.create(
                         {
-                            input: 'Hello! My name is ' + voice, voice: voice as VoiceType,
+                            input: 'Hello! My name is ' + voice, voice: (voice.toLowerCase()) as VoiceType,
                             model: 'tts-1', speed: 1.0
                         });
                     resolve(Buffer.from(await audioBlob.arrayBuffer()));
@@ -90,23 +91,21 @@ ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Ma
         }));
 
         // Save the audio to cache as .wav files (or any format you are using)
-        await Promise.all(voices.map(async (voice, index) => {
+        await Promise.all(Voices.map(async (voice, index) => {
             const filePath = join(examplesPath, `${voice}.wav`); // Adjust the extension as necessary
-            fs.writeFileSync(filePath, bufferToBase64(audioBuffers[ index ]));
+            fs.writeFileSync(filePath, audioBuffers[ index ]);
         }));
     }
-    else {
-        audioBuffers = fs.readdirSync(examplesPath).map(file => {
-            const filePath = join(examplesPath, file);
-            return fs.readFileSync(filePath);
-        });
-    }
+    else audioBuffers = fs.readdirSync(examplesPath).map(file => {
+        const filePath = join(examplesPath, file);
+        return fs.readFileSync(filePath);
+    });
 
 
     // Return base64 encoded audio
     return {
         data: new Map(audioBuffers.map((buffer, i) => {
-            return [ voices[ i ] as VoiceType, bufferToBase64(buffer) ];
+            return [ Voices[ i ] as VoiceType, bufferToBase64(buffer) ];
         })),
     };
 });

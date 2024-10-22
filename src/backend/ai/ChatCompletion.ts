@@ -4,41 +4,9 @@
  * @date Created on Friday, October 11 - 15:02
  */
 
-import { AIContext, AIModel }                       from "./AIContext";
-import { ChatResponse, CompletionRequest, Message } from "./ChatCompletionDefinitions";
-import { ipcMain }                                  from "electron";
-import ipcRenderer = Electron.ipcRenderer;
-import { mainWindow }                               from "../main";
-
-/**
- * The conversation topic.
- * This interface represents a conversation topic,
- * and can be used to store the conversation history.
- */
-export interface ConversationTopic {
-    /**
-     * The UUID of the conversation topic.
-     * This is used to identify the conversation topic.
-     */
-    uuid: string;
-
-    /**
-     * The topic of the conversation.
-     * This is a summary generated based on the initial message of the conversation.
-     */
-    topic: string;
-
-    /**
-     * The date of the conversation.
-     * This is updated whenever a new message is added to the conversation.
-     */
-    date: number;
-
-    /**
-     * The messages of the conversation.
-     */
-    messages: Message[]
-}
+import { AIContext, AIModel }              from "./AIContext";
+import { mainWindow }                      from "../main";
+import { ChatResponse, CompletionRequest } from "llm";
 
 const defaultConfiguration: CompletionRequest = {
     model: 'gpt-3.5-turbo-1106',
@@ -105,7 +73,7 @@ export class ChatCompletion extends AIModel {
             // Decode the value and append it to the content
             content += decoder.decode(value, { stream: true });
 
-            while ( (idxOfNewline = content.indexOf('\n')) > -1 && content.length > 1) {
+            while ( (idxOfNewline = content.indexOf('\n')) > -1 && content.length > 1 ) {
                 // Start from after 'data: '
                 const line = content.slice(6, idxOfNewline).trim();
 
@@ -125,7 +93,7 @@ export class ChatCompletion extends AIModel {
                 content = content.slice(idxOfNewline + 1);
             }
         }
-            mainWindow!.webContents.send('ai:completion-chunk-end');
+        mainWindow!.webContents.send('ai:completion-chunk-end');
         return null;
     }
 }

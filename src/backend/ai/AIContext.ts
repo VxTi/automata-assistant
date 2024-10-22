@@ -4,64 +4,8 @@
  * @date Created on Friday, October 11 - 15:05
  */
 
-
-/**
- * Configuration object for the AI Context.
- */
-export interface AIContextConfig {
-
-    /**
-     * The API key to use for the context.
-     */
-    apiKey: string;
-
-    /**
-     * The base URL of the API, e.g. https://api.openai.com/v1
-     */
-    baseURL?: string;
-
-    /**
-     * The name of the application.
-     * This is only used for OpenRouter.
-     */
-    appName?: string;
-
-    /**
-     * The URL of the site.
-     * This is also only used for OpenRouter.
-     */
-    siteURL?: string;
-
-    /**
-     * The fetch method to use.
-     * This defaults to the global fetch method.
-     */
-    fetchMethod?: (url: string | URL | Request, init?: RequestInit) => Promise<Response>
-}
-
-/**
- * Request parameters for the AI Context.
- */
-interface AIContextRequestParams {
-    /**
-     * The route to request, e.g. 'audio/speech'
-     */
-    route: string;
-    /**
-     * The method to use. Defaults to 'POST'
-     */
-    method?: string;
-
-    /**
-     * The body of the request.
-     */
-    body: any;
-
-    /**
-     * The headers of the request.
-     */
-    headers?: Record<string, string>;
-}
+import AIContextConfig = aiCtx.AIContextConfig;
+import AIContextRequestParams = aiCtx.AIContextRequestParams;
 
 /**
  * The AI Context class.

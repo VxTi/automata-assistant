@@ -3,18 +3,17 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 12:11
  */
-import { useContext, useEffect, useRef, useState } from "react";
-import { ChatInputField }                          from "./InputField";
-import { ChatContext }                             from "./Conversation";
-import { ChatMessage, LiveChatMessage }            from "./ChatMessage";
-import { useAnimationSequence }                    from "../../util/AnimationSequence";
-import { AnnotatedIcon }                           from "../../components/AnnotatedIcon";
-import { ApplicationContext }                      from "../../contexts/ApplicationContext";
-
+import { ReactNode, useContext, useEffect, useRef, useState } from "react";
+import { useAnimationSequence }                               from "../../util/AnimationSequence";
+import { AnnotatedIcon }                                      from "../../components/AnnotatedIcon";
+import { ApplicationContext }                                 from "../../contexts/ApplicationContext";
+import { Icons }                                              from "../../components/Icons";
+import { ScrollableContainer }                                from "../../components/ScrollableContainer";
+import { ChatMessage, LiveChatMessage }                       from "../../pages/assistant/ChatMessage";
+import { ChatInputField }                                     from "../../pages/assistant/InputField";
+import { ChatContext }                                        from "../../contexts/ChatContext";
+import { Message }                                            from "llm";
 import '../../styles/utilities.css'
-import { Message }                                 from "../../../../backend/ai/ChatCompletionDefinitions";
-import { Icons }                                   from "../../components/Icons";
-import { ScrollableContainer }                     from "../../components/ScrollableContainer";
 
 /**
  * The assistant page.
@@ -41,34 +40,33 @@ export function AssistantPage(props: {
     useEffect(() => {
         if ( !chatContainerRef.current ) return;
 
-        chatContainerRef.current!.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        chatContainerRef.current!.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
     }, [ messages, chatContainerRef ]);
 
     useAnimationSequence({ containerRef: chatContainerRef }, [ messages ]);
 
     useEffect(() => {
         setHeaderConfig(() => {
-                            return {
-                                leftHeaderContent: messages.length > 0 ? (
-                                    <AnnotatedIcon
-                                        icon={<Icons.PencilSquare/>}
-                                        annotation="New topic" side='right' onClick={() => {
-                                        setConversationTopic('New conversation');
-                                        setMessages(() => []);
-                                    }}/>) : undefined,
-                                pageTitle:
-                                conversationTopic,
-                                rightHeaderContent:
-                                    <AnnotatedIcon
-                                        icon={!spokenResponse ? <Icons.SpeakerCross/> : <Icons.Speaker/>}
-                                        annotation={(spokenResponse ? 'Disable' : 'Enable') + " sound"}
-                                        side='left'
-                                        onClick={() => {
-                                            setSpokenResponse( !spokenResponse);
-                                        }}/>
-                            }
-                        }
-        );
+            return {
+                leftHeaderContent: messages.length > 0 ? (
+                    <AnnotatedIcon
+                        icon={<Icons.PencilSquare/>}
+                        annotation="New topic" side='right' onClick={() => {
+                        setConversationTopic('New conversation');
+                        setMessages(() => []);
+                    }}/>) : undefined,
+                pageTitle:
+                conversationTopic,
+                rightHeaderContent:
+                    <AnnotatedIcon
+                        icon={!spokenResponse ? <Icons.SpeakerCross/> : <Icons.Speaker/>}
+                        annotation={(spokenResponse ? 'Disable' : 'Enable') + " sound"}
+                        side='left'
+                        onClick={() => {
+                            setSpokenResponse( !spokenResponse);
+                        }}/>
+            }
+        });
     }, [ messages, spokenResponse, conversationTopic ]);
 
     return (
@@ -77,19 +75,36 @@ export function AssistantPage(props: {
             spokenResponse, setSpokenResponse,
             topicUUID, setTopicUUID, lastMessageRef, setLiveChatActive
         }}>
-            <div className="flex flex-col relative justify-start items-center grow">
-                <ScrollableContainer elementRef={chatContainerRef} size='lg'>
-                    {messages.length === 0 && !liveChatActive &&
-                        <div className="justify-self-center mx-auto">
-
-                        </div>}
-                    {messages.map((entry, index) =>
-                                      <ChatMessage key={index} entry={entry}/>)}
-                    <LiveChatMessage contentRef={lastMessageRef} active={liveChatActive}/>
-                </ScrollableContainer>
+            <div className="flex flex-col relative justify-start items-center h-full">
+                {messages.length === 0 && !liveChatActive ?
+                 <div className="flex flex-row justify-center content-end gap-2 my-auto grow flex-wrap">
+                     <ExampleCard>
+                         <span>Write me a poem</span>
+                     </ExampleCard>
+                     <ExampleCard>
+                         <span>What's the weather?</span>
+                     </ExampleCard>
+                     <ExampleCard>
+                         <span>Send an email...</span>
+                     </ExampleCard>
+                 </div> :
+                 <ScrollableContainer elementRef={chatContainerRef} size='lg'>
+                     {messages.map((entry, index) =>
+                                       <ChatMessage key={index} entry={entry}/>)}
+                     <LiveChatMessage contentRef={lastMessageRef} active={liveChatActive}/>
+                 </ScrollableContainer>}
                 <ChatInputField/>
             </div>
         </ChatContext.Provider>
+    )
+}
+
+function ExampleCard(props: { children: ReactNode }) {
+    return (
+        <div
+            className={`content-container hoverable flex-col border-solid border-[1px] basis-48 transition-colors duration-300 justify-start items-center gap-4 px-4 py-2 bg rounded-2xl`}>
+            {props.children}
+        </div>
     )
 }
 

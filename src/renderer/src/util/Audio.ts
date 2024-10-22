@@ -12,10 +12,23 @@
 export function playAudio(audioBlob: Blob): HTMLAudioElement {
     const audioElem   = document.createElement('audio');
     audioElem.src     = URL.createObjectURL(audioBlob);
-    let revokeUrl     = () => URL.revokeObjectURL(audioElem.src);
+    window['audioElements'] = window['audioElements'] || [];
+    window['audioElements'].push(audioElem);
+
+    let revokeUrl     = () => {
+        URL.revokeObjectURL(audioElem.src);
+        window['audioElements'] = window['audioElements']
+            .filter((element: HTMLAudioElement) => element.src !== audioElem.src);
+        audioElem.remove();
+    };
     audioElem.onended = revokeUrl;
     audioElem.play().catch(_ => revokeUrl())
+    console.log('Playing audio (blob)', audioElem.src);
     return audioElem;
+}
+
+export function getActiveAudioElements(): HTMLAudioElement[] {
+    return window['audioElements'] || [];
 }
 
 /**

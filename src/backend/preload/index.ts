@@ -1,11 +1,9 @@
-import { contextBridge, ipcMain } from 'electron'
-import { electronAPI }            from '@electron-toolkit/preload'
-import { SpeechToTextRequest }   from "../ai/SpeechToText";
-import { TTSRequest, VoiceType } from "../ai/TextToSpeech";
-import { sep }                   from 'path';
-import { ConversationTopic }      from "../ai/ChatCompletion";
-import { CompletionRequest }      from "../ai/ChatCompletionDefinitions";
-import '../../renderer/src/util/Audio'
+import { contextBridge, ipcMain }               from 'electron'
+import { electronAPI }                          from '@electron-toolkit/preload'
+import { sep }                                  from 'path';
+import { CompletionRequest, ConversationTopic } from "llm";
+import { TTSRequest, VoiceType }                from "tts";
+import { SpeechToTextRequest }                  from "stt";
 
 
 // Expose the APIs to the renderer process

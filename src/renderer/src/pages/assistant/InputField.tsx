@@ -5,16 +5,17 @@
  */
 
 
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { ChatResponse, Message, StreamedChatResponse }          from "../../../../backend/ai/ChatCompletionDefinitions";
-import { SpeechToTextRequest }                                  from "../../../../backend/ai/SpeechToText";
-import { ConversationTopic }                                    from "../../../../backend/ai/ChatCompletion";
-import { ChatContext }                                          from "./Conversation";
-import { Icons, InteractiveIcon }                               from "../../components/Icons";
-import { audioDevice, playAudio }                               from "../../util/Audio";
+import { useCallback, useContext, useEffect, useRef, useState }           from "react";
+import { Icons, InteractiveIcon }                                         from "../../components/Icons";
+import { audioDevice, getActiveAudioElements, playAudio }                 from "../../util/Audio";
+import { ChatContext }                                                    from "../../contexts/ChatContext";
+import { ChatResponse, ConversationTopic, Message, StreamedChatResponse } from "llm";
+import { VoiceType }                                                      from "tts";
+import { SpeechToTextRequest }                                            from "stt";
+import { Settings }                                                       from "@renderer/util/Settings";
 
 import '../../styles/code-highlighting.css';
-import { Voices, VoiceType }                                    from "../../../../backend/ai/TextToSpeech";
+
 
 /**
  * The interactive field where the user can input text or voice.
@@ -41,6 +42,16 @@ export function ChatInputField() {
         });
     }, [ inputContentRef ]);
 
+    useEffect(() => {
+
+        if ( !ctx.spokenResponse ) {
+            getActiveAudioElements().forEach(audioElement => {
+                audioElement.muted = true;
+            });
+        }
+
+    }, [ ctx.spokenResponse ]);
+
     /**
      * Handles the sending of a request.
      * This function is called when the user sends a message,
@@ -59,7 +70,6 @@ export function ChatInputField() {
          */
         if ( ctx.messages.length === 0 ) {
 
-            console.log('Generating topic title for conversation...');
             const response = await window[ 'ai' ]
                 .completion(
                     {
@@ -104,8 +114,6 @@ export function ChatInputField() {
             window.electron.ipcRenderer.removeListener('ai:completion-chunk', chunk);
             ctx.setLiveChatActive(false);
 
-            console.log('final: ', tools.map(tool => tool.name + ": " + tool.value).join('\n'));
-
             // Update the conversation topic with the new message,
             // and save the conversation to the conversation history.
             ctx.setMessages(() => {
@@ -125,12 +133,14 @@ export function ChatInputField() {
                     {
                         input: response,
                         model: 'tts-1',
-                        voice: (Voices[ parseInt(window.localStorage.getItem('voiceIndex') ?? '0') ] ?? 'nova') as VoiceType
+                        voice: (Settings.TTS_VOICES[ parseInt(window.localStorage.getItem('voiceIndex') ?? '0') ] ?? 'nova') as VoiceType
                     });
 
                 const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0)).buffer;
                 const blob        = new Blob([ arrayBuffer ], { type: 'audio/mpeg' });
+                console.log('Playing audio');
                 playAudio(blob);
+
             }
         });
         await window[ 'ai' ].completion({ model: 'gpt-4o-mini', messages: newMessages, stream: true });

@@ -15,25 +15,33 @@ export function DropdownSelection(props: {
     const [ selectedIdx, setSelectedIdx ] = useState<number>(props.currentValue ?? 0);
     const [ expanded, setExpanded ]       = useState<boolean>(false);
 
+    const mainContainerRef = useRef<HTMLDivElement>(null);
     const valuesContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!valuesContainerRef.current) return;
+        if ( !valuesContainerRef.current || !mainContainerRef.current) return;
 
-        const dimensions = valuesContainerRef.current.getBoundingClientRect();
 
-        if (dimensions.bottom > window.innerHeight) {
-            valuesContainerRef.current.style.transform = `translateY(-${dimensions.height}px)`;
+
+        if ( expanded && valuesContainerRef.current!.style.transform === '' ) {
+            const dimensions               = valuesContainerRef.current.getBoundingClientRect();
+            let [ transformX, transformY ] = [ 0, 0 ];
+
+            if ( dimensions.bottom > window.innerHeight - 20 ) {
+                transformY = (window.innerHeight - dimensions.bottom) - 30;
+            }
+
+            if ( dimensions.right > window.innerWidth - 20 ) {
+                transformX = (window.innerWidth - dimensions.right) - 30;
+            }
+
+            valuesContainerRef.current.style.transform = `translate(${transformX}px, ${transformY}px)`;
         }
-
-        if (dimensions.right > window.innerWidth - 10) {
-            valuesContainerRef.current.style.transform = `translateX(-${dimensions.width}px)`;
-        }
-
         const handleClick = (e: MouseEvent) => {
-            if (!valuesContainerRef.current) return;
+            if ( !valuesContainerRef.current ) return;
 
-            if (!e.composedPath().includes(valuesContainerRef.current)) {
+            if ( !e.composedPath().includes(valuesContainerRef.current) &&
+                !e.composedPath().includes(valuesContainerRef.current.parentElement!) ) {
                 setExpanded(false);
             }
         }
@@ -44,12 +52,13 @@ export function DropdownSelection(props: {
             window.removeEventListener('click', handleClick);
         }
 
-    }, [ valuesContainerRef])
+    }, [ valuesContainerRef, expanded ])
 
     return (
-        <div className="relative" ref={valuesContainerRef}>
+        <div className="relative z-10" ref={mainContainerRef}>
             <div
-                className={`absolute rounded-lg top-0 left-0 transition-all duration-300 content-container p-1 flex flex-col justify-start items-stretch max-h-64 overflow-y-scroll ${!expanded ? 'hidden' : 'z-[120]'}`}>
+                className={`absolute overflow-visible rounded-lg top-0 left-0 transition-all duration-300 content-container p-1 flex flex-col justify-start items-stretch max-h-64 overflow-y-scroll z-[120] ${!expanded ? 'hidden' : ''}`}
+                ref={valuesContainerRef}>
                 {
                     props.options.map((option, i) => (
                         <div key={i}

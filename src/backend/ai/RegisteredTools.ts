@@ -3,7 +3,7 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 18 - 01:28
  */
-import { Tool } from "./ChatCompletionDefinitions";
+import { Tool } from "llm";
 
 export const RegisteredTools: Tool[] = [
     {

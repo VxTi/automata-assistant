@@ -3,27 +3,12 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 11 - 16:43
  */
-import { AIContext, AIModel } from "./AIContext";
-import { decodeBase64Blob }   from "../../shared/Encoding";
-
-type SpeechToTextModelType = 'whisper-1';
-
-/**
- * Configuration object for the speech to text model.
- */
-export interface SpeechToTextRequest {
-    model: SpeechToTextModelType;
-    language?: string;
-    temperature?: number;
-    file: Blob | string;
-    fileName: string;
-}
+import { AIContext, AIModel }                        from "./AIContext";
+import { SpeechToTextRequest, SpeechToTextResponse } from "stt";
 
 // Constants
 export const SpeechToTextFileLimit       = 25 * 1024 * 1024;
 export const AudioSegmentationIntervalMs = 500;
-
-type SpeechToTextResponse = string;
 
 /**
  * Speech to text model.
@@ -49,7 +34,7 @@ export class SpeechToText extends AIModel {
         if ( typeof config[ 'file' ] === 'string' ) {
 
             // Convert base64 string to blob
-            const arrayBuffer = Uint8Array.from(atob(config['file']), c => c.charCodeAt(0)).buffer;
+            const arrayBuffer = Uint8Array.from(atob(config[ 'file' ]), c => c.charCodeAt(0)).buffer;
             const blob        = new Blob([ arrayBuffer ], { type: 'audio/mpeg' });
             formData.append('file', blob, config[ 'fileName' ]);
         }

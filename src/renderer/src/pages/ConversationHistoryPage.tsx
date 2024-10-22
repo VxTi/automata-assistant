@@ -4,22 +4,19 @@
  * @date Created on Wednesday, October 16 - 12:08
  */
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { ChatContext }                                                   from "./assistant/Conversation";
 import { FadeIn, useAnimationSequence }                                  from "../util/AnimationSequence";
 import { AnnotatedIcon }                                                 from "../components/AnnotatedIcon";
-import { ConversationTopic }                                             from "../../../backend/ai/ChatCompletion";
-import {
-    Message
-}                                                                        from "../../../backend/ai/ChatCompletionDefinitions";
 import { AssistantPage }                                                 from "./assistant/AssistantPage";
 import { ApplicationContext }                                            from "../contexts/ApplicationContext";
-import { Icons }               from "../components/Icons";
+import { Icons }                                                         from "../components/Icons";
+import { ScrollableContainer }                                           from "../components/ScrollableContainer";
+import { debounce }                                                      from "../util/Debounce";
+import { SearchBar }                                                     from "../components/SearchBar";
+import { ChatContext }                                                   from "../contexts/ChatContext";
+import { ConversationTopic, Message }                                    from "llm";
 import {
     FilterSelection
-}                              from "../components/interactive/FilterSelection";
-import { ScrollableContainer } from "../components/ScrollableContainer";
-import { debounce }                                                      from "@renderer/util/Debounce";
-import { SearchBar }                                                     from "@renderer/components/SearchBar";
+}                                                                        from "../components/interactive/FilterSelection";
 
 export function ConversationHistoryPage() {
 

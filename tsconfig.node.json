@@ -3,7 +3,8 @@
     "include": [
         "electron.vite.config.*",
         "src/backend/**/*",
-        "src/shared/**/*"
+        "src/shared/**/*",
+        "declarations.d.ts"
     ],
     "compilerOptions": {
         "composite": true,
