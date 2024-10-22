@@ -3,7 +3,7 @@
  * @author Luca Warmenhoven
  * @date Created on Thursday, October 17 - 17:33
  */
-import { ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 
 interface BasicIconProps {
     className?: string,
@@ -27,10 +27,12 @@ const StrokePath = (props: { d: string }) => (
 export function InteractiveIcon(props: {
     icon: ReactNode,
     className?: string,
-    onClick?: () => void
+    onClick?: () => void,
+    style?: CSSProperties,
 }) {
     return (
         <div
+            style={props.style}
             className={`rounded-full w-8 h-8 p-1 cursor-pointer apply-stroke shrink-0 hover:bg-gray-200 dark:hover:bg-gray-800 duration-300 transition-colors ${props.className ?? ''}`}
             onClick={props.onClick}>
             {props.icon}

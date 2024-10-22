@@ -73,8 +73,8 @@ export class ChatCompletion extends AIModel {
             // Decode the value and append it to the content
             content += decoder.decode(value, { stream: true });
 
-            while ( (idxOfNewline = content.indexOf('\n')) > -1 && content.length > 1 ) {
-                // Start from after 'data: '
+            while ( (idxOfNewline = content.indexOf('\n')) > -1 && content.length > 6 ) {
+                // Start from after 'data: ' (6 characters)
                 const line = content.slice(6, idxOfNewline).trim();
 
                 if ( line.length === 0 ) {

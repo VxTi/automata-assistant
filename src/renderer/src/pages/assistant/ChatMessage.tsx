@@ -55,17 +55,20 @@ export function ChatMessage(props: { entry: Message }) {
 
     return (
         <div
-            className="group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 mx-2"
+            className="relative group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 mx-2"
             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start text-wrap overflow-hidden">
-                <span className="font-bold font-sans text-md">{props.entry.role === 'user' ? 'You' : 'Assistant'}</span>
+                <div className="flex flex-row justify-between items-center w-full">
+                    <span
+                        className="font-bold font-sans text-md">{props.entry.role === 'user' ? 'You' : 'Assistant'}</span>
+                    <InteractiveIcon icon={copiedToClipboard ? <Icons.Checkmark/> : <Icons.Clipboard/>}
+                                     onClick={saveToClipboardCb}
+                                     className='opacity-0 group-hover:opacity-100 transition-all'/>
+                </div>
                 <div className="not-prose text-sm mt-2 mb-1 w-full">
                     <span className="markdown" ref={contentRef}/>
                 </div>
             </div>
-            <InteractiveIcon icon={copiedToClipboard ? <Icons.Checkmark/> : <Icons.Clipboard/>}
-                             onClick={saveToClipboardCb}
-                             className='opacity-0 group-hover:opacity-100 transition-all'/>
         </div>
     )
 }

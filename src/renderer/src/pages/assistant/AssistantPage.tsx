@@ -75,18 +75,12 @@ export function AssistantPage(props: {
             spokenResponse, setSpokenResponse,
             topicUUID, setTopicUUID, lastMessageRef, setLiveChatActive
         }}>
-            <div className="flex flex-col relative justify-start items-center h-full">
+            <div className="flex flex-col relative justify-start items-center h-full w-full max-w-screen-md">
                 {messages.length === 0 && !liveChatActive ?
                  <div className="flex flex-row justify-center content-end gap-2 my-auto grow flex-wrap">
-                     <ExampleCard>
-                         <span>Write me a poem</span>
-                     </ExampleCard>
-                     <ExampleCard>
-                         <span>What's the weather?</span>
-                     </ExampleCard>
-                     <ExampleCard>
-                         <span>Send an email...</span>
-                     </ExampleCard>
+                     <ExampleCard>Write me a poem</ExampleCard>
+                     <ExampleCard>What's the weather?</ExampleCard>
+                     <ExampleCard>Send an email...</ExampleCard>
                  </div> :
                  <ScrollableContainer elementRef={chatContainerRef} size='lg'>
                      {messages.map((entry, index) =>
@@ -102,7 +96,7 @@ export function AssistantPage(props: {
 function ExampleCard(props: { children: ReactNode }) {
     return (
         <div
-            className={`content-container hoverable flex-col border-solid border-[1px] basis-48 transition-colors duration-300 justify-start items-center gap-4 px-4 py-2 bg rounded-2xl`}>
+            className={`content-container hoverable flex-col border-solid border-[1px] basis-48 transition-colors duration-300 justify-start items-center gap-4 px-2 text-sm py-1 bg rounded-3xl`}>
             {props.children}
         </div>
     )

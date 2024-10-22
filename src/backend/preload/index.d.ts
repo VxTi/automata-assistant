@@ -1,11 +1,8 @@
-import { ElectronAPI }                                               from '@electron-toolkit/preload'
-import { ChatCompletion, ChatCompletionResponse, ConversationTopic } from "../ai/ChatCompletion";
-import { SpeechToText, SpeechToTextRequest }   from "../ai/SpeechToText";
-import { TextToSpeech, TTSRequest, VoiceType } from "../ai/TextToSpeech";
-import {
-    ChatResponse,
-    CompletionRequest
-}                                              from "../ai/ChatCompletionDefinitions";
+import { ElectronAPI }                                        from '@electron-toolkit/preload'
+import { ChatResponse, CompletionRequest, ConversationTopic } from "llm";
+import { TTSRequest, VoiceType }                              from "tts";
+import { SpeechToTextRequest }                                from "stt";
+
 
 declare global {
     interface Window {
