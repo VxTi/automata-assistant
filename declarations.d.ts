@@ -74,7 +74,7 @@ declare module 'llm' {
         type: ToolType;
 
         function: {
-            name: string;
+            name?: string;
             arguments: string;
         }
     }

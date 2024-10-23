@@ -12,7 +12,7 @@ import { Sidebar }            from "./Sidebar";
  * Draggable area for the window.
  */
 const WindowDraggableArea = () => (
-    <div className="absolute left-0 top-0 flex w-full min-h-7 shrink-0 justify-center items-center" style={{
+    <div className="flex w-full min-h-7 shrink-0 justify-center items-center" style={{
         WebkitUserSelect: 'none',
         /** @ts-ignore */
         WebkitAppRegion: 'drag',

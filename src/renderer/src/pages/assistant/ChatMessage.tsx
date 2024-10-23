@@ -3,12 +3,12 @@
  * @author Luca Warmenhoven
  * @date Created on Saturday, October 05 - 01:45
  */
-import { RefObject, useCallback, useEffect, useRef, useState } from "react";
-import { CreateSequence }                                      from "../../util/AnimationSequence";
+import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { CreateSequence }                                                  from "../../util/AnimationSequence";
 import { Icons, InteractiveIcon }                              from "../../components/Icons";
-import renderMathInElement                                     from "katex/contrib/auto-render";
-import { mdParser }                                            from "../../contexts/ChatContext";
-import { Message }                                             from "llm";
+import renderMathInElement              from "katex/contrib/auto-render";
+import { ChatSessionContext, mdParser } from "../../contexts/ChatContext";
+import { Message }                      from "llm";
 import '../../styles/markdown.css'
 import 'katex/dist/katex.min.css'
 
@@ -50,14 +50,13 @@ export function ChatMessage(props: { entry: Message }) {
         if ( !(typeof props.entry.content === 'object' && !Array.isArray(props.entry.content)) )
             contentRef.current.innerHTML = mdParser.parse(Array.isArray(props.entry.content) ? props.entry.content.join("\n") : props.entry.content) as string
 
-
     }, [ contentRef ]);
 
     return (
         <div
             className="relative group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 mx-2"
             {...CreateSequence('fadeIn', 300, 10)}>
-            <div className="flex flex-col justify-center items-start text-wrap overflow-hidden">
+            <div className="flex flex-col justify-center items-start text-wrap overflow-hidden w-full">
                 <div className="flex flex-row justify-between items-center w-full">
                     <span
                         className="font-bold font-sans text-md">{props.entry.role === 'user' ? 'You' : 'Assistant'}</span>
@@ -79,8 +78,12 @@ export function ChatMessage(props: { entry: Message }) {
  * @param props the properties of the component.
  * @constructor
  */
-export function LiveChatMessage(props: { contentRef: RefObject<HTMLDivElement>, active: boolean }) {
-    if ( !props.active ) return null;
+export function LiveChatMessage(props: { contentRef: RefObject<HTMLDivElement> }) {
+
+    const { session } = useContext(ChatSessionContext);
+
+    if (!session.streamedResponseBuffer)
+        return null;
 
     return (
         <div

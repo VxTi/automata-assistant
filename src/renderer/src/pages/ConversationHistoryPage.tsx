@@ -12,11 +12,11 @@ import { Icons }                                                         from ".
 import { ScrollableContainer }                                           from "../components/ScrollableContainer";
 import { debounce }                                                      from "../util/Debounce";
 import { SearchBar }                                                     from "../components/SearchBar";
-import { ChatContext }                                                   from "../contexts/ChatContext";
 import { ConversationTopic, Message }                                    from "llm";
 import {
     FilterSelection
 }                                                                        from "../components/interactive/FilterSelection";
+import { ChatSessionContext }                                            from "@renderer/contexts/ChatContext";
 
 export function ConversationHistoryPage() {
 
@@ -146,10 +146,10 @@ export function ConversationHistoryPage() {
  * @param props the properties of the component.
  */
 function Topic(props: { topic: ConversationTopic, index: number }) {
-    const { topicUUID }           = useContext(ChatContext);
     const { setContent }          = useContext(ApplicationContext);
     const { topic: entry }        = props;
     const [ deleted, setDeleted ] = useState(false);
+    const { session } = useContext(ChatSessionContext);
 
     // Removes a conversation topic from the conversation directory,
     // and forces an update to refresh the conversation history.
@@ -167,13 +167,11 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
     return (
         <div
             tabIndex={props.index + 1}
-            className={`conversation-topic flex content-container hoverable transition-all duration-200 hover:cursor-pointer hover:border-blue-500 focus:border-blue-500 outline-none text-sm flex-row rounded mx-auto w-[80%] overflow-hidden justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-1 p-2 border-[1px]'}`}
+            className={`conversation-topic flex content-container hoverable transition-all duration-200 focus:border-blue-500 outline-none text-sm flex-row rounded mx-auto w-[80%] overflow-hidden justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-0.5 p-2 border-[1px]'}`}
             onClick={() => {
-                if ( topicUUID === entry.uuid )
-                    return;
-
-                setContent(<AssistantPage conversationTopic={entry.topic} topicUUID={entry.uuid}
-                                          messages={entry.messages}/>);
+                // TODO: Remake with new implementation
+                session.update(entry);
+                setContent(<AssistantPage />);
             }}
             {...FadeIn(1000, 20)}>
             <span className="font-sans">{entry.topic}</span>

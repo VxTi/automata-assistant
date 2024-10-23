@@ -133,7 +133,7 @@ export function LiveAssistantPage() {
     return (
         <div className="mx-auto max-w-screen-md w-full flex flex-col grow justify-start">
             <div className="flex flex-col grow justify-center items-center relative mx-2">
-                <canvas className="absolute w-full aspect-video content-container p-3 rounded-lg" ref={canvasRef}/>
+                <canvas className="absolute w-full aspect-video content-container p-3 rounded-2xl" ref={canvasRef}/>
             </div>
         </div>
     )

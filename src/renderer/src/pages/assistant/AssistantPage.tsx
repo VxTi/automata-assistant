@@ -3,101 +3,133 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 12:11
  */
-import { ReactNode, useContext, useEffect, useRef, useState } from "react";
-import { useAnimationSequence }                               from "../../util/AnimationSequence";
-import { AnnotatedIcon }                                      from "../../components/AnnotatedIcon";
-import { ApplicationContext }                                 from "../../contexts/ApplicationContext";
-import { Icons }                                              from "../../components/Icons";
-import { ScrollableContainer }                                from "../../components/ScrollableContainer";
-import { ChatMessage, LiveChatMessage }                       from "../../pages/assistant/ChatMessage";
-import { ChatInputField }                                     from "../../pages/assistant/InputField";
-import { ChatContext }                                        from "../../contexts/ChatContext";
-import { Message }                                            from "llm";
-import '../../styles/utilities.css'
+import { useContext, useEffect, useRef, useState } from "react";
+import { useAnimationSequence }                    from "../../util/AnimationSequence";
+import { AnnotatedIcon }                           from "../../components/AnnotatedIcon";
+import { ApplicationContext }                      from "../../contexts/ApplicationContext";
+import { Icons }                                   from "../../components/Icons";
+import { ScrollableContainer }                     from "../../components/ScrollableContainer";
+import { ChatMessage, LiveChatMessage } from "../../pages/assistant/ChatMessage";
+import { ChatInputField }               from "./ChatInputField";
+import { ChatSessionContext }           from "../../contexts/ChatContext";
+import { Message, StreamedChatResponse }           from "llm";
+import '../../styles/utilities.css';
+import { Settings }                                from "@renderer/util/Settings";
+import { VoiceType }                               from "tts";
+import { playAudio }                               from "@renderer/util/Audio";
 
 /**
  * The assistant page.
  * This page is used to interact with the assistant.
  * Here, the user can input text, voice, or files to interact with the assistant.
  */
-export function AssistantPage(props: {
-    messages?: Message[],
-    conversationTopic?: string,
-    topicUUID?: string
-}) {
+export function AssistantPage() {
 
-    const [ messages, setMessages ]                   = useState<Message[]>(props.messages ?? []);
-    const [ conversationTopic, setConversationTopic ] = useState<string>(props.conversationTopic ?? 'New conversation');
-    const [ spokenResponse, setSpokenResponse ]       = useState(false);
-    const [ topicUUID, setTopicUUID ]                 = useState<string | undefined>(props.topicUUID);
-    const chatContainerRef                            = useRef<HTMLDivElement>(null);
-    const lastMessageRef                              = useRef<HTMLDivElement>(null);
-    const [ liveChatActive, setLiveChatActive ]       = useState(false);
-    const { setHeaderConfig }                         = useContext(ApplicationContext);
+    const { session, verbose, setVerbose }            = useContext(ChatSessionContext);
+
+    const chatContainerRef    = useRef<HTMLDivElement>(null);
+    const lastMessageRef      = useRef<HTMLDivElement>(null);
+    const { setHeaderConfig } = useContext(ApplicationContext);
+
+    const [ requiredUpdate, forceUpdate ] = useState<number>(0);
+
 
     // Scroll down to the bottom of the chat
     // when the chat messages change.
     useEffect(() => {
-        if ( !chatContainerRef.current ) return;
 
-        chatContainerRef.current!.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
-    }, [ messages, chatContainerRef ]);
+        session
+            .onChunk((_: StreamedChatResponse) => {
+                if ( !lastMessageRef.current ) {
+                    forceUpdate((prev) => prev + 1);
+                    return;
+                }
 
-    useAnimationSequence({ containerRef: chatContainerRef }, [ messages ]);
+                lastMessageRef.current.innerHTML = session.streamedResponseBuffer;
+                lastMessageRef.current.scrollIntoView({ behavior: 'smooth' });
+            })
+            .onChunkEnd(async () => {
+
+                forceUpdate((prev) => prev + 1);
+
+                if ( !verbose )
+                    return;
+
+                const { data } = await window[ 'ai' ].audio.textToSpeech(
+                    {
+                        input: session.streamedResponseBuffer,
+                        model: 'tts-1',
+                        voice: (Settings.TTS_VOICES[ parseInt(window.localStorage.getItem('voiceIndex') ?? '0') ] ?? 'nova') as VoiceType
+                    });
+
+                const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0)).buffer;
+                const blob        = new Blob([ arrayBuffer ], { type: 'audio/mpeg' });
+                playAudio(blob);
+            })
+            .onMessage((_: Message) => {
+                forceUpdate((prev) => prev + 1);
+            })
+            .onToolCall(tool => {
+                console.log('Tool call:', tool);
+            })
+
+        chatContainerRef.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
+    }, [ chatContainerRef, lastMessageRef, requiredUpdate, session ]);
+
+    useAnimationSequence({ containerRef: chatContainerRef }, [ requiredUpdate ]);
 
     useEffect(() => {
         setHeaderConfig(() => {
             return {
-                leftHeaderContent: messages.length > 0 ? (
+                leftHeaderContent: session.messages.length > 0 ? (
                     <AnnotatedIcon
                         icon={<Icons.PencilSquare/>}
                         annotation="New topic" side='right' onClick={() => {
-                        setConversationTopic('New conversation');
-                        setMessages(() => []);
+                        session.reset();
+                        forceUpdate((prev) => prev + 1);
+
                     }}/>) : undefined,
-                pageTitle:
-                conversationTopic,
+                pageTitle: session.topic,
                 rightHeaderContent:
                     <AnnotatedIcon
-                        icon={!spokenResponse ? <Icons.SpeakerCross/> : <Icons.Speaker/>}
-                        annotation={(spokenResponse ? 'Disable' : 'Enable') + " sound"}
+                        icon={!verbose ? <Icons.SpeakerCross/> : <Icons.Speaker/>}
+                        annotation={(verbose ? 'Disable' : 'Enable') + " sound"}
                         side='left'
-                        onClick={() => {
-                            setSpokenResponse( !spokenResponse);
-                        }}/>
+                        onClick={() => setVerbose( !verbose)}/>
             }
         });
-    }, [ messages, spokenResponse, conversationTopic ]);
+    }, [ requiredUpdate, verbose, session ]);
 
     return (
-        <ChatContext.Provider value={{
-            messages, setMessages, conversationTopic, setConversationTopic,
-            spokenResponse, setSpokenResponse,
-            topicUUID, setTopicUUID, lastMessageRef, setLiveChatActive
-        }}>
-            <div className="flex flex-col relative justify-start items-center h-full w-full max-w-screen-md">
-                {messages.length === 0 && !liveChatActive ?
+        <div className="flex flex-col relative justify-start items-center h-full w-full max-w-screen-md">
+            {session.messages.length === 0 && !session.streaming ?
+             (
                  <div className="flex flex-row justify-center content-end gap-2 my-auto grow flex-wrap">
-                     <ExampleCard>Write me a poem</ExampleCard>
-                     <ExampleCard>What's the weather?</ExampleCard>
-                     <ExampleCard>Send an email...</ExampleCard>
-                 </div> :
+                     <ExampleQuestion q="Write me a poem"/>
+                     <ExampleQuestion q="Send a message..."/>
+                     <ExampleQuestion q="Send an email..."/>
+                     <ExampleQuestion q="Latest news" />
+                 </div>
+             ) :
+             (
                  <ScrollableContainer elementRef={chatContainerRef} size='lg'>
-                     {messages.map((entry, index) =>
-                                       <ChatMessage key={index} entry={entry}/>)}
-                     <LiveChatMessage contentRef={lastMessageRef} active={liveChatActive}/>
-                 </ScrollableContainer>}
-                <ChatInputField/>
-            </div>
-        </ChatContext.Provider>
+                     {session.messages.map((entry, index) =>
+                                               <ChatMessage key={index} entry={entry}/>)}
+                     <LiveChatMessage contentRef={lastMessageRef}/>
+                 </ScrollableContainer>
+             )}
+            <ChatInputField/>
+        </div>
     )
 }
 
-function ExampleCard(props: { children: ReactNode }) {
+function ExampleQuestion(props: { q: string }) {
+    const { session } = useContext(ChatSessionContext);
     return (
         <div
+            onClick={() => session.complete({ content: props.q, role: 'user' })}
             className={`content-container hoverable flex-col border-solid border-[1px] basis-48 transition-colors duration-300 justify-start items-center gap-4 px-2 text-sm py-1 bg rounded-3xl`}>
-            {props.children}
+            {props.q}
         </div>
     )
 }

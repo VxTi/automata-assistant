@@ -1,18 +1,15 @@
 /**
- * @fileoverview InputField.tsx
+ * @fileoverview ChatInputField.tsx
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 18:32
  */
 
 
-import { useCallback, useContext, useEffect, useRef, useState }           from "react";
-import { Icons, InteractiveIcon }                                         from "../../components/Icons";
-import { audioDevice, getActiveAudioElements, playAudio }                 from "../../util/Audio";
-import { ChatContext }                                                    from "../../contexts/ChatContext";
-import { ChatResponse, ConversationTopic, Message, StreamedChatResponse } from "llm";
-import { VoiceType }                                                      from "tts";
-import { SpeechToTextRequest }                                            from "stt";
-import { Settings }                                                       from "@renderer/util/Settings";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Icons, InteractiveIcon }                               from "../../components/Icons";
+import { audioDevice, getActiveAudioElements }                  from "../../util/Audio";
+import { ChatSessionContext }                                   from "../../contexts/ChatContext";
+import { SpeechToTextRequest }                                  from "stt";
 
 import '../../styles/code-highlighting.css';
 
@@ -23,12 +20,14 @@ import '../../styles/code-highlighting.css';
  */
 export function ChatInputField() {
 
-    const ctx                                         = useContext(ChatContext);
     const [ selectedDirectory, setSelectedDirectory ] = useState<string | null>(null);
     const [ optionsShown, setOptionsShown ]           = useState(false);
     const [ selectedFiles, setSelectedFiles ]         = useState<string[]>([]);
     const [ recording, setRecording ]                 = useState(false);
-    const inputContentRef                             = useRef<HTMLTextAreaElement>(null);
+
+    const inputContentRef = useRef<HTMLTextAreaElement>(null);
+
+    const { session, verbose } = useContext(ChatSessionContext);
 
     useEffect(() => {
         if ( !inputContentRef.current ) return;
@@ -44,108 +43,22 @@ export function ChatInputField() {
 
     useEffect(() => {
 
-        if ( !ctx.spokenResponse ) {
+        if ( !verbose ) {
             getActiveAudioElements().forEach(audioElement => {
                 audioElement.muted = true;
             });
         }
 
-    }, [ ctx.spokenResponse ]);
+    }, [ verbose ]);
 
     /**
      * Handles the sending of a request.
      * This function is called when the user sends a message,
      * which happens both after recording and after typing.
      */
-    const handleSendRequest = useCallback(async (prompt: string) => {
-
-        let topicTitle = ctx.conversationTopic;
-        let uuid       = ctx.topicUUID;
-
-        const newMessages = [ ...ctx.messages, { role: 'user', content: prompt } as Message ];
-        ctx.setMessages(() => newMessages);
-
-        /**
-         * Generate a summary of the prompt if no messages are present.
-         */
-        if ( ctx.messages.length === 0 ) {
-
-            const response = await window[ 'ai' ]
-                .completion(
-                    {
-                        model: 'gpt-4o-mini', messages: [ {
-                            role: 'user',
-                            content: 'Summarize the following question in as little words as possible, at most 5 words: ' + prompt
-                        } ]
-                    }) as ChatResponse;
-            topicTitle     = response.choices[ 0 ].message.content as string;
-            ctx.setConversationTopic(topicTitle);
-
-            uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            ctx.setTopicUUID(uuid);
-        }
-
-        ctx.setLiveChatActive(true);
-
-
-        /**
-         * Stream the messages to the AI model.
-         */
-
-        let tools: { name: string, value: string }[] = [];
-        let response                                 = '';
-        const chunk                                  = async (_: any, message: StreamedChatResponse) => {
-            const delta = message.choices[ 0 ].delta;
-
-            if ( delta.tool_calls && delta.tool_calls.length > 0 ) {
-                console.log('Tool calls:', JSON.stringify(delta));
-                if ( delta.tool_calls[ 0 ].index < tools.length && delta.tool_calls[ 0 ].function.name )
-                    tools.push({ name: delta.tool_calls[ 0 ].function.name, value: '' });
-                else if ( delta.tool_calls[ 0 ].index < tools.length )
-                    tools[ delta.tool_calls[ 0 ].index ].value += delta.tool_calls[ 0 ].function.name;
-
-            }
-
-            if ( delta.content && ctx.lastMessageRef.current )
-                ctx.lastMessageRef.current!.innerHTML = (response += delta.content ?? '');
-        };
-        window.electron.ipcRenderer.on('ai:completion-chunk', chunk);
-        window.electron.ipcRenderer.once('ai:completion-chunk-end', async () => {
-            window.electron.ipcRenderer.removeListener('ai:completion-chunk', chunk);
-            ctx.setLiveChatActive(false);
-
-            // Update the conversation topic with the new message,
-            // and save the conversation to the conversation history.
-            ctx.setMessages(() => {
-                const updatedMessages = [ ...newMessages, { role: 'assistant', content: response } as Message ];
-                window[ 'conversations' ].save(
-                    {
-                        topic: topicTitle,
-                        date: Date.now(),
-                        uuid: uuid,
-                        messages: updatedMessages
-                    } as ConversationTopic);
-
-                return updatedMessages;
-            });
-            if ( ctx.spokenResponse ) {
-                const { data } = await window[ 'ai' ].audio.textToSpeech(
-                    {
-                        input: response,
-                        model: 'tts-1',
-                        voice: (Settings.TTS_VOICES[ parseInt(window.localStorage.getItem('voiceIndex') ?? '0') ] ?? 'nova') as VoiceType
-                    });
-
-                const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0)).buffer;
-                const blob        = new Blob([ arrayBuffer ], { type: 'audio/mpeg' });
-                console.log('Playing audio');
-                playAudio(blob);
-
-            }
-        });
-        await window[ 'ai' ].completion({ model: 'gpt-4o-mini', messages: newMessages, stream: true });
-
-    }, [ ctx.spokenResponse, ctx.messages, ctx.conversationTopic ]);
+    const handleSendRequest = useCallback((prompt: string) => {
+        session.complete({ role: 'user', content: prompt });
+    }, []);
 
     /**
      * Handles the sending of a message.
@@ -160,8 +73,9 @@ export function ChatInputField() {
 
         inputContentRef.current!.value        = '';
         inputContentRef.current!.style.height = 'auto';
-        await handleSendRequest(elementValue);
-    }, [ ctx.spokenResponse, ctx.messages ]);
+        handleSendRequest(elementValue);
+
+    }, [ inputContentRef ]);
 
     /**
      * Handles the microphone access.
@@ -204,16 +118,16 @@ export function ChatInputField() {
             const transcription = await window[ 'ai' ][ 'audio' ]
                 .speechToText({ file: base64, fileName: 'audio.wav' } as SpeechToTextRequest);
 
-            await handleSendRequest(transcription);
+            handleSendRequest(transcription);
         }
 
         device[ recording ? 'stop' : 'start' ].call(device, window[ 'ai' ][ 'audio' ].audioSegmentationIntervalMs);
         setRecording( !recording);
 
-    }, [ ctx.spokenResponse, ctx.messages, recording ]);
+    }, [ verbose, recording ]);
 
     return (
-        <div className="flex flex-col justify-center items-center mb-3 mt-1 max-w-screen-md w-full">
+        <div className="flex flex-col justify-center items-center mb-4 sm:mb-6 mt-1 max-w-screen-md w-full">
             <div className="flex justify-start self-stretch items-center flex-wrap max-w-screen-sm my-1 mx-4">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
@@ -226,7 +140,7 @@ export function ChatInputField() {
             </div>
 
             <div
-                className="flex flex-col justify-end items-center rounded-3xl max-w-screen-md mx-4 overflow-hidden border-solid border-[1px] border-blue-500 dark:bg-[#161b22]">
+                className="flex flex-col justify-end items-center rounded-3xl max-w-screen-md mx-4 overflow-hidden border-solid border-[1px] special-border dark:bg-[#161b22]">
                 <div
                     className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <ChatAlternativeOption

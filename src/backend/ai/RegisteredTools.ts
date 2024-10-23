@@ -26,9 +26,6 @@ export const RegisteredTools: Tool[] = [
         }
     },
     {
-        type: 'function', function: { name: 'geolocation_query', description: 'Request the geolocation of the user' }
-    },
-    {
         type: 'function',
         function: {
             name: 'weather_query',
@@ -72,6 +69,38 @@ export const RegisteredTools: Tool[] = [
                     }
                 },
                 required: [ 'question' ]
+            }
+        }
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'send_email',
+            description: 'Send an email to a specific email address with either the previously given content, or ask for the content to send.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    recipient: {
+                        type: 'string',
+                        description: 'The email address to send the email to.'
+                    },
+                    topic: {
+                        type: 'string',
+                        description: 'The topic of the email.'
+                    },
+                    body: {
+                        type: 'string',
+                        description: 'The body of the email.'
+                    },
+                    attachments: {
+                        type: 'array',
+                        items: {
+                            type: 'string',
+                            description: 'The attachment to add to the email.'
+                        }
+                    }
+                },
+                required: [ 'recipient', 'topic', 'body' ]
             }
         }
     }

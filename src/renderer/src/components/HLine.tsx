@@ -9,5 +9,5 @@
  * This component is used to display a horizontal line.
  */
 export function HLine(props: { props?: any }) {
-    return <hr className="border-gray-300 dark:border-gray-600 my-1.5" {...props.props} />
+    return <hr className="border-gray-300 dark:border-gray-800 my-1.5" {...props.props} />
 }

@@ -4,9 +4,9 @@
  * @date Created on Thursday, October 17 - 20:09
  */
 import { useContext }         from "react";
-import { ApplicationContext }     from "../contexts/ApplicationContext";
-import { Icons, InteractiveIcon } from "./Icons";
-import { PagesConfig }            from "../util/PagesConfig";
+import { ApplicationContext } from "../contexts/ApplicationContext";
+import { Icons }              from "./Icons";
+import { PagesConfig }        from "../util/PagesConfig";
 import { SidebarMenuItem }    from "./SidebarMenuItem";
 import { AnnotatedIcon }      from "./AnnotatedIcon";
 import { SettingsPage }       from "../pages/SettingsPage";
@@ -21,9 +21,9 @@ export function Sidebar() {
     return (
         <div
             className={
-                `flex flex-col rounded-tl-lg rounded-bl-lg h-full shrink-0 bg-[#fafbfd] dark:bg-[#1b1b1f] border-r-solid border-r-[#3c3f44] w-96 transition-all duration-500 justify-start items-stretch grow z-50 overflow-hidden md:bg-opacity-100 border-r-solid border-r-[1px] absolute sm:relative ${!sidebarExpanded ? 'max-w-0' : 'max-w-[300px]'} md:max-w-[300px]`}>
+                `flex flex-col shrink-0 sm:m-4 sm:rounded-2xl content-container w-96 transition-all duration-500 justify-start items-stretch grow z-50 overflow-hidden md:bg-opacity-100 border-r-solid border-r-[1px] absolute sm:relative left-0 top-0 h-full sm:h-auto ${!sidebarExpanded ? 'max-w-0' : 'max-w-[300px]'} md:max-w-[300px]`}>
 
-            <AnnotatedIcon icon={<Icons.Cross />}
+            <AnnotatedIcon icon={<Icons.Cross/>}
                            annotation='Close menu'
                            side='left'
                            onClick={() => setSidebarExpanded(false)}

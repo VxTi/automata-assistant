@@ -17,7 +17,7 @@
 }
 
 .font-grotesk-neue {
-    font-family: /*'SK Modernist', */'Grotesk Neue', Helvetica Neue, Helvetica, sans-serif;
+    font-family: /*'SK Modernist', */ 'Grotesk Neue', Helvetica Neue, Helvetica, sans-serif;
 }
 
 @keyframes fadeIn {
@@ -82,25 +82,34 @@ body {
 .content-container.hoverable:focus {
     cursor: pointer;
     background-color: rgb(229 231 235);
-    border-color:  rgb(59 130 246);
 }
 
+.special-border,
+.hover-special-border:hover,
+.content-container.hoverable:hover,
+.content-container.hoverable:focus,
 .content-container.selectable:has(:focus) {
-    border-color:  rgb(59 130 246);
+    border-color: rgb(61, 94, 152);
 }
 
 .apply-stroke {
     stroke: #000;
 }
+.bg-secondary {
+    background-color: #fafbfd;
+}
+body[data-theme="dark"] .bg-secondary {
+    background-color: rgb(18 18 22)
+}
 
 body[data-theme="dark"] {
-    background-color: #141417;
+    background-color: #0d0d11;
     color: #dad7d7;
 }
 
 body[data-theme="dark"] .content-container {
-    border-color: #3c3f44;
-    background-color: #1b1b1f;
+    border-color: transparent; /*#282a2d;*/
+    background-color: #131316;
 }
 
 body[data-theme="dark"] .content-container.hoverable:hover,
