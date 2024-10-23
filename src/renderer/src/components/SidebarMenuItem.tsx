@@ -15,7 +15,7 @@ export function SidebarMenuItem(props: { page: Page }) {
 
     return (
         <div
-            className="py-1 px-6 rounded-md mx-1 my-0.5 content-container hoverable transition-colors duration-200 flex text-nowrap justify-start select-none items-center"
+            className="py-1 px-6 rounded-lg mx-1.5 my-0.5 content-container hoverable transition-colors duration-200 flex text-nowrap justify-start select-none items-center"
             onClick={() => {
                 setContent(props.page.pageComponent);
                 setSidebarExpanded(false);

@@ -7,17 +7,7 @@ import { useContext }         from "react";
 import { ApplicationContext } from "../contexts/ApplicationContext";
 import { PageHeader }         from "./PageHeader";
 import { Sidebar }            from "./Sidebar";
-
-/**
- * Draggable area for the window.
- */
-const WindowDraggableArea = () => (
-    <div className="flex w-full min-h-7 shrink-0 justify-center items-center" style={{
-        WebkitUserSelect: 'none',
-        /** @ts-ignore */
-        WebkitAppRegion: 'drag',
-    }}/>
-);
+import { WindowDraggableArea } from "@renderer/components/DraggableWindowArea";
 
 /**
  * Wrapper for the page.

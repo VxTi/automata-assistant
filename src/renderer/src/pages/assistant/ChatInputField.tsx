@@ -127,8 +127,8 @@ export function ChatInputField() {
     }, [ verbose, recording ]);
 
     return (
-        <div className="flex flex-col justify-center items-center mb-4 sm:mb-6 mt-1 max-w-screen-md w-full">
-            <div className="flex justify-start self-stretch items-center flex-wrap max-w-screen-sm my-1 mx-4">
+        <div className="flex flex-col justify-center items-center mb-4 mt-1 max-w-screen-md w-full">
+            <div className="flex justify-start self-stretch items-center flex-wrap max-w-screen-sm my-1 mx-4 sm:mr-4">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
                                   directory/>
@@ -140,7 +140,7 @@ export function ChatInputField() {
             </div>
 
             <div
-                className="flex flex-col justify-end items-center rounded-3xl max-w-screen-md mx-4 overflow-hidden border-solid border-[1px] special-border dark:bg-[#161b22]">
+                className="flex flex-col justify-end items-center rounded-3xl max-w-screen-md mx-4 sm:mr-4 sm:ml-0 overflow-hidden border-solid border-[1px] content-container selectable transition-colors duration-200">
                 <div
                     className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <ChatAlternativeOption

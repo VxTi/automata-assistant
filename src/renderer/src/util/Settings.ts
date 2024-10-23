@@ -68,6 +68,16 @@ export const Settings = {
         defaultValue: 0
     } as Setting<number>,
 
+    LAST_SESSION: {
+        key: 'application.last_session',
+        defaultValue: Date.now(),
+    } as Setting<number>,
+
+    AGREED_TO_EULA: {
+        key: 'application.eula_accepted',
+        defaultValue: false
+    } as Setting<boolean>,
+
     /**
      * Returns the value of a setting from local storage,
      * or the default value if the setting hasn't been updated yet.
@@ -86,5 +96,15 @@ export const Settings = {
      */
     set: function <T>(setting: Setting<T>, value: T): void {
         window.localStorage.setItem(setting.key, String(value));
+    },
+
+    /**
+     * Returns the last time the user logged into the application,
+     * or null if there was no previous login.
+     */
+    lastSession: function(): Date | null {
+        const lastSession = window.localStorage.getItem(Settings.LAST_SESSION.key);
+        Settings.set(Settings.LAST_SESSION, Date.now());
+        return lastSession ? new Date(parseInt(lastSession)) : null;
     }
 }

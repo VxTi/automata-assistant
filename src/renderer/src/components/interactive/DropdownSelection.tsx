@@ -53,34 +53,32 @@ export function DropdownSelection(props: {
     }, [ valuesContainerRef, expanded ])
 
     return (
-        <>
+        <div
+            ref={mainContainerRef}
+            onClick={() => setExpanded( !expanded)}
+            className="relative mx-1 cursor-pointer content-container hoverable transition-colors duration-300 rounded-lg h-full fill-none group flex flex-row items-center pr-2 w-fit">
+            <div className="w-8 h-8 p-1 mr-1">
+                <Icons.ChevronUpDown/>
+            </div>
+            <span className="select-none">{props.options[ selectedIdx ]}</span>
             <div
-                ref={mainContainerRef}
-                onClick={() => setExpanded( !expanded)}
-                className="relative mx-1 cursor-pointer content-container hoverable transition-colors duration-300 rounded-lg h-full stroke-black fill-none group flex flex-row items-center pr-2">
-                <div className="w-8 h-8 p-1 mr-1">
-                    <Icons.ChevronUpDown/>
-                </div>
-                <span className="select-none">{props.options[ selectedIdx ]}</span>
-                <div
-                    className={`fixed overflow-visible no-scrollbar z-20 rounded-lg top-0 left-0 transition-all duration-300 content-container p-1 flex flex-col justify-start items-stretch max-h-64 overflow-y-scroll ${!expanded ? 'hidden' : ''}`}
-                    ref={valuesContainerRef}>
-                    {
-                        props.options.map((option, i) => (
-                            <div key={i}
-                                 className={`flex flex-row text-nowrap hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-200 justify-start items-center rounded-md px-5 py-1 my-0.5 border-[1px] border-solid ${selectedIdx === i ? 'bg-gray-200 dark:bg-gray-800 border-blue-500' : 'border-transparent'}`}
-                                 onClick={() => {
-                                     props.onChange?.call(null, option, i);
-                                     setSelectedIdx(i);
-                                     setExpanded(false);
-                                 }}>
+                className={`absolute left-0 overflow-visible no-scrollbar z-20 rounded-lg top-0 transition-all duration-300 content-container p-1 flex flex-col justify-start items-stretch max-h-64 overflow-y-scroll ${!expanded ? 'hidden' : ''}`}
+                ref={valuesContainerRef}>
+                {
+                    props.options.map((option, i) => (
+                        <div key={i}
+                             className={`flex flex-row text-nowrap hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-200 justify-start items-center rounded-md px-5 py-1 my-0.5 border-[1px] border-solid ${selectedIdx === i ? 'bg-gray-200 dark:bg-gray-800 border-blue-500' : 'border-transparent'}`}
+                             onClick={() => {
+                                 props.onChange?.call(null, option, i);
+                                 setSelectedIdx(i);
+                                 setExpanded(false);
+                             }}>
                             <span
                                 className="select-none">{option}</span>
-                            </div>
-                        ))
-                    }
-                </div>
+                        </div>
+                    ))
+                }
             </div>
-        </>
+        </div>
     )
 }

@@ -6,17 +6,32 @@ import { Settings }                   from "@renderer/util/Settings";
 import { ChatContextProvider }        from "@renderer/contexts/ChatContext";
 import './styles/styles.css'
 import './util/Audio'
+import { IntroductionPage }           from "@renderer/pages/IntroductionPage";
+import { InternetQueryService }       from "@renderer/util/external_services/InternetQueryService";
+import { Service }                    from "@renderer/util/external_services/Services";
+import { EmailService }               from "@renderer/util/external_services/EmailService";
 
-createRoot(document.getElementById('root')!).render(
-    <ChatContextProvider>
-        <ApplicationContextProvider>
-            <AutomationsContextProvider>
-                <PageWrapper/>
-            </AutomationsContextProvider>
-        </ApplicationContextProvider>
-    </ChatContextProvider>
-);
+createRoot(document.getElementById('root')!).render(<ApplicationWrapper/>);
+
+function ApplicationWrapper() {
+
+    if ( !Settings.get(Settings.AGREED_TO_EULA) )
+        return <IntroductionPage/>
+
+    return (
+        <ChatContextProvider>
+            <ApplicationContextProvider>
+                <AutomationsContextProvider>
+                    <PageWrapper/>
+                </AutomationsContextProvider>
+            </ApplicationContextProvider>
+        </ChatContextProvider>
+    )
+}
 
 window.addEventListener('DOMContentLoaded', () => {
-    document.body.dataset.theme = Settings.get(Settings.THEME)
+    document.body.dataset.theme = Settings.get(Settings.THEME);
+
+    Service.register(new InternetQueryService());
+    Service.register(new EmailService());
 })

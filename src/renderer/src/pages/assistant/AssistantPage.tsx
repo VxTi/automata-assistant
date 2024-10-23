@@ -9,14 +9,15 @@ import { AnnotatedIcon }                           from "../../components/Annota
 import { ApplicationContext }                      from "../../contexts/ApplicationContext";
 import { Icons }                                   from "../../components/Icons";
 import { ScrollableContainer }                     from "../../components/ScrollableContainer";
-import { ChatMessage, LiveChatMessage } from "../../pages/assistant/ChatMessage";
-import { ChatInputField }               from "./ChatInputField";
-import { ChatSessionContext }           from "../../contexts/ChatContext";
+import { ChatMessage, LiveChatMessage }            from "../../pages/assistant/ChatMessage";
+import { ChatInputField }                          from "./ChatInputField";
+import { ChatSessionContext }                      from "../../contexts/ChatContext";
 import { Message, StreamedChatResponse }           from "llm";
 import '../../styles/utilities.css';
 import { Settings }                                from "@renderer/util/Settings";
 import { VoiceType }                               from "tts";
 import { playAudio }                               from "@renderer/util/Audio";
+import { Service }                                 from "@renderer/util/external_services/Services";
 
 /**
  * The assistant page.
@@ -25,7 +26,7 @@ import { playAudio }                               from "@renderer/util/Audio";
  */
 export function AssistantPage() {
 
-    const { session, verbose, setVerbose }            = useContext(ChatSessionContext);
+    const { session, verbose, setVerbose } = useContext(ChatSessionContext);
 
     const chatContainerRef    = useRef<HTMLDivElement>(null);
     const lastMessageRef      = useRef<HTMLDivElement>(null);
@@ -70,7 +71,7 @@ export function AssistantPage() {
                 forceUpdate((prev) => prev + 1);
             })
             .onToolCall(tool => {
-                console.log('Tool call:', tool);
+                Service.invoke(tool.name, { ...tool.arguments, session });
             })
 
         chatContainerRef.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
@@ -108,7 +109,7 @@ export function AssistantPage() {
                      <ExampleQuestion q="Write me a poem"/>
                      <ExampleQuestion q="Send a message..."/>
                      <ExampleQuestion q="Send an email..."/>
-                     <ExampleQuestion q="Latest news" />
+                     <ExampleQuestion q="Latest news"/>
                  </div>
              ) :
              (

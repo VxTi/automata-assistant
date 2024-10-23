@@ -75,6 +75,27 @@ export const RegisteredTools: Tool[] = [
     {
         type: 'function',
         function: {
+            name: 'send_whatsapp',
+            description: 'Send a message to a specific phone number using WhatsApp.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    recipient: {
+                        type: 'string',
+                        description: 'The phone number to send the message to.'
+                    },
+                    message: {
+                        type: 'string',
+                        description: 'The message to send to the recipient.'
+                    }
+                },
+                required: [ 'recipient', 'message' ]
+            }
+        }
+    },
+    {
+        type: 'function',
+        function: {
             name: 'send_email',
             description: 'Send an email to a specific email address with either the previously given content, or ask for the content to send.',
             parameters: {

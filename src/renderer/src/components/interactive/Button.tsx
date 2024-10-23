@@ -23,7 +23,7 @@ export function Button(props: ButtonProps) {
         <button
             ref={props.ref}
             onClick={props.onClick}
-            className={`rounded-lg px-3 py-1 my-2 mx-1 content-container justify-center hoverable transition-colors duration-200 cursor-pointer hover:border-blue-500 ${props.className ?? ''}`}>
+            className={`content-container justify-center hoverable transition-colors duration-200 cursor-pointer hover:border-blue-500 ${props.className ?? 'px-3 py-1 my-2 mx-1 rounded-lg'}`}>
             {props.children}
             {props.text}
         </button>
