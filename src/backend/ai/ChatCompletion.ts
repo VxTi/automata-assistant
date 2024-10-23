@@ -12,6 +12,7 @@ const defaultConfiguration: CompletionRequest = {
     model: 'gpt-3.5-turbo-1106',
     max_completion_tokens: 2048,
     temperature: 0.5,
+    messages: [],
 }
 
 export class ChatCompletion extends AIModel {
@@ -47,10 +48,18 @@ export class ChatCompletion extends AIModel {
         }
 
         const streaming = typeof config !== 'string' && 'stream' in config && config.stream;
-        const response  = await super.create(
-            typeof config === 'string' ?
-                { ...this.defaultConfig, messages: [ { role: 'user', content: config } ] } : config
-        ) as Response;
+
+        let response: Response | undefined;
+
+        try {
+            response = await super.create(
+                typeof config === 'string' ?
+                    { ...this.defaultConfig, messages: [ { role: 'user', content: config } ] } : config
+            ) as Response;
+        } catch (error: any) {
+            mainWindow!.webContents.send('ai:completion-error', error);
+            return null;
+        }
 
         if ( !streaming )
             return await response.json() as ChatResponse;

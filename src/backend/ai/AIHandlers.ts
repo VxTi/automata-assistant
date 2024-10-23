@@ -30,7 +30,7 @@ const stt        = new SpeechToText(ctx);
 ipcMain.handle('ai:completion', async (_: Electron.IpcMainInvokeEvent, request: CompletionRequest) => {
     request.tools ??= RegisteredTools;
     const response = await completion.create(request);
-    if ( typeof response !== 'function' )
+    if ( typeof response !== 'function' && response !== null )
         return response as ChatResponse;
     return null;
 });
@@ -60,46 +60,54 @@ const bufferToBase64 = (buffer: Buffer) => {
 };
 
 ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Map<VoiceType, string> }> => {
-    const examplesPath = join(appDirectory, 'voice-assistant-cache');
+    const voiceCachePath = join(appDirectory, 'voice-assistant-cache');
 
-    console.log(examplesPath)
+    console.log(voiceCachePath)
 
     // If the directory doesn't exist, we'll create it.
-    if ( !fs.existsSync(examplesPath) ) {
-        fs.mkdirSync(examplesPath);
+    if ( !fs.existsSync(voiceCachePath) ) {
+        fs.mkdirSync(voiceCachePath);
     }
 
     let audioBuffers: Buffer[] = [];
 
     // If cache files are missing, we'll just renew all of them.
-    if ( fs.readdirSync(examplesPath).length !== Voices.length ) {
-        for ( const file of fs.readdirSync(examplesPath) )
-            fs.unlinkSync(join(examplesPath, file));
+    if ( fs.readdirSync(voiceCachePath).length !== Voices.length ) {
+        for ( const file of fs.readdirSync(voiceCachePath) ) {
+            fs.unlinkSync(join(voiceCachePath, file));
+        }
 
         // Generate files
-        audioBuffers = await Promise.all(Voices.map(async (voice, i) => {
-            return new Promise<Buffer>((resolve) => {
-                setTimeout(async () => {
-                    const audioBlob = await tts.create(
-                        {
-                            input: 'Hello! My name is ' + voice, voice: (voice.toLowerCase()) as VoiceType,
-                            model: 'tts-1', speed: 1.0
-                        });
-                    resolve(Buffer.from(await audioBlob.arrayBuffer()));
-                }, i * 100);
-            });
-        }));
+        for ( let i = 0; i < Voices.length; i++ ) {
+            const voice  = Voices[ i ];
+            const buffer = Buffer.from(await (await tts.create(
+                {
+                    input: 'Hello! My name is ' + voice, voice: (voice.toLowerCase()) as VoiceType,
+                    model: 'tts-1', speed: 1.0
+                })).arrayBuffer());
+
+            audioBuffers.push(buffer);
+
+            const filePath = join(voiceCachePath, `${voice}.wav`); // Adjust the extension as necessary
+            fs.writeFileSync(filePath, buffer);
+
+            // If there's more voices to generate, we'll wait a bit to prevent rate limiting.
+            if ( i + 1 < Voices.length )
+                await new Promise(resolve => setTimeout(resolve, 100));
+        }
 
         // Save the audio to cache as .wav files (or any format you are using)
         await Promise.all(Voices.map(async (voice, index) => {
-            const filePath = join(examplesPath, `${voice}.wav`); // Adjust the extension as necessary
+            const filePath = join(voiceCachePath, `${voice}.wav`); // Adjust the extension as necessary
             fs.writeFileSync(filePath, audioBuffers[ index ]);
         }));
     }
-    else audioBuffers = fs.readdirSync(examplesPath).map(file => {
-        const filePath = join(examplesPath, file);
-        return fs.readFileSync(filePath);
-    });
+    else {
+        audioBuffers = fs.readdirSync(voiceCachePath).map(file => {
+            const filePath = join(voiceCachePath, file);
+            return fs.readFileSync(filePath);
+        });
+    }
 
 
     // Return base64 encoded audio

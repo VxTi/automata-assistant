@@ -60,7 +60,9 @@ export function SettingsPage() {
                                 document.body.style.transition = 'all 0.3s';
                                 document.body.dataset.theme    = newState ? 'dark' : 'light';
                                 Settings.set(Settings.THEME, newState ? 'dark' : 'light')
-                                setTimeout(() => {document.body.style.transition = '';}, 300);
+                                setTimeout(() => {
+                                    document.body.style.transition = '';
+                                }, 300);
                             }}
             />
             <HLine props={FadeIn()}/>
@@ -90,6 +92,8 @@ function PlayableVoice() {
     useEffect(() => {
         /*
          * If the voice assistant cache isn't available, we'll have to
+         * fetch the voice assistant examples and cache them.
+         * This cache is stored in the window object on runtime.
          */
         if ( !window[ 'speechSynthesisCache' ] || typeof window[ 'speechSynthesisCache' ] !== 'object' ||
             !('data' in window[ 'speechSynthesisCache' ]) ) {
@@ -99,7 +103,8 @@ function PlayableVoice() {
                 .audio
                 .getVoiceAssistantExamples()
                 .then(result => {
-                    result.data.keys()
+                    result.data
+                          .keys()
                           .forEach(key => {
                               const voiceDataB64   = result.data.get(key)!;
                               const voiceDataBytes = atob(voiceDataB64);
@@ -119,6 +124,7 @@ function PlayableVoice() {
             onChange={(voice: string, idx: number) => {
                 setSelectedVoice(voice as VoiceType);
                 Settings.set(Settings.ASSISTANT_VOICE_TYPE, idx);
+                console.log('Selected voice', voice, idx);
             }}
             props={FadeIn()}
             options={Settings.TTS_VOICES}

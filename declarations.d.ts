@@ -130,7 +130,7 @@ declare module 'llm' {
          * types
          * (modalities) are supported, like text, images, and audio.
          */
-        messages?: Message [];
+        messages: Message[];
 
         /**
          * ID of the model to use. See the model endpoint compatibility table for details on which models work with
