@@ -55,6 +55,11 @@ body[data-theme="dark"] .markdown h6 {
     line-height: 1.5rem;
 }
 
+.markdown p,
+.markdown li {
+    display: inline;
+}
+
 .markdown blockquote {
     margin: 1em 0;
     padding: 0 1em;
@@ -62,8 +67,7 @@ body[data-theme="dark"] .markdown h6 {
 }
 
 .markdown ul {
-    margin: 1em 0;
-    padding: 0 0 0 2em;
+    margin: 0.5em 0 0.5em 0.75em;
 }
 
 .markdown li {

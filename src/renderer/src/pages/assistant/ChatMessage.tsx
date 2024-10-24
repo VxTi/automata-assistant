@@ -15,7 +15,6 @@ import { AnnotatedIcon }                                                   from 
 import { Settings }                                                        from "@renderer/util/Settings";
 import { VoiceType }                                                       from "tts";
 import { playAudio }                                                       from "@renderer/util/Audio";
-import { decodeBase64FromBlob }                                            from "../../../../shared/Encoding";
 
 /**
  * The chat message.
@@ -25,6 +24,8 @@ import { decodeBase64FromBlob }                                            from 
  */
 export function ChatMessage(props: { entry: Message }) {
 
+    const [ playing, setPlaying ]                     = useState(false);
+    const [ audioBlob, setAudioBlob ]                 = useState<Blob | null>(null);
     const [ copiedToClipboard, setCopiedToClipboard ] = useState(false);
 
     const saveToClipboardCb = useCallback(async () => {
@@ -57,6 +58,32 @@ export function ChatMessage(props: { entry: Message }) {
 
     }, [ contentRef ]);
 
+    const toggleMessagePlayState = useCallback(() => {
+        if ( typeof props.entry.content !== 'string' ) return;
+
+        setPlaying(!playing);
+
+        if ( !audioBlob ) {
+            window[ 'ai' ]
+                .audio
+                .textToSpeech(
+                    {
+                        input: props.entry.content,
+                        voice: Settings.TTS_VOICES[ Settings.get(Settings.ASSISTANT_VOICE_TYPE) ].toLowerCase() as VoiceType,
+                        model: 'tts-1', speed: 1.0,
+                    }
+                )
+                .then(audioB64 => {
+                    const blob = window[ 'ai' ].audio.ttsBase64ToBlob(audioB64.data);
+                    setAudioBlob(blob);
+                    playAudio(blob);
+                });
+            return;
+        }
+
+        playAudio(audioBlob);
+    }, [ audioBlob, playing ]);
+
     return (
         <div
             className="relative group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 mx-2 hover:brightness-90 dark:hover:brightness-125 transition-all duration-300"
@@ -76,24 +103,7 @@ export function ChatMessage(props: { entry: Message }) {
                     className="opacity-0 max-h-0 group-hover:max-h-32 transition-all duration-300 group-hover:opacity-100 delay-500">
                     <AnnotatedIcon annotation={'Play message'}
                                    side='right'
-                                   onClick={() => {
-                                       if ( typeof props.entry.content !== 'string' ) return;
-
-                                       window[ 'ai' ]
-                                           .audio
-                                           .textToSpeech(
-                                               {
-                                                   input: props.entry.content,
-                                                   voice: Settings.TTS_VOICES[ Settings.get(Settings.ASSISTANT_VOICE_TYPE) ] as VoiceType,
-                                                   model: 'tts-1'
-                                               }
-                                           )
-                                           .then(audioB64 => {
-                                               const blob = decodeBase64FromBlob(audioB64.data, 'audio/wav');
-                                               playAudio(blob);
-                                           });
-
-                                   }}
+                                   onClick={toggleMessagePlayState}
                                    icon={<Icons.Play/>}
                     />
                 </div>

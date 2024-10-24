@@ -55,28 +55,30 @@ export function AssistantPage() {
                 lastMessageRef.current.innerHTML = session.streamedResponseBuffer;
                 lastMessageRef.current.scrollIntoView({ behavior: 'smooth' });
             })
-            .onChunkEnd(async () => {
+            .onChunkEnd(() => {
 
                 forceUpdate((prev) => prev + 1);
 
                 if ( !verbose )
                     return;
 
-                const { data } = await window[ 'ai' ].audio.textToSpeech(
-                    {
-                        input: session.streamedResponseBuffer,
-                        model: 'tts-1',
-                        voice: (Settings.TTS_VOICES[ parseInt(window.localStorage.getItem('voiceIndex') ?? '0') ] ?? 'nova') as VoiceType
-                    });
-
-                const arrayBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0)).buffer;
-                const blob        = new Blob([ arrayBuffer ], { type: 'audio/mpeg' });
-                playAudio(blob);
+                window[ 'ai' ]
+                    .audio
+                    .textToSpeech(
+                        {
+                            input: session.streamedResponseBuffer,
+                            voice: Settings.TTS_VOICES[ Settings.get(Settings.ASSISTANT_VOICE_TYPE) ].toLowerCase() as VoiceType,
+                            model: 'tts-1', speed: 1.0,
+                        })
+                    .then(response => {
+                        const blob = window[ 'ai' ].audio.ttsBase64ToBlob(response.data);
+                        playAudio(blob);
+                    })
             })
             .onMessage(() => {
                 forceUpdate((prev) => prev + 1);
 
-                if ( session.messages.length > 1) {
+                if ( session.messages.length > 1 ) {
                     window[ 'conversations' ].save(
                         {
                             topic: session.topic,

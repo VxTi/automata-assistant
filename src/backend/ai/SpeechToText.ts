@@ -29,8 +29,6 @@ export class SpeechToText extends AIModel {
         const formData = new FormData();
         if ( typeof config[ 'file' ] === 'string' ) {
 
-            console.log("Converting base64 to blob", config.file);
-
             // Convert base64 string to blob
             const blob = new File([ Buffer.from(config[ 'file' ], 'base64') ], 'audio.wav', { type: 'audio/wav' });
             formData.append('file', blob, config[ 'fileName' ] ?? 'audio.wav');

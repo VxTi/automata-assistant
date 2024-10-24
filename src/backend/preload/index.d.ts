@@ -107,6 +107,7 @@ declare global {
                 getVoiceAssistantExamples: () => Promise<{ data: Map<VoiceType, string> }>,
                 textToSpeech: (request: TTSRequest) => Promise<{ data: string }>,
                 speechToText: (request: SpeechToTextRequest) => Promise<string>,
+                ttsBase64ToBlob: (base64: string) => Blob
                 speechToTextFileLimit: number,
                 audioSegmentationIntervalMs: number
             }

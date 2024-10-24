@@ -3,19 +3,24 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 18 - 09:16
  */
-import { useContext, useEffect, useRef, useState } from "react";
-import { ApplicationContext }                      from "../contexts/ApplicationContext";
-import { ScrollableContainer }                     from "../components/ScrollableContainer";
-import { FadeIn, useAnimationSequence }            from "../util/AnimationSequence";
-import { HLine }                                   from "../components/HLine";
-import { BooleanSetting }                          from "../components/interactive/settings/BooleanSetting";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { ApplicationContext }                                   from "../contexts/ApplicationContext";
+import { ScrollableContainer }                                  from "../components/ScrollableContainer";
+import { FadeIn, useAnimationSequence }                         from "../util/AnimationSequence";
+import { HLine }                                                from "../components/HLine";
+import {
+    BooleanSetting
+}                                                               from "../components/interactive/settings/BooleanSetting";
 import {
     MultiSelectionSetting
-}                                                  from "@renderer/components/interactive/settings/MultiSelectionSetting";
-import { Icons, InteractiveIcon }                  from "@renderer/components/Icons";
-import { playAudio }                               from "@renderer/util/Audio";
-import { Settings }                                from "@renderer/util/Settings";
-import { VoiceType }                               from "tts";
+}                                                               from "@renderer/components/interactive/settings/MultiSelectionSetting";
+import { Icons, InteractiveIcon }                               from "@renderer/components/Icons";
+import { playAudio }                                            from "@renderer/util/Audio";
+import { Settings }                                             from "@renderer/util/Settings";
+import { VoiceType }                                            from "tts";
+
+// The key used to store the voice cache in the window object
+const VoiceCacheStorageKey = 'speechSynthesisCache';
 
 export function SettingsPage() {
 
@@ -25,9 +30,7 @@ export function SettingsPage() {
 
     useEffect(() => {
         setHeaderConfig(() => {
-            return {
-                pageTitle: 'Settings',
-            };
+            return { pageTitle: 'Settings' };
         })
     }, []);
 
@@ -80,12 +83,17 @@ export function SettingsPage() {
                                    options={Settings.LANGUAGES}
             />
 
-            <PlayableVoice/>
+            <MultiSelectionVoiceSetting/>
         </ScrollableContainer>
     );
 }
 
-function PlayableVoice() {
+/**
+ * A custom multi-selection setting for selecting the voice of the assistant.
+ * This is a variant of `MultiSelectionSetting` that includes a play button
+ * that allows users to preview the voice.
+ */
+function MultiSelectionVoiceSetting() {
     const [ playing, setPlaying ]             = useState<boolean>(false);
     const [ selectedVoice, setSelectedVoice ] = useState<VoiceType>(Settings.TTS_VOICES[ parseInt(window.localStorage.getItem('voiceIndex') ?? '0') ] as VoiceType);
 
@@ -95,10 +103,9 @@ function PlayableVoice() {
          * fetch the voice assistant examples and cache them.
          * This cache is stored in the window object on runtime.
          */
-        if ( !window[ 'speechSynthesisCache' ] || typeof window[ 'speechSynthesisCache' ] !== 'object' ||
-            !('data' in window[ 'speechSynthesisCache' ]) ) {
-            window[ 'speechSynthesisCache' ] = {};
+        if ( !window[ VoiceCacheStorageKey ] || typeof window[ VoiceCacheStorageKey ] !== 'object' ) {
 
+            window[ VoiceCacheStorageKey ] = {};
             window[ 'ai' ]
                 .audio
                 .getVoiceAssistantExamples()
@@ -110,11 +117,38 @@ function PlayableVoice() {
                               const voiceDataBytes = atob(voiceDataB64);
                               const byteArray      = new Uint8Array([ ...voiceDataBytes ].map((_, i) => voiceDataBytes.charCodeAt(i)));
 
-                              window[ 'speechSynthesisCache' ][ key.toLowerCase() ] = new Blob([ byteArray ], { type: 'audio/wav' });
+                              window[ VoiceCacheStorageKey ][ key.toLowerCase() ] = new Blob([ byteArray ], { type: 'audio/wav' });
                           });
                 });
         }
     }, []);
+
+    const playVoice = useCallback(() => {
+        setPlaying( !playing);
+
+        // Doesn't immediately update 'playing' state due to Reacts asynchronous-ness
+        if ( !playing ) {
+            if ( !window[ VoiceCacheStorageKey ] ) {
+                console.error('Voice data not found in cache');
+                return;
+            }
+
+            const voiceBlob = window[ VoiceCacheStorageKey ][ selectedVoice.toLowerCase() ];
+
+            if ( !voiceBlob ) {
+                console.error('Voice not found in cache', voiceBlob, selectedVoice);
+                return;
+            }
+
+            console.log('Playing voice', selectedVoice);
+
+            window[ VoiceCacheStorageKey ].playing          = playAudio(voiceBlob);
+            window[ VoiceCacheStorageKey ].playing!.onended = () => setPlaying(false);
+            return;
+        }
+        window[ 'VoiceCacheStorageKey' ].playing?.stop?.();
+
+    }, [ selectedVoice, playing ]);
 
 
     return (
@@ -134,32 +168,7 @@ function PlayableVoice() {
                     <InteractiveIcon
                         className={`rounded-full p-1.5 ${playing ? 'text-red-500' : 'text-green-500'}`}
                         icon={playing ? <Icons.Stop/> : <Icons.Play/>}
-                        onClick={() => {
-                            setPlaying( !playing);
-                            // Doesn't immediately update 'playing' state due to React's asynchronousness
-                            if ( !playing ) {
-                                if ( !window[ 'speechSynthesisCache' ] ) {
-                                    console.error('Voice data not found in cache');
-                                    return;
-                                }
-
-                                const voiceBlob = window[ 'speechSynthesisCache' ][ selectedVoice.toLowerCase() ];
-
-                                if ( !voiceBlob ) {
-                                    console.error('Voice not found in cache', voiceBlob, selectedVoice);
-                                    return;
-                                }
-
-                                window[ 'speechSynthesisCache' ].playing = playAudio(voiceBlob);
-                                console.log('Playing voice', selectedVoice);
-                                window[ 'speechSynthesisCache' ].playing!.onended = () => {
-                                    setPlaying(false);
-                                }
-                            }
-                            else {
-                                window[ 'speechSynthesisCache' ].playing!.stop!();
-                            }
-                        }}/>
+                        onClick={playVoice}/>
                 </div>
             }
         />

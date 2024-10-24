@@ -144,6 +144,16 @@ contextBridge.exposeInMainWorld('ai', {
         speechToText: async (request: SpeechToTextRequest) => {
             return await electronAPI.ipcRenderer.invoke('ai:speech-to-text', request);
         },
+
+        ttsBase64ToBlob: (base64: string) => {
+            const byteCharacters = atob(base64);
+            const byteNumbers    = new Array(byteCharacters.length);
+            for ( let i = 0; i < byteCharacters.length; i++ ) {
+                byteNumbers[ i ] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([ byteArray ], { type: 'audio/wav' });
+        },
         speechToTextFileLimit: 25 * 1024 * 1024,
         audioSegmentationIntervalMs: 500,
     }

@@ -30,6 +30,23 @@ const tts        = new TextToSpeech(ctx);
 const stt        = new SpeechToText(ctx);
 const stableDiff = new StableDiffusion(ctx);
 
+/**
+ * Converts a buffer to a base64 string.
+ * @param buffer the buffer to convert.
+ */
+function bufferToBase64(buffer: Buffer) {
+    const arrayBuffer = new Uint8Array(buffer);
+
+    // Create a binary string using a loop
+    let binaryString = '';
+    for (let i = 0; i < arrayBuffer.length; i++) {
+        binaryString += String.fromCharCode(arrayBuffer[i]);
+    }
+
+    // Convert the binary string to base64
+    return btoa(binaryString);
+}
+
 ipcMain.handle('ai:completion', async (_: Electron.IpcMainInvokeEvent, request: CompletionRequest) => {
     request.tools ??= RegisteredTools;
     const response = await completion.create(request);
@@ -50,8 +67,11 @@ ipcMain.handle('ai:stable-diffusion', async (_: Electron.IpcMainInvokeEvent, req
  * with the blob converted to base64.
  */
 ipcMain.handle('ai:text-to-speech', async (_: any, request: TTSRequest | string) => {
-    const blob = await tts.create(request);
-    return { data: (await blob.arrayBuffer().then(arrBuf => Buffer.from(arrBuf))).toString('base64') };
+    const blob: Blob = await tts.create(request);
+    const buffer: Buffer = Buffer.from(await blob.arrayBuffer());
+    return {
+        data: bufferToBase64(buffer)
+    };
 });
 
 /**
@@ -60,12 +80,6 @@ ipcMain.handle('ai:text-to-speech', async (_: any, request: TTSRequest | string)
 ipcMain.handle('ai:speech-to-text', async (_: any, request: SpeechToTextRequest) => {
     return await stt.create(request);
 });
-
-const bufferToBase64 = (buffer: Buffer) => {
-    const arrayBuffer  = new Uint8Array(buffer);
-    const binaryString = String.fromCharCode(...arrayBuffer);
-    return btoa(binaryString);
-};
 
 ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Map<VoiceType, string> }> => {
     const voiceCachePath = join(appDirectory, 'voice-assistant-cache');
@@ -87,12 +101,14 @@ ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Ma
 
         // Generate files
         for ( let i = 0; i < Voices.length; i++ ) {
-            const voice  = Voices[ i ];
-            const buffer = Buffer.from(await (await tts.create(
+            const voice: string  = Voices[ i ];
+            const blob: Blob =  await tts.create(
                 {
-                    input: 'Hello! My name is ' + voice, voice: (voice.toLowerCase()) as VoiceType,
+                    input: 'Hello! My name is ' + voice,
+                    voice: (voice.toLowerCase()) as VoiceType,
                     model: 'tts-1', speed: 1.0
-                })).arrayBuffer());
+                });
+            const buffer = Buffer.from(await blob.arrayBuffer());
 
             audioBuffers.push(buffer);
 
@@ -103,12 +119,6 @@ ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Ma
             if ( i + 1 < Voices.length )
                 await new Promise(resolve => setTimeout(resolve, 100));
         }
-
-        // Save the audio to cache as .wav files (or any format you are using)
-        await Promise.all(Voices.map(async (voice, index) => {
-            const filePath = join(voiceCachePath, `${voice}.wav`); // Adjust the extension as necessary
-            fs.writeFileSync(filePath, audioBuffers[ index ]);
-        }));
     }
     else {
         audioBuffers = fs.readdirSync(voiceCachePath).map(file => {
