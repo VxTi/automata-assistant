@@ -231,6 +231,8 @@ export class ChatCompletionSession {
      */
     public appendMessage(message: Message) {
 
+        console.trace(message);
+
         // If there aren't any previous user sent messages,
         // we'll have to generate a topic and conversation UUID.
         if ( !this._conversationTopic && (this._messages.length < 1 || !this._messages.some(msg => msg.role === 'user')) ) {

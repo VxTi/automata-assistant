@@ -6,10 +6,10 @@ import * as fs                                        from "node:fs";
 import { ConversationTopic }                          from 'llm';
 
 // @ts-ignore
-import icon                                           from '../../../resources/icon.png'
+import icon                 from '../../../resources/icon.png'
 import '../ai/AIHandlers'
 import '../headless_injection/WhatsAppHeadlessAccessor'
-import { AbstractResource }                           from "abstractions";
+import { AbstractResource } from "abstractions";
 
 dotenv.config({ path: join(__dirname, '../../.env') });
 
@@ -122,7 +122,7 @@ app.on('window-all-closed', () => {
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
 
-ipcMain.handle('open-file', async (_) => {
+ipcMain.handle('fs:select-file', async (_) => {
     return await dialog
         .showOpenDialog(
             {
@@ -137,7 +137,10 @@ ipcMain.handle('open-file', async (_) => {
         .catch(() => [])
 });
 
-ipcMain.handle('open-directory', async (_) => {
+/**
+ * Open a directory dialog.
+ */
+ipcMain.handle('fs:select-directory', async (_) => {
     return await dialog
         .showOpenDialog(
             {
@@ -154,6 +157,14 @@ ipcMain.handle('open-directory', async (_) => {
             return null;
         })
         .catch(() => null)
+});
+
+/**
+ * Open a file.
+ * This function takes a file path and opens the file in the file explorer.
+ */
+ipcMain.handle('fs:open-file', async (_, path: string) => {
+    shell.showItemInFolder(path);
 });
 
 /**
@@ -232,7 +243,8 @@ ipcMain.handle('resources:list', (): AbstractResource[] => {
                  return {
                      name: file,
                      data: fs.readFileSync(join(resourceDirectoryPath, file), 'utf-8'),
-                     creationDate: stats.birthtime.getTime()
+                     creationDate: stats.birthtime.getTime(),
+                     path: join(resourceDirectoryPath, file)
                  }
              });
 });
@@ -258,3 +270,13 @@ ipcMain.handle('resources:save', async (_, resource: AbstractResource) => {
 
     fs.writeFileSync(join(resourceDirectoryPath, resource.name), resource.data);
 });
+
+ipcMain.handle('resources:fetch-remote', async (_, url: string) => {
+    return await fetch(url).then(async response => {
+        return {
+            name: url.split('/').pop()!,
+            data: await response.text(),
+            creationDate: Date.now(),
+        } as AbstractResource;
+    });
+})

@@ -59,14 +59,6 @@ export function AssistantPage() {
 
                 forceUpdate((prev) => prev + 1);
 
-                window[ 'conversations' ].save(
-                    {
-                        topic: session.topic,
-                        uuid: session.uuid,
-                        messages: session.messages,
-                        date: Date.now()
-                    });
-
                 if ( !verbose )
                     return;
 
@@ -83,6 +75,16 @@ export function AssistantPage() {
             })
             .onMessage(() => {
                 forceUpdate((prev) => prev + 1);
+
+                if ( session.messages.length > 1) {
+                    window[ 'conversations' ].save(
+                        {
+                            topic: session.topic,
+                            uuid: session.uuid,
+                            messages: session.messages,
+                            date: Date.now()
+                        });
+                }
 
                 if ( lastMessageRef.current ) {
                     lastMessageRef.current.innerHTML = session.streamedResponseBuffer;

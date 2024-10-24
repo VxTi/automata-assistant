@@ -9,6 +9,8 @@ declare module 'abstractions' {
         name: string;
         data: string;
         creationDate: number;
+        tags?: string[];
+        path?: string;
     }
 }
 

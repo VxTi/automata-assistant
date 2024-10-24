@@ -676,6 +676,10 @@ video {
   float: right;
 }
 
+.float-left {
+  float: left;
+}
+
 .m-0 {
   margin: 0px;
 }
@@ -1299,6 +1303,11 @@ video {
   background-color: transparent;
 }
 
+.bg-white {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+}
+
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
 }
@@ -1597,6 +1606,14 @@ video {
   transition-duration: 150ms;
 }
 
+.delay-500 {
+  transition-delay: 500ms;
+}
+
+.delay-1000 {
+  transition-delay: 1000ms;
+}
+
 .duration-200 {
   transition-duration: 200ms;
 }
@@ -1705,6 +1722,11 @@ video {
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
+.hover\:brightness-90:hover {
+  --tw-brightness: brightness(.9);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
 .hover\:backdrop-brightness-75:hover {
   --tw-backdrop-brightness: brightness(.75);
   -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
@@ -1723,6 +1745,10 @@ video {
 
 .group:hover .group-hover\:pointer-events-auto {
   pointer-events: auto;
+}
+
+.group:hover .group-hover\:max-h-32 {
+  max-height: 8rem;
 }
 
 .group:hover .group-hover\:cursor-pointer {
@@ -1836,6 +1862,11 @@ video {
   background-color: rgb(31 41 55 / var(--tw-bg-opacity));
 }
 
+.dark\:hover\:brightness-125:hover:is([data-theme="dark"] *) {
+  --tw-brightness: brightness(1.25);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
 .group:hover .dark\:group-hover\:bg-\[\#1b1b1f\]:is([data-theme="dark"] *) {
   --tw-bg-opacity: 1;
   background-color: rgb(27 27 31 / var(--tw-bg-opacity));
@@ -1875,12 +1906,20 @@ video {
     height: auto;
   }
 
+  .sm\:max-w-\[300px\] {
+    max-width: 300px;
+  }
+
   .sm\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .sm\:rounded-2xl {
     border-radius: 1rem;
+  }
+
+  .sm\:bg-opacity-100 {
+    --tw-bg-opacity: 1;
   }
 
   .sm\:text-xl {

@@ -6,16 +6,16 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { CreateSequence, useAnimationSequence }    from "../util/AnimationSequence";
 import { ApplicationContext }                      from "../contexts/ApplicationContext";
-import { ScrollableContainer } from "../components/ScrollableContainer";
-import { FilterSelection }     from "../components/interactive/FilterSelection";
-import { SearchBar }           from "../components/SearchBar";
+import { ScrollableContainer }                     from "../components/ScrollableContainer";
+import { FilterSelection }                         from "../components/interactive/FilterSelection";
+import { SearchBar }                               from "../components/SearchBar";
 import { Icons }                                   from "../components/Icons";
 import { AbstractResource }                        from "abstractions";
 
 type ResourceType = 'image' | 'spreadsheet' | 'file';
 
 function getResourceTypeFromFileExtension(extension: string): ResourceType {
-    switch (extension) {
+    switch ( extension ) {
         case 'png':
         case 'jpg':
         case 'jpeg':
@@ -55,18 +55,21 @@ export function FilesAndImagesPage() {
             }
         });
 
-        window['fs'].getResources()
-            .then((resources: AbstractResource[]) => {
-                const mappedResources = resources.map(resource => {
-                    return {
-                        resource: resource,
-                        type: getResourceTypeFromFileExtension(resource.name.split('.').pop()!),
-                        tags: []
-                    } as ResourceInfo;
-                });
-                setResources(mappedResources);
-                setFilteredResources(mappedResources);
-            })
+        window[ 'fs' ].getResources()
+                      .then((resources: AbstractResource[]) => {
+                          const mappedResources = resources.map(resource => {
+                              if ( resource.name.length > 20 ) {
+                                  resource.name = resource.name.substring(0, 20) + '...';
+                              }
+                              return {
+                                  resource: resource,
+                                  type: getResourceTypeFromFileExtension(resource.name.split('.').pop()!),
+                                  tags: resource.tags || []
+                              } as ResourceInfo;
+                          });
+                          setResources(mappedResources);
+                          setFilteredResources(mappedResources);
+                      })
     }, []);
 
     useEffect(() => {
@@ -108,30 +111,38 @@ export function FilesAndImagesPage() {
  */
 function Resource(props: { resource: ResourceInfo }) {
 
+    const [ deleted, setDeleted ] = useState<boolean>(false);
+
+    if ( deleted ) return null;
+
     return (
         <div
-            className="group relative flex flex-col justify-start items-center content-container hoverable duration-300 transition-colors rounded-xl p-4 pb-2"
-        onClick={() => {
-            // TODO: Add navigation to file on local file system
-        }}>
-            <div className="absolute left-0 top-0 w-full z-10">
+            className="group relative flex flex-col justify-start items-center content-container hoverable duration-300 transition-colors rounded-xl p-4 pb-2">
+            <div className="absolute left-0 top-0 w-full flex flex-row justify-between z-10">
                 <div
+                    onClick={() => {
+                        window['fs'].deleteResource(props.resource.resource.name);
+                        setDeleted(true);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 w-9 h-9 p-2 float-left m-5 rounded-full backdrop-brightness-90 hover:backdrop-brightness-75 transition-all duration-300">
+                    <Icons.Cross/>
+                </div>
+                <div
+                    onClick={() => props.resource.resource.path && window[ 'fs' ].openFile(props.resource.resource.path)}
                     className="opacity-0 group-hover:opacity-100 w-9 h-9 p-2 float-right m-5 rounded-full backdrop-brightness-90 hover:backdrop-brightness-75 transition-all duration-300">
                     <Icons.ArrowTopRightSquare/>
                 </div>
             </div>
+
             <span {...CreateSequence('fadeIn', 500, 35)}
                   className="bg-no-repeat bg-cover bg-center w-full h-80 rounded-md"
                   style={{ backgroundImage: `url(${props.resource.resource.data})`, }}/>
-            <span className="text-lg mt-2 mb-1 ml-1 mr-auto">{props.resource.resource.name || 'Resource'}</span>
+            <span className="text-sm mt-2 mb-1 ml-1 mr-auto">{props.resource.resource.name || 'Resource'}</span>
             <div className="flex flex-row justify-start items-start flex-wrap text-xs w-full">
-                {
-                    props.resource.tags.map((tag, i) => (
-                        <span key={i}
-                              className="text-black dark:text-gray-300 rounded-full p-1 mx-1 hover:underline cursor-pointer">
-                    #{tag}
-                </span>
-                    ))}
+                {props.resource.tags.map((tag, i) => (
+                    <span key={i}
+                          className="text-black dark:text-gray-300 rounded-full p-1 mx-1 hover:underline cursor-pointer">#{tag}</span>
+                ))}
             </div>
         </div>
     )

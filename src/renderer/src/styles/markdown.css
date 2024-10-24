@@ -91,6 +91,12 @@ body[data-theme="dark"] .markdown h6 {
     background-color: unset;
 }
 
+.markdown img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 1em;
+}
+
 .markdown code.hljs {
     color: #fff;
 }

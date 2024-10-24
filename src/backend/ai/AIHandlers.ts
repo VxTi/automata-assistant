@@ -51,8 +51,6 @@ ipcMain.handle('ai:stable-diffusion', async (_: Electron.IpcMainInvokeEvent, req
  */
 ipcMain.handle('ai:text-to-speech', async (_: any, request: TTSRequest | string) => {
     const blob = await tts.create(request);
-    const data = (await blob.arrayBuffer().then(arrBuf => Buffer.from(arrBuf))).toString('base64')
-    console.log('Generated data: ', data);
     return { data: (await blob.arrayBuffer().then(arrBuf => Buffer.from(arrBuf))).toString('base64') };
 });
 

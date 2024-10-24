@@ -32,14 +32,18 @@ contextBridge.exposeInMainWorld('fs', {
     /**
      * Open a file dialog.
      */
-    openFile: async (): Promise<string | null> => {
-        return await electronAPI.ipcRenderer.invoke('open-file');
+    selectFile: async (): Promise<string | null> => {
+        return await electronAPI.ipcRenderer.invoke('fs:select-file');
     },
     /**
      * Open a directory dialog.
      */
-    openDirectory: async (): Promise<string | null> => {
-        return await electronAPI.ipcRenderer.invoke('open-directory');
+    selectDirectory: async (): Promise<string | null> => {
+        return await electronAPI.ipcRenderer.invoke('fs:select-directory');
+    },
+
+    openFile: async (path: string): Promise<boolean> => {
+        return await electronAPI.ipcRenderer.invoke('fs:open-file', path);
     },
 
     /**
@@ -61,6 +65,17 @@ contextBridge.exposeInMainWorld('fs', {
      */
     deleteResource: async (name: string) => {
         return await electronAPI.ipcRenderer.invoke('resources:delete', name);
+    },
+
+    /**
+     * Fetch a remote resource.
+     * This will download the resource and return it as an AbstractResource.
+     * This method makes sure there's no issues with CORS.
+     * @param url The URL of the resource to fetch.
+     * @returns A promise that resolves to the fetched resource.
+     */
+    fetchRemoteResource: async (url: string): Promise<AbstractResource> => {
+        return await electronAPI.ipcRenderer.invoke('resources:fetch-remote', url);
     }
 });
 

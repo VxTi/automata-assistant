@@ -5,12 +5,17 @@
  */
 import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { CreateSequence }                                                  from "../../util/AnimationSequence";
-import { Icons, InteractiveIcon }                              from "../../components/Icons";
-import renderMathInElement              from "katex/contrib/auto-render";
-import { ChatSessionContext, mdParser } from "../../contexts/ChatContext";
-import { Message }                      from "llm";
+import { Icons, InteractiveIcon }                                          from "../../components/Icons";
+import renderMathInElement                                                 from "katex/contrib/auto-render";
+import { ChatSessionContext, mdParser }                                    from "../../contexts/ChatContext";
+import { Message }                                                         from "llm";
 import '../../styles/markdown.css'
 import 'katex/dist/katex.min.css'
+import { AnnotatedIcon }                                                   from "@renderer/components/AnnotatedIcon";
+import { Settings }                                                        from "@renderer/util/Settings";
+import { VoiceType }                                                       from "tts";
+import { playAudio }                                                       from "@renderer/util/Audio";
+import { decodeBase64FromBlob }                                            from "../../../../shared/Encoding";
 
 /**
  * The chat message.
@@ -54,7 +59,7 @@ export function ChatMessage(props: { entry: Message }) {
 
     return (
         <div
-            className="relative group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 mx-2"
+            className="relative group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 mx-2 hover:brightness-90 dark:hover:brightness-125 transition-all duration-300"
             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start text-wrap overflow-hidden w-full">
                 <div className="flex flex-row justify-between items-center w-full">
@@ -66,6 +71,31 @@ export function ChatMessage(props: { entry: Message }) {
                 </div>
                 <div className="not-prose text-sm mt-2 mb-1 w-full">
                     <span className="markdown" ref={contentRef}/>
+                </div>
+                <div
+                    className="opacity-0 max-h-0 group-hover:max-h-32 transition-all duration-300 group-hover:opacity-100 delay-500">
+                    <AnnotatedIcon annotation={'Play message'}
+                                   side='right'
+                                   onClick={() => {
+                                       if ( typeof props.entry.content !== 'string' ) return;
+
+                                       window[ 'ai' ]
+                                           .audio
+                                           .textToSpeech(
+                                               {
+                                                   input: props.entry.content,
+                                                   voice: Settings.TTS_VOICES[ Settings.get(Settings.ASSISTANT_VOICE_TYPE) ] as VoiceType,
+                                                   model: 'tts-1'
+                                               }
+                                           )
+                                           .then(audioB64 => {
+                                               const blob = decodeBase64FromBlob(audioB64.data, 'audio/wav');
+                                               playAudio(blob);
+                                           });
+
+                                   }}
+                                   icon={<Icons.Play/>}
+                    />
                 </div>
             </div>
         </div>
@@ -82,7 +112,7 @@ export function LiveChatMessage(props: { contentRef: RefObject<HTMLDivElement> }
 
     const { session } = useContext(ChatSessionContext);
 
-    if (!session.streamedResponseBuffer)
+    if ( !session.streamedResponseBuffer )
         return null;
 
     return (
