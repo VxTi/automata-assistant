@@ -41,21 +41,12 @@ export class ImageGenerationService extends Service<ImageGenerationServiceParams
             .then(async (response: StableDiffusionResponse) => {
                 window[ 'fs' ]
                     .fetchRemoteResource(response.data[ 0 ].url)
-                    .then(async (resource: AbstractResource) => {
-                        console.log(resource.data);
-                        const blob    = new Blob([ resource.data ], { type: 'image/png' });
-                        const reader  = new FileReader();
+                    .then((resource: AbstractResource) => {
+                        const uint8Array = new TextEncoder().encode(resource.data);
+                        const binaryString = new TextDecoder('latin1').decode(uint8Array);
+                        resource.data = btoa(binaryString);
                         resource.name = params.prompt;
-
-                        // Convert Blob to Base64
-                        reader.onloadend = () => {
-                            const base64data = reader.result;
-                            console.log(base64data);
-
-                            resource.data = base64data as string;
-                            window[ 'fs' ].saveResource(resource);
-                        }
-                        reader.readAsDataURL(blob);
+                        window['fs'].saveResource(resource);
                     })
 
                 params.session.appendMessage(

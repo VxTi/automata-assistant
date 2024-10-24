@@ -17,22 +17,17 @@ export class InternetQueryService extends Service<{ query: string, session: Chat
      */
     public invoke(config: { query: string, session: ChatCompletionSession }) {
         console.log('Querying the internet for:', config.query);
-        fetch("https://google.com/search?q="
-                  + encodeURIComponent(config.query), {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-            },
-        })
-            .then(response => response.text())
-            .then(data => {
-                console.log(data);
+        const targetUrl = config.query.match(/^http(s)?:\/\//) ? config.query :
+                  'https://google.com/search?q=' + encodeURIComponent(config.query);
+
+        window[ 'fs' ]
+            .fetchRemoteResource(targetUrl)
+            .then(response => {
                 config.session.appendMessage(
                     {
-                        content: data,
+                        content: response.data.replace(/<[^>]*>/g, ''),
                         role: 'assistant'
                     })
-            })
+            });
     }
 }

@@ -12,9 +12,6 @@ import { ScrollableContainer }                              from "../../componen
 import { ChatMessage, LiveChatMessage }                     from "../../pages/assistant/ChatMessage";
 import { ChatInputField }                                   from "./ChatInputField";
 import { ChatSessionContext }                               from "../../contexts/ChatContext";
-import { Settings }                                         from "@renderer/util/Settings";
-import { VoiceType }                                        from "tts";
-import { playAudio }                                        from "@renderer/util/Audio";
 import { Service }                                          from "@renderer/util/external_services/Services";
 import '../../styles/utilities.css';
 
@@ -25,7 +22,7 @@ import '../../styles/utilities.css';
  */
 export function AssistantPage() {
 
-    const { session, verbose, setVerbose } = useContext(ChatSessionContext);
+    const { session } = useContext(ChatSessionContext);
 
     const chatContainerRef    = useRef<HTMLDivElement>(null);
     const lastMessageRef      = useRef<HTMLDivElement>(null);
@@ -55,42 +52,13 @@ export function AssistantPage() {
                 lastMessageRef.current.innerHTML = session.streamedResponseBuffer;
                 lastMessageRef.current.scrollIntoView({ behavior: 'smooth' });
             })
-            .onChunkEnd(() => {
-
-                forceUpdate((prev) => prev + 1);
-
-                if ( !verbose )
-                    return;
-
-                window[ 'ai' ]
-                    .audio
-                    .textToSpeech(
-                        {
-                            input: session.streamedResponseBuffer,
-                            voice: Settings.TTS_VOICES[ Settings.get(Settings.ASSISTANT_VOICE_TYPE) ].toLowerCase() as VoiceType,
-                            model: 'tts-1', speed: 1.0,
-                        })
-                    .then(response => {
-                        const blob = window[ 'ai' ].audio.ttsBase64ToBlob(response.data);
-                        playAudio(blob);
-                    })
-            })
+            .onChunkEnd(() => forceUpdate((prev) => prev + 1))
             .onMessage(() => {
                 forceUpdate((prev) => prev + 1);
 
-                if ( session.messages.length > 1 ) {
-                    window[ 'conversations' ].save(
-                        {
-                            topic: session.topic,
-                            uuid: session.uuid,
-                            messages: session.messages,
-                            date: Date.now()
-                        });
-                }
-
                 if ( lastMessageRef.current ) {
                     lastMessageRef.current.innerHTML = session.streamedResponseBuffer;
-                    lastMessageRef.current.scrollIntoView({ behavior: 'smooth' });
+                    lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 }
             })
             .onToolCall(tool => Service.invoke(tool.name, { ...tool.arguments, session }))
@@ -109,21 +77,25 @@ export function AssistantPage() {
                         annotation="New topic" side='right' onClick={() => {
                         session.reset();
                         forceUpdate((prev) => prev + 1);
-
                     }}/>) : undefined,
                 pageTitle: session.topic,
                 rightHeaderContent:
                     <AnnotatedIcon
-                        icon={!verbose ? <Icons.SpeakerCross/> : <Icons.Speaker/>}
-                        annotation={(verbose ? 'Disable' : 'Enable') + " sound"}
+                        icon={!session.verbose ? <Icons.SpeakerCross/> : <Icons.Speaker/>}
+                        annotation={(session.verbose ? 'Disable' : 'Enable') + " sound"}
                         side='left'
                         onClick={() => {
                             (enableAudioElement.cloneNode(true) as HTMLAudioElement).play();
-                            setVerbose( !verbose)
+                            session.verbose = !session.verbose;
+
+                            if ( !session.verbose)
+                                session.silence();
+
+                            forceUpdate((prev) => prev + 1);
                         }}/>
             }
         });
-    }, [ requiredUpdate, verbose, session ]);
+    }, [ requiredUpdate, session ]);
 
     return (
         <div className="flex flex-col relative justify-start items-center h-full w-full max-w-screen-md">

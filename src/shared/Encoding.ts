@@ -13,29 +13,15 @@ export function encodeBase64(data: string): string {
  * @param data
  */
 export async function encodeBlobToBase64(data: Blob): Promise<string> {
-    return new Promise((resolve) => {
-        const reader  = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(data);
-    });
-}
+    const arrayBuffer = await data.arrayBuffer();
+    const u8 = new Uint8Array(arrayBuffer);
 
-/**
- * Decode a base64 string from a blob.
- * @param data
- * @param type
- */
-export function decodeBase64FromBlob(data: string, type: string): Blob {
-    if (!('Buffer' in window)) {
-        return new Blob([ Uint8Array.from(atob(data), c => c.charCodeAt(0)) ], { type: type });
+    // Create a binary string using a loop
+    let binaryString = '';
+    for ( let i = 0; i < u8.length; i++ ) {
+        binaryString += String.fromCharCode(u8[ i ]);
     }
-    return new Blob([ Buffer.from(data, 'binary') ], { type: type });
-}
 
-/**
- * Decode a base64 string.
- * @param data
- */
-export function decodeBase64(data: string): string {
-    return Buffer.from(data, 'base64').toString();
+    // Convert the binary string to base64
+    return btoa(binaryString);
 }

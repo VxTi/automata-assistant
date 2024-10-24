@@ -12,6 +12,7 @@ import { ChatSessionContext }                                   from "../../cont
 
 import '../../styles/code-highlighting.css';
 import { encodeBlobToBase64 } from "../../../../shared/Encoding";
+import { SpeechToTextRequest }                                  from "stt";
 
 
 /**
@@ -27,7 +28,7 @@ export function ChatInputField() {
 
     const inputContentRef = useRef<HTMLTextAreaElement>(null);
 
-    const { session, verbose } = useContext(ChatSessionContext);
+    const { session } = useContext(ChatSessionContext);
 
     useEffect(() => {
         if ( !inputContentRef.current ) return;
@@ -113,34 +114,30 @@ export function ChatInputField() {
 
         // When the recording is stopped, send the request.
         mediaRecorder.current.onstop = async () => {
-            console.log('Recording stopped');
-            const audioBlob = new Blob(chunks);
-
-            console.log(audioBlob.size, audioBlob.type);
-
+            const audioBlob = new Blob(chunks, { type: 'audio/wav' });
             mediaRecorder.current = null;
 
-            document.addEventListener('click', () => playAudio(audioBlob));
-
             const base64 = await encodeBlobToBase64(audioBlob);
-
             console.log(base64);
 
-            /*const transcription = await window[ 'ai' ][ 'audio' ]
-             .speechToText({ file: base64 } as SpeechToTextRequest);*/
+            //const reverse = window['ai']['audio'].ttsBase64ToBlob(audioBlob);
+            setTimeout(() => playAudio(audioBlob), 500);
 
-            // console.log(transcription)
+            const transcription = await window[ 'ai' ][ 'audio' ]
+             .speechToText({ file: base64 } as SpeechToTextRequest);
+
+             console.log(transcription)
             //handleSendRequest(transcription);
         }
 
         mediaRecorder.current[ recording ? 'stop' : 'start' ]?.(window[ 'ai' ][ 'audio' ].audioSegmentationIntervalMs);
         setRecording( !recording);
 
-    }, [ verbose, recording ]);
+    }, [ recording ]);
 
     return (
         <div className="flex flex-col justify-center items-center mb-4 mt-1 max-w-screen-md w-full">
-            <div className="flex justify-start self-stretch items-center flex-wrap max-w-screen-sm my-1 mx-4 sm:mr-4">
+            <div className="flex justify-start self-stretch items-center flex-wrap max-w-screen-sm my-1 mx-4">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
                                   directory/>
@@ -152,7 +149,7 @@ export function ChatInputField() {
             </div>
 
             <div
-                className="flex flex-col justify-end items-center rounded-3xl max-w-screen-md mx-4 sm:mr-4 sm:ml-0 overflow-hidden border-solid border-[1px] content-container selectable transition-colors duration-200">
+                className="flex flex-col justify-end items-center rounded-3xl max-w-screen-md mx-4 overflow-hidden border-solid border-[1px] content-container selectable transition-colors duration-200">
                 <div
                     className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <ChatAlternativeOption

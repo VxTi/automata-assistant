@@ -59,7 +59,7 @@ export const RegisteredTools: Tool[] = [
         type: 'function',
         function: {
             name: 'internet_query',
-            description: 'Return an answer to a question based on information on the internet, if, and only if you do not have the knowledge to answer the question yourself.',
+            description: 'Return an answer to a question based on information on the internet, if, and only if you do not have the knowledge to answer the question yourself. If you possess the knowledge to the URL of the answer, return the answer from the URL, otherwise, return the query.',
             parameters: {
                 type: 'object',
                 properties: {

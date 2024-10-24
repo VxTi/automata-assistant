@@ -1898,6 +1898,10 @@ video {
     margin-top: 2rem;
   }
 
+  .sm\:mr-0 {
+    margin-right: 0px;
+  }
+
   .sm\:hidden {
     display: none;
   }

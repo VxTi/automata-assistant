@@ -127,6 +127,12 @@ export const Settings = {
         defaultValue: false
     } as Setting<boolean>,
 
+    USER_SUMMARY: {
+        key: 'conversation.user_summary',
+        defaultValue: '',
+        system: true
+    } as Setting<string>,
+
 
     /**
      * Returns the value of a setting from local storage,

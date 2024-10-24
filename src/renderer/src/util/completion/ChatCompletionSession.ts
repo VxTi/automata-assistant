@@ -4,6 +4,13 @@
  * @date Created on Wednesday, October 23 - 00:35
  */
 import { ChatResponse, CompletionRequest, ConversationTopic, Message, StreamedChatResponse } from "llm";
+import {
+    Settings
+}                                                                                            from "@renderer/util/Settings";
+import { VoiceType }                                                                         from "tts";
+import {
+    playAudio
+}                                                                                            from "@renderer/util/Audio";
 
 type ToolQueueEntry = {
     name: string,
@@ -17,6 +24,24 @@ type MessageChunkEndListener = () => void;
 type ErrorListener = (error: Error) => void;
 type ToolCallListener = (tool: ToolQueueEntry) => void;
 
+/**
+ * The initial user calibration prompt.
+ * This is used to calibrate the summary of the user.
+ * @param userMessage The message of the user.
+ * @param initialSummary The initial summary of the user.
+ */
+const InitialUserCalibrationPrompt = (userMessage: string, initialSummary = "") => `Here below are two messages given, first, your previous summary of the user, and the message of the user itself. Your task is to calibrate the summary of the user with as much accuracy and verbosity as possible. This is for you to get a better image of the user, so the more verbose, the better. If there is not enough information for you to summarize, just return the original summary. If you think the summary is already perfect, you can also return the original summary. The summary should be at least 5 words long. If the user asks you whether you are able to remember, you can now say yes. The user's message is as follows: "${userMessage}", and your initial summary: ${initialSummary}`;
+
+/**
+ * The user calibration message.
+ * This is used to calibrate the summary of the user.
+ */
+const UserCalibrationMessage = () => {
+    return {
+        role: 'system',
+        content: `Here follows a summary of the person you are talking to. This summary is based on the previous messages and interactions of the user you had. These messages aren't saved in the current chat, though you've summarized these before. If the user has given you response preferences, then these will be present in the summary so that you can respond to the user in a way that they prefer. The summary is as follows: ${Settings.get(Settings.USER_SUMMARY)}`
+    } as Message
+}
 
 /**
  * This class is used to manage a chat completion session.
@@ -33,7 +58,9 @@ export class ChatCompletionSession {
 
     private _conversationTopic: string | undefined;
     private _conversationUUID: string | undefined;
-    private _isStreaming: boolean = false;
+    private _isStreaming: boolean     = false;
+    private _spokenResponses: boolean = false;
+    private _currentAudio: HTMLAudioElement | undefined;
 
     /** The streamed response buffer. */
     private _streamedResponseBuffer: string = '';
@@ -74,7 +101,7 @@ export class ChatCompletionSession {
         conversationTitle: string,
         conversationUUID: string
     }) {
-        this._messages    = [...baseRequest.messages]; // prevent reference
+        this._messages    = [];
         this._baseRequest = baseRequest;
 
         this._conversationTopic = conversation?.conversationTitle ?? undefined;
@@ -122,7 +149,6 @@ export class ChatCompletionSession {
      */
     private _handleChunkEnd(_: any) {
         this._isStreaming = false;
-        this.onerror      = console.error;
         this.onchunkend?.call(null);
 
         // If there is a streamed response buffer, we'll append it to the chat session.
@@ -149,11 +175,7 @@ export class ChatCompletionSession {
      * @param error The error that was received.
      */
     private _handleError(_: any, error: Error): void {
-        if ( !this.onerror ) {
-            console.error(error);
-            return;
-        }
-        this.onerror?.call(null, error);
+        (this.onerror || console.error)(error);
     }
 
     /**
@@ -162,9 +184,9 @@ export class ChatCompletionSession {
      * and create a topic UUID.
      * @param initialQuestion The initial question to generate the topic from.
      */
-    private _generateTopic(initialQuestion: string): void {
+    private async _generateTopic(initialQuestion: string): Promise<any> {
         // Generate topic title
-        window[ 'ai' ]
+        return await window[ 'ai' ]
             .completion(
                 {
                     messages: [ {
@@ -177,11 +199,9 @@ export class ChatCompletionSession {
                 // If response is null, then obviously an IO error occurred,
                 // since the request was not streamed.
                 if ( !response ) {
-                    this.onerror?.call(null, new Error('IO error occurred.'));
+                    this._handleError(null, new Error('IO error occurred.'));
                     return;
                 }
-
-                console.log("Generated topic: ", response.choices[ 0 ].message.content);
 
                 this._conversationTopic = response.choices[ 0 ].message.content as string;
             });
@@ -202,10 +222,24 @@ export class ChatCompletionSession {
     }
 
     /**
+     * Setter for whether the responses should be spoken.
+     */
+    public set verbose(spoken: boolean) {
+        this._spokenResponses = spoken;
+    }
+
+    /**
+     * Getter for whether the responses should be spoken.
+     */
+    public get verbose(): boolean {
+        return this._spokenResponses;
+    }
+
+    /**
      * Getter for the conversation UUID.
      */
     public get uuid(): string {
-        if (!this._conversationUUID)
+        if ( !this._conversationUUID )
             this._conversationUUID = Math.random().toString(36).substring(2, 15);
 
         return this._conversationUUID;
@@ -226,21 +260,60 @@ export class ChatCompletionSession {
     }
 
     /**
+     * Getter for the conversation topic.
+     */
+    public silence() {
+        if ( this._currentAudio ) {
+            this._currentAudio.pause();
+            this._currentAudio = undefined;
+        }
+    }
+
+    /**
      * Appends a message to the chat session.
      * @param message
      */
-    public appendMessage(message: Message) {
+    public async appendMessage(message: Message) {
 
         console.trace(message);
+        this._messages.push(message);
+        this._baseRequest.messages.push(message);
+        this.onmessage?.call(null, message);
+
+        if ( this.verbose && message.role === 'assistant' ) {
+            window[ 'ai' ]
+                .audio
+                .textToSpeech(
+                    {
+                        input: message.content as string,
+                        voice: Settings.TTS_VOICES[ Settings.get(Settings.ASSISTANT_VOICE_TYPE) ].toLowerCase() as VoiceType,
+                        model: 'tts-1', speed: 1.0,
+                    })
+                .then(response => {
+                    const blob         = window[ 'ai' ].audio.ttsBase64ToBlob(response.data);
+                    this._currentAudio = playAudio(blob);
+                })
+        }
 
         // If there aren't any previous user sent messages,
         // we'll have to generate a topic and conversation UUID.
         if ( !this._conversationTopic && (this._messages.length < 1 || !this._messages.some(msg => msg.role === 'user')) ) {
-            this._generateTopic(message.content as string);
+            await this._generateTopic(message.content as string);
         }
-        this._messages.push(message);
-        this._baseRequest.messages.push(message);
-        this.onmessage?.call(null, message);
+
+        /*
+         * If the conversation is longer than 1 message, and the user has enabled
+         * automatic conversation saving, we'll save the conversation.
+         */
+        if ( this._messages.length > 1 && Settings.get(Settings.SAVE_CONVERSATIONS) ) {
+            window[ 'conversations' ].save(
+                {
+                    topic: this.topic,
+                    uuid: this.uuid,
+                    messages: this._messages,
+                    date: Date.now()
+                });
+        }
     }
 
     /**
@@ -249,8 +322,7 @@ export class ChatCompletionSession {
      * error.
      * @param listener The listener to register.
      */
-    public onError(listener: ErrorListener):
-        ChatCompletionSession {
+    public onError(listener: ErrorListener): ChatCompletionSession {
         this.onerror = listener;
         return this;
     }
@@ -304,10 +376,9 @@ export class ChatCompletionSession {
      * This will clear all messages, and reset the conversation topic and UUID.
      */
     public reset(): void {
-        this._messages.length             = 0;
-        this._baseRequest.messages.length = 0;
-        this._conversationTopic           = undefined;
-        this._conversationUUID            = undefined;
+        this._messages.length   = 0;
+        this._conversationTopic = undefined;
+        this._conversationUUID  = undefined;
     }
 
     /**
@@ -315,10 +386,9 @@ export class ChatCompletionSession {
      * @param topic The new conversation topic.
      */
     public update(topic: ConversationTopic): void {
-        this._conversationTopic    = topic.topic;
-        this._conversationUUID     = topic.uuid;
-        this._messages             = topic.messages;
-        this._baseRequest.messages = topic.messages;
+        this._conversationTopic = topic.topic;
+        this._conversationUUID  = topic.uuid;
+        this._messages          = topic.messages;
     }
 
     /**
@@ -331,10 +401,46 @@ export class ChatCompletionSession {
     public complete(message: Message): ChatCompletionSession {
         // Append the last message to the chat session.
         this.appendMessage(message);
-        console.log("Completing message: ", message);
+
+        const completionRequest    = this._baseRequest;
+        completionRequest.messages = [];
+
+        /**
+         * Personalized messages.
+         * If the user has enabled personalized messages, we'll prompt the user
+         * to calibrate the summary of the user. This allows the assistant to
+         * get a better image of the user.
+         */
+        if ( Settings.get(Settings.PERSONALIZED_MESSAGES) ) {
+            completionRequest.messages.push(UserCalibrationMessage());
+
+            window[ 'ai' ]
+                .completion(
+                    {
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: InitialUserCalibrationPrompt(message.content as string, Settings.get(Settings.USER_SUMMARY)),
+                            },
+                            { role: 'user', content: message.content, }
+                        ]
+                    }
+                )
+                .then((response: ChatResponse | null) => {
+                    if ( !response )
+                        return;
+
+                    Settings.set(Settings.USER_SUMMARY, response.choices[ 0 ].message.content);
+                })
+        }
+
+        completionRequest.messages.push(message);
+
+        console.log(completionRequest);
 
         window[ 'ai' ]
-            .completion(this._baseRequest)
+            .completion(completionRequest)
             .then((response: ChatResponse | null) => {
                 // If response is null, it means the request was streamed,
                 // or an IO error occurred.
@@ -345,10 +451,11 @@ export class ChatCompletionSession {
                 // invoke the listener for every tool call.
                 if ( response.choices[ 0 ].message.tool_calls ) {
                     for ( let tool_call of response.choices[ 0 ].message.tool_calls )
-                        this.ontoolcall?.call(null, {
-                            name: tool_call.function.name,
-                            arguments: JSON.parse(tool_call.function.arguments)
-                        } as ToolQueueEntry);
+                        this.ontoolcall?.(
+                            {
+                                name: tool_call.function.name!,
+                                arguments: JSON.parse(tool_call.function.arguments)
+                            });
                     return;
                 }
 
