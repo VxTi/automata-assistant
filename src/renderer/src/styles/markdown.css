@@ -68,11 +68,13 @@ body[data-theme="dark"] .markdown h6 {
 
 .markdown li {
     display: block;
-    margin: 0.5em 0;
+    margin: 0.5em 0.1em;
+    transform: translateX(1em);
 }
 
 .markdown li:before {
-    content: "-";
+    content: "-" !important;
+    position: relative;
     display: inline;
     margin-left: -1em;
     margin-right: 0.5em;

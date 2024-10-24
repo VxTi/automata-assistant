@@ -107,13 +107,13 @@ body[data-theme="dark"] {
 }
 
 body[data-theme="dark"] .content-container {
-    border-color: transparent; /*#282a2d;*/
-    background-color: #131316;
+    border-color: transparent;
+    background-color: #17171b;
 }
 
 body[data-theme="dark"] .content-container.hoverable:hover,
 body[data-theme="dark"] .content-container.hoverable:focus {
-    background-color: rgb(30, 30, 38);
+    background-color: #222228;
 }
 
 body[data-theme="dark"] .apply-stroke {

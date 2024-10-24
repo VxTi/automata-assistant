@@ -1,15 +1,16 @@
 import { createRoot }                 from 'react-dom/client'
 import { ApplicationContextProvider } from "./contexts/ApplicationContext";
 import { AutomationsContextProvider } from "./pages/automations/Automations";
-import { PageWrapper }                from "./components/PageWrapper";
+import { WindowContentWrapper }       from "./components/WindowContentWrapper";
 import { Settings }                   from "@renderer/util/Settings";
 import { ChatContextProvider }        from "@renderer/contexts/ChatContext";
 import './styles/styles.css'
 import './util/Audio'
 import { IntroductionPage }           from "@renderer/pages/IntroductionPage";
-import { InternetQueryService }       from "@renderer/util/external_services/InternetQueryService";
 import { Service }                    from "@renderer/util/external_services/Services";
+import { InternetQueryService }       from "@renderer/util/external_services/InternetQueryService";
 import { EmailService }               from "@renderer/util/external_services/EmailService";
+import { ImageGenerationService }     from "@renderer/util/external_services/ImageGenerationService";
 
 createRoot(document.getElementById('root')!).render(<ApplicationWrapper/>);
 
@@ -22,7 +23,7 @@ function ApplicationWrapper() {
         <ChatContextProvider>
             <ApplicationContextProvider>
                 <AutomationsContextProvider>
-                    <PageWrapper/>
+                    <WindowContentWrapper/>
                 </AutomationsContextProvider>
             </ApplicationContextProvider>
         </ChatContextProvider>
@@ -31,7 +32,7 @@ function ApplicationWrapper() {
 
 window.addEventListener('DOMContentLoaded', () => {
     document.body.dataset.theme = Settings.get(Settings.THEME);
-
     Service.register(new InternetQueryService());
     Service.register(new EmailService());
+    Service.register(new ImageGenerationService());
 })

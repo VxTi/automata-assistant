@@ -3,21 +3,20 @@
  * @author Luca Warmenhoven
  * @date Created on Friday, October 04 - 12:11
  */
-import { useContext, useEffect, useRef, useState } from "react";
-import { useAnimationSequence }                    from "../../util/AnimationSequence";
-import { AnnotatedIcon }                           from "../../components/AnnotatedIcon";
-import { ApplicationContext }                      from "../../contexts/ApplicationContext";
-import { Icons }                                   from "../../components/Icons";
-import { ScrollableContainer }                     from "../../components/ScrollableContainer";
-import { ChatMessage, LiveChatMessage }            from "../../pages/assistant/ChatMessage";
-import { ChatInputField }                          from "./ChatInputField";
-import { ChatSessionContext }                      from "../../contexts/ChatContext";
-import { Message, StreamedChatResponse }           from "llm";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { FadeIn, useAnimationSequence }                     from "../../util/AnimationSequence";
+import { AnnotatedIcon }                                    from "../../components/AnnotatedIcon";
+import { ApplicationContext }                               from "../../contexts/ApplicationContext";
+import { Icons }                                            from "../../components/Icons";
+import { ScrollableContainer }                              from "../../components/ScrollableContainer";
+import { ChatMessage, LiveChatMessage }                     from "../../pages/assistant/ChatMessage";
+import { ChatInputField }                                   from "./ChatInputField";
+import { ChatSessionContext }                               from "../../contexts/ChatContext";
+import { Settings }                                         from "@renderer/util/Settings";
+import { VoiceType }                                        from "tts";
+import { playAudio }                                        from "@renderer/util/Audio";
+import { Service }                                          from "@renderer/util/external_services/Services";
 import '../../styles/utilities.css';
-import { Settings }                                from "@renderer/util/Settings";
-import { VoiceType }                               from "tts";
-import { playAudio }                               from "@renderer/util/Audio";
-import { Service }                                 from "@renderer/util/external_services/Services";
 
 /**
  * The assistant page.
@@ -34,13 +33,20 @@ export function AssistantPage() {
 
     const [ requiredUpdate, forceUpdate ] = useState<number>(0);
 
+    const enableAudioElement = useMemo(() => {
+        const audio   = document.createElement('audio');
+        audio.src     = '/src/resources/audio/pop-sound.mp3';
+        audio.onerror = () => console.error('Failed to load audio');
+        return audio;
+    }, []);
+
 
     // Scroll down to the bottom of the chat
     // when the chat messages change.
     useEffect(() => {
 
         session
-            .onChunk((_: StreamedChatResponse) => {
+            .onChunk(() => {
                 if ( !lastMessageRef.current ) {
                     forceUpdate((prev) => prev + 1);
                     return;
@@ -52,6 +58,14 @@ export function AssistantPage() {
             .onChunkEnd(async () => {
 
                 forceUpdate((prev) => prev + 1);
+
+                window[ 'conversations' ].save(
+                    {
+                        topic: session.topic,
+                        uuid: session.uuid,
+                        messages: session.messages,
+                        date: Date.now()
+                    });
 
                 if ( !verbose )
                     return;
@@ -67,12 +81,15 @@ export function AssistantPage() {
                 const blob        = new Blob([ arrayBuffer ], { type: 'audio/mpeg' });
                 playAudio(blob);
             })
-            .onMessage((_: Message) => {
+            .onMessage(() => {
                 forceUpdate((prev) => prev + 1);
+
+                if ( lastMessageRef.current ) {
+                    lastMessageRef.current.innerHTML = session.streamedResponseBuffer;
+                    lastMessageRef.current.scrollIntoView({ behavior: 'smooth' });
+                }
             })
-            .onToolCall(tool => {
-                Service.invoke(tool.name, { ...tool.arguments, session });
-            })
+            .onToolCall(tool => Service.invoke(tool.name, { ...tool.arguments, session }))
 
         chatContainerRef.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
     }, [ chatContainerRef, lastMessageRef, requiredUpdate, session ]);
@@ -96,7 +113,10 @@ export function AssistantPage() {
                         icon={!verbose ? <Icons.SpeakerCross/> : <Icons.Speaker/>}
                         annotation={(verbose ? 'Disable' : 'Enable') + " sound"}
                         side='left'
-                        onClick={() => setVerbose( !verbose)}/>
+                        onClick={() => {
+                            (enableAudioElement.cloneNode(true) as HTMLAudioElement).play();
+                            setVerbose( !verbose)
+                        }}/>
             }
         });
     }, [ requiredUpdate, verbose, session ]);
@@ -128,6 +148,7 @@ function ExampleQuestion(props: { q: string }) {
     const { session } = useContext(ChatSessionContext);
     return (
         <div
+            {...FadeIn(700, 70)}
             onClick={() => session.complete({ content: props.q, role: 'user' })}
             className={`content-container hoverable flex-col border-solid border-[1px] basis-48 transition-colors duration-300 justify-start items-center gap-4 px-2 text-sm py-1 bg rounded-3xl`}>
             {props.q}

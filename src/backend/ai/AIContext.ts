@@ -4,8 +4,7 @@
  * @date Created on Friday, October 11 - 15:05
  */
 
-import AIContextConfig = aiCtx.AIContextConfig;
-import AIContextRequestParams = aiCtx.AIContextRequestParams;
+import { AIContextConfig, AIContextRequestParams } from "ai-context";
 
 /**
  * The AI Context class.
@@ -30,14 +29,16 @@ export class AIContext {
      * @param params The configuration of the request.
      */
     public request(params: AIContextRequestParams): Promise<Response> {
+
+        const basisHeaders = { 'Authorization': 'Bearer ' + this.config.apiKey };
+
+        if ( !(params.body instanceof FormData) )
+            Object.assign(basisHeaders, { 'Content-Type': 'application/json' });
+
         return fetch(this.config.baseURL + params.route, {
             method: params.method ?? 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + this.config.apiKey,
-                'Content-Type': 'application/json',
-            },
-            body: (params.body instanceof FormData || typeof params.body === 'string') ?
-                  params.body : JSON.stringify(params.body)
+            headers: basisHeaders,
+            body: (params.body instanceof FormData) ? params.body : JSON.stringify(params.body)
         });
     }
 }

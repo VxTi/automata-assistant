@@ -16,6 +16,8 @@ import * as fs                             from "node:fs";
 import { ChatResponse, CompletionRequest } from "llm";
 import { TTSRequest, VoiceType }           from "tts";
 import { SpeechToTextRequest }             from "stt";
+import { StableDiffusionConfig }           from "stable-diffusion";
+import { StableDiffusion }                 from "./StableDiffusion";
 
 dotenv.config({ path: resolve('.env') });
 
@@ -26,6 +28,7 @@ const ctx = new AIContext(
 const completion = new ChatCompletion(ctx);
 const tts        = new TextToSpeech(ctx);
 const stt        = new SpeechToText(ctx);
+const stableDiff = new StableDiffusion(ctx);
 
 ipcMain.handle('ai:completion', async (_: Electron.IpcMainInvokeEvent, request: CompletionRequest) => {
     request.tools ??= RegisteredTools;
@@ -33,6 +36,13 @@ ipcMain.handle('ai:completion', async (_: Electron.IpcMainInvokeEvent, request: 
     if ( typeof response !== 'function' && response !== null )
         return response as ChatResponse;
     return null;
+});
+
+/**
+ * Handles the stable diffusion request and responds to the client
+ */
+ipcMain.handle('ai:stable-diffusion', async (_: Electron.IpcMainInvokeEvent, request: StableDiffusionConfig) => {
+     return stableDiff.create(request);
 });
 
 /**

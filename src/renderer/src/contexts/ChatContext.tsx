@@ -56,6 +56,13 @@ export const ChatContext = createContext<ChatContextType>(
         lastMessageRef: { current: null },
     });
 
+const mainChatSession = new ChatCompletionSession(
+    {
+        messages: [],
+        model: 'gpt-4o-mini',
+        stream: true
+    });
+
 /**
  * Context for chat sessions
  */
@@ -68,13 +75,7 @@ export function ChatContextProvider(props: { children: ReactNode }) {
 
     const [ verbose, setVerbose ] = useState<boolean>(false);
 
-    const chatSessionRef = useRef<ChatCompletionSession>(
-        new ChatCompletionSession(
-            {
-                messages: [],
-                model: 'gpt-4o-mini',
-                stream: true
-            }));
+    const chatSessionRef = useRef<ChatCompletionSession>(mainChatSession);
     return (
         <ChatSessionContext.Provider value={{ session: chatSessionRef.current, verbose, setVerbose }}>
             {props.children}

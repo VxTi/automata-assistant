@@ -7,11 +7,11 @@
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Icons, InteractiveIcon }                               from "../../components/Icons";
-import { audioDevice, getActiveAudioElements }                  from "../../util/Audio";
+import { playAudio }                                            from "../../util/Audio";
 import { ChatSessionContext }                                   from "../../contexts/ChatContext";
-import { SpeechToTextRequest }                                  from "stt";
 
 import '../../styles/code-highlighting.css';
+import { encodeBase64ToBlob }                                   from "../../../../shared/Encoding";
 
 
 /**
@@ -41,16 +41,6 @@ export function ChatInputField() {
         });
     }, [ inputContentRef ]);
 
-    useEffect(() => {
-
-        if ( !verbose ) {
-            getActiveAudioElements().forEach(audioElement => {
-                audioElement.muted = true;
-            });
-        }
-
-    }, [ verbose ]);
-
     /**
      * Handles the sending of a request.
      * This function is called when the user sends a message,
@@ -58,14 +48,14 @@ export function ChatInputField() {
      */
     const handleSendRequest = useCallback((prompt: string) => {
         session.complete({ role: 'user', content: prompt });
-    }, []);
+    }, [ session ]);
 
     /**
      * Handles the sending of a message.
      * This function is called when the user clicks on the send icon,
      * and will send the message to the AI model for a response.
      */
-    const handleSend = useCallback(async () => {
+    const handleSend = useCallback(() => {
         const elementValue = inputContentRef.current!.value.trim() || '';
         // Prevent empty messages
         if ( !inputContentRef.current || !elementValue )
@@ -75,7 +65,9 @@ export function ChatInputField() {
         inputContentRef.current!.style.height = 'auto';
         handleSendRequest(elementValue);
 
-    }, [ inputContentRef ]);
+    }, [ inputContentRef, handleSendRequest ]);
+
+    const mediaRecorder = useRef<MediaRecorder | undefined | null>(null);
 
     /**
      * Handles the microphone access.
@@ -88,40 +80,60 @@ export function ChatInputField() {
      */
     const handleMicrophoneAccess = useCallback(async () => {
 
-        const device = await audioDevice;
+        if (mediaRecorder.current === null) {
+            const mediaStream = await window.navigator.mediaDevices
+                                            .getUserMedia({ audio: true }).catch(_ => null);
 
-        // Audio device access must be granted when the application starts.
-        // If the user declines, we can't record audio.
-        if ( !device ) {
-            // TODO: Add visual aid letting the user know audio recording is disabled.
-            return;
+            if ( !mediaStream ) {
+                // TODO: Add visual aid letting the user know audio recording is disabled.
+                return;
+            }
+
+            mediaRecorder.current = new MediaRecorder(mediaStream, { audioBitsPerSecond: 16000 });
         }
+
+        // Not available at all.
+        if ( mediaRecorder.current === undefined)
+            return;
+
 
         const chunks: BlobPart[] = [];
         let totalBytes           = 0;
 
         // Append incoming audio chunks to the chunks array.
-        device.ondataavailable = event => {
+        mediaRecorder.current.ondataavailable = event => {
             chunks.push(event.data);
             totalBytes += event.data.size;
 
             // Prevent file size from getting too large, currently capped at 25MB.
             if ( totalBytes > window[ 'ai' ][ 'audio' ].speechToTextFileLimit ) {
-                device.stop();
+                mediaRecorder.current?.stop();
             }
         }
 
         // When the recording is stopped, send the request.
-        device.onstop = async () => {
-            const audioBlob     = new Blob(chunks);
-            const base64        = btoa(String.fromCharCode(...new Uint8Array(await audioBlob.arrayBuffer())));
-            const transcription = await window[ 'ai' ][ 'audio' ]
-                .speechToText({ file: base64, fileName: 'audio.wav' } as SpeechToTextRequest);
+        mediaRecorder.current.onstop = async () => {
+            console.log('Recording stopped');
+            const audioBlob = new Blob(chunks);
 
-            handleSendRequest(transcription);
+            console.log(audioBlob.size, audioBlob.type);
+
+            mediaRecorder.current = null;
+
+            document.addEventListener('click', () => playAudio(audioBlob));
+
+            const base64 = await encodeBase64ToBlob(audioBlob);
+
+            console.log(base64);
+
+            /*const transcription = await window[ 'ai' ][ 'audio' ]
+             .speechToText({ file: base64 } as SpeechToTextRequest);*/
+
+            // console.log(transcription)
+            //handleSendRequest(transcription);
         }
 
-        device[ recording ? 'stop' : 'start' ].call(device, window[ 'ai' ][ 'audio' ].audioSegmentationIntervalMs);
+        mediaRecorder.current[ recording ? 'stop' : 'start' ]?.(window[ 'ai' ][ 'audio' ].audioSegmentationIntervalMs);
         setRecording( !recording);
 
     }, [ verbose, recording ]);
@@ -142,7 +154,7 @@ export function ChatInputField() {
             <div
                 className="flex flex-col justify-end items-center rounded-3xl max-w-screen-md mx-4 sm:mr-4 sm:ml-0 overflow-hidden border-solid border-[1px] content-container selectable transition-colors duration-200">
                 <div
-                    className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <ChatAlternativeOption
                         path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
                         text="Add file" onClick={() => {

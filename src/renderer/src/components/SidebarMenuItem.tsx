@@ -1,6 +1,7 @@
 import { Page }       from "../util/PagesConfig";
 import { useContext } from "react";
 import { ApplicationContext } from "../contexts/ApplicationContext";
+import { FadeIn } from "@renderer/util/AnimationSequence";
 
 /**
  * @fileoverview SidebarMenuItem.tsx
@@ -15,6 +16,7 @@ export function SidebarMenuItem(props: { page: Page }) {
 
     return (
         <div
+            {...FadeIn()}
             className="py-1 px-6 rounded-lg mx-1.5 my-0.5 content-container hoverable transition-colors duration-200 flex text-nowrap justify-start select-none items-center"
             onClick={() => {
                 setContent(props.page.pageComponent);

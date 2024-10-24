@@ -1,17 +1,22 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { electronApp, is, optimizer }                 from '@electron-toolkit/utils'
 import { join }                                       from 'path'
-import icon                                           from '../../../resources/icon.png'
 import * as dotenv                                    from 'dotenv';
 import * as fs                                        from "node:fs";
-import '../ai/AIHandlers'
 import { ConversationTopic }                          from 'llm';
+
+// @ts-ignore
+import icon                                           from '../../../resources/icon.png'
+import '../ai/AIHandlers'
+import '../headless_injection/WhatsAppHeadlessAccessor'
+import { AbstractResource }                           from "abstractions";
 
 dotenv.config({ path: join(__dirname, '../../.env') });
 
 export const appDirectory = app.getPath('userData');
 
 const conversationDirectoryPath = join(appDirectory, 'conversations');
+const resourceDirectoryPath     = join(appDirectory, 'resources');
 
 export let mainWindow: BrowserWindow | null = null;
 
@@ -27,8 +32,8 @@ function createWindow(): void {
     // Create the browser window.
     mainWindow = new BrowserWindow(
         {
-            width: 900,
-            height: 670,
+            width: 1200,
+            height: 800,
             minWidth: 760,
             minHeight: 550,
             transparent: process.platform === 'darwin',
@@ -203,4 +208,53 @@ ipcMain.handle('save-conversation', async (_, conversation: ConversationTopic) =
     const targetFilePath = join(conversationDirectoryPath, `conversation-${conversation.uuid}.json`);
     conversationCache.set(conversation.uuid, conversation);
     await fs.promises.writeFile(targetFilePath, JSON.stringify(conversation));
+});
+
+/**
+ * Get all resources from the resources directory.
+ * This function returns a list of resources, in the form of:
+ * ```
+ * [
+ *   { name: string, data: string },
+ *   ...
+ * ]
+ * ```
+ */
+ipcMain.handle('resources:list', (): AbstractResource[] => {
+    if ( !fs.existsSync(resourceDirectoryPath) ) {
+        fs.mkdirSync(resourceDirectoryPath);
+        return [];
+    }
+
+    return fs.readdirSync(resourceDirectoryPath)
+             .map(file => {
+                 const stats = fs.statSync(join(resourceDirectoryPath, file));
+                 return {
+                     name: file,
+                     data: fs.readFileSync(join(resourceDirectoryPath, file), 'utf-8'),
+                     creationDate: stats.birthtime.getTime()
+                 }
+             });
+});
+
+/**
+ * Delete a resource from the `resources` directory.
+ * This function takes a resource name and deletes the corresponding resource from the resources directory.
+ */
+ipcMain.handle('resources:delete', async (_, name: string) => {
+    const targetFilePath = join(resourceDirectoryPath, name);
+    if ( fs.existsSync(targetFilePath) )
+        fs.rmSync(targetFilePath);
+});
+
+/**
+ * Save a resource to the `resources` directory.
+ * This function takes a resource and saves it to the resources directory.
+ */
+ipcMain.handle('resources:save', async (_, resource: AbstractResource) => {
+    if ( !fs.existsSync(resourceDirectoryPath) ) {
+        fs.mkdirSync(resourceDirectoryPath);
+    }
+
+    fs.writeFileSync(join(resourceDirectoryPath, resource.name), resource.data);
 });

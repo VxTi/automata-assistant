@@ -3,8 +3,8 @@
  * @author Luca Warmenhoven
  * @date Created on Sunday, October 13 - 13:19
  */
-import { AIContext, AIModel } from "./AIContext";
-import { StableDiffusionConfig } from "stable-diffusion";
+import { AIContext, AIModel }                             from "./AIContext";
+import { StableDiffusionConfig, StableDiffusionResponse } from "stable-diffusion";
 
 /**
  * Stable Diffusion model.
@@ -25,7 +25,8 @@ export class StableDiffusion extends AIModel {
      * Create a new instance of the Stable Diffusion model.
      * @param config The configuration object for the stable diffusion model.
      */
-    public async create(config: StableDiffusionConfig): Promise<any> {
-        return super.create(config);
+    public async create(config: StableDiffusionConfig): Promise<StableDiffusionResponse> {
+        return super.create(config)
+            .then(response => response.json()) as Promise<StableDiffusionResponse>;
     }
 }

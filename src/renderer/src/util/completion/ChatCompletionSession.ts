@@ -74,13 +74,13 @@ export class ChatCompletionSession {
         conversationTitle: string,
         conversationUUID: string
     }) {
-        this._messages    = baseRequest.messages;
+        this._messages    = [...baseRequest.messages]; // prevent reference
         this._baseRequest = baseRequest;
 
-        if ( conversation ) {
-            this._conversationTopic = conversation.conversationTitle;
-            this._conversationUUID  = conversation.conversationUUID;
-        }
+        this._conversationTopic = conversation?.conversationTitle ?? undefined;
+        this._conversationUUID  = conversation?.conversationUUID;
+
+        console.log("Registering event listeners")
 
         window.electron.ipcRenderer.on('ai:completion-chunk', this._handleChunk.bind(this));
         window.electron.ipcRenderer.on('ai:completion-chunk-end', this._handleChunkEnd.bind(this));
@@ -184,8 +184,6 @@ export class ChatCompletionSession {
                 console.log("Generated topic: ", response.choices[ 0 ].message.content);
 
                 this._conversationTopic = response.choices[ 0 ].message.content as string;
-                this._conversationUUID  = Math.random().toString(36).substring(2, 15) +
-                    Math.random().toString(36).substring(2, 15);
             });
     }
 
@@ -201,6 +199,16 @@ export class ChatCompletionSession {
      */
     public get topic(): string {
         return this._conversationTopic ?? 'New conversation';
+    }
+
+    /**
+     * Getter for the conversation UUID.
+     */
+    public get uuid(): string {
+        if (!this._conversationUUID)
+            this._conversationUUID = Math.random().toString(36).substring(2, 15);
+
+        return this._conversationUUID;
     }
 
     /**
@@ -222,7 +230,6 @@ export class ChatCompletionSession {
      * @param message
      */
     public appendMessage(message: Message) {
-        console.trace();
 
         // If there aren't any previous user sent messages,
         // we'll have to generate a topic and conversation UUID.

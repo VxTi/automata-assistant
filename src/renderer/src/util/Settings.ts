@@ -3,34 +3,74 @@
  * @author Luca Warmenhoven
  * @date Created on Tuesday, October 22 - 11:21
  */
+import { StableDiffusionModelType } from "stable-diffusion";
 
 interface Setting<T> {
+
+    /**
+     * The key of this setting in local storage.
+     */
     key: string,
+
+    /**
+     * The default value of this setting.
+     */
     defaultValue: T;
+
+    /**
+     * The allowed values for this setting.
+     * If this is set, the setting will only accept values from this list
+     * and will throw an error if the value is not in this list.
+     */
     allowedValues?: (T)[];
+
+    /**
+     * Whether this setting is a system setting.
+     * System settings will not be visible to the user.
+     */
+    systemSetting?: boolean
 }
 
+/**
+ * The settings object.
+ * This object is used to manage the settings of the application.
+ */
 export const Settings = {
 
     LANGUAGES:  [ 'English', 'Dutch', 'German', 'French', 'Spanish', 'Italian', 'Russian', 'Chinese', 'Japanese', 'Korean' ],
     ISO_LANGUAGES: [ 'en', 'nl', 'de', 'fr', 'es', 'it', 'ru', 'zh', 'ja', 'ko' ],
     TTS_VOICES: [ 'Nova', 'Alloy', 'Echo', 'Fable', 'Onyx', 'Shimmer' ],
 
+    /**
+     * The theme setting. This is currently limited to 'dark' and 'light',
+     * and is set to `dark` by default.
+     */
     THEME: {
         key: 'system.theme',
         defaultValue: 'dark',
     } as Setting<'dark' | 'light'>,
 
+    /**
+     * Continuous conversation setting.
+     * This determines whether the assistant will listen continuously.
+     * This setting is only applicable for `Live Chat` mode.
+     */
     CONTINUOUS_CONVERSATION: {
         key: 'conversation.continuous_listening',
         defaultValue: true,
     } as Setting<boolean>,
 
+    /**
+     * The voice recognition setting.
+     */
     SAVE_CONVERSATIONS: {
         key: 'conversation.save_conversations',
         defaultValue: true
     } as Setting<boolean>,
 
+    /**
+     * The voice recognition setting.
+     */
     ASSISTANT_VOICE_TYPE: {
         key: 'conversation.assistant.voice',
         defaultValue: 0
@@ -68,6 +108,15 @@ export const Settings = {
         defaultValue: 0
     } as Setting<number>,
 
+    /**
+     * Setting for the image generation model.
+     * This is currently set to the DALL-E 2 model, but can be changed
+     */
+    IMAGE_GENERATION_MODEL: {
+        key: 'conversation.image_generation_model',
+        defaultValue: 'dall-e-2',
+    } as Setting<StableDiffusionModelType>,
+
     LAST_SESSION: {
         key: 'application.last_session',
         defaultValue: Date.now(),
@@ -77,6 +126,7 @@ export const Settings = {
         key: 'application.eula_accepted',
         defaultValue: false
     } as Setting<boolean>,
+
 
     /**
      * Returns the value of a setting from local storage,

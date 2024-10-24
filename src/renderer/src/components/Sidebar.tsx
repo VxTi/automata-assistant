@@ -3,20 +3,24 @@
  * @author Luca Warmenhoven
  * @date Created on Thursday, October 17 - 20:09
  */
-import { useContext }         from "react";
+import { useContext, useRef } from "react";
 import { ApplicationContext } from "../contexts/ApplicationContext";
 import { Icons }              from "./Icons";
 import { PagesConfig }        from "../util/PagesConfig";
 import { SidebarMenuItem }    from "./SidebarMenuItem";
 import { AnnotatedIcon }      from "./AnnotatedIcon";
 import { SettingsPage }       from "../pages/SettingsPage";
-import { AccountPage }        from "../pages/AccountPage";
+import { AccountPage }                  from "../pages/AccountPage";
+import { FadeIn, useAnimationSequence } from "@renderer/util/AnimationSequence";
 
 export function Sidebar() {
     const {
               sidebarExpanded, setSidebarExpanded,
               setContent
           } = useContext(ApplicationContext);
+
+    const containerRef = useRef<HTMLDivElement>(null);
+    useAnimationSequence({ containerRef });
 
     return (
         <div
@@ -29,7 +33,7 @@ export function Sidebar() {
                            onClick={() => setSidebarExpanded(false)}
                            className={`sm:hidden ml-auto mt-8 mb-2`}/>
 
-            <div className='sm:mt-8 flex flex-col justify-start items-stretch'>
+            <div className='sm:mt-8 flex flex-col justify-start items-stretch' ref={containerRef}>
                 <div className="text-center">
                     <span
                         className="text-xl w-auto font-bold font-sk-modernist uppercase bg-gradient-to-r from-gray-800 via-blue-950 to-gray-800 dark:from-gray-300 dark:via-blue-100 dark:to-gray-300 bg-center bg-clip-text text-transparent">Automata</span>
@@ -42,11 +46,13 @@ export function Sidebar() {
 
             <div className="flex flex-row justify-between items-center my-2 mx-2 mt-auto">
                 <AnnotatedIcon
+                    props={{...FadeIn()}}
                     icon={<Icons.Gear/>}
                     annotation='Settings'
                     side='right'
                     onClick={() => setContent(<SettingsPage/>)}/>
                 <AnnotatedIcon
+                    props={{...FadeIn()}}
                     icon={<Icons.User/>}
                     annotation='Account'
                     side='left'

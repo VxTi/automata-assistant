@@ -62,12 +62,13 @@ export function DropdownSelection(props: {
             </div>
             <span className="select-none">{props.options[ selectedIdx ]}</span>
             <div
-                className={`absolute left-0 overflow-visible no-scrollbar z-20 rounded-lg top-0 transition-all duration-300 content-container p-1 flex flex-col justify-start items-stretch max-h-64 overflow-y-scroll ${!expanded ? 'hidden' : ''}`}
+                className={`absolute left-0 overflow-visible no-scrollbar rounded-lg top-0 transition-all duration-300 content-container p-1 flex flex-col justify-start items-stretch max-h-64 overflow-y-scroll ${!expanded ? 'hidden' : ''}`}
                 ref={valuesContainerRef}>
+                <div className="relative flex flex-col justify-start items-stretch w-max z-40">
                 {
                     props.options.map((option, i) => (
                         <div key={i}
-                             className={`flex flex-row text-nowrap hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-200 justify-start items-center rounded-md px-5 py-1 my-0.5 border-[1px] border-solid ${selectedIdx === i ? 'bg-gray-200 dark:bg-gray-800 border-blue-500' : 'border-transparent'}`}
+                             className={`z-40 flex flex-row text-nowrap hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-200 justify-start items-center rounded-md px-5 py-1 my-0.5 border-[1px] border-solid ${selectedIdx === i ? 'bg-gray-200 dark:bg-gray-800 border-blue-500' : 'border-transparent'}`}
                              onClick={() => {
                                  props.onChange?.call(null, option, i);
                                  setSelectedIdx(i);
@@ -78,6 +79,7 @@ export function DropdownSelection(props: {
                         </div>
                     ))
                 }
+                </div>
             </div>
         </div>
     )

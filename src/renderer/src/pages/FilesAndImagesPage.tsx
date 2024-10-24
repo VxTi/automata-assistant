@@ -10,14 +10,30 @@ import { ScrollableContainer } from "../components/ScrollableContainer";
 import { FilterSelection }     from "../components/interactive/FilterSelection";
 import { SearchBar }           from "../components/SearchBar";
 import { Icons }                                   from "../components/Icons";
+import { AbstractResource }                        from "abstractions";
 
 type ResourceType = 'image' | 'spreadsheet' | 'file';
 
+function getResourceTypeFromFileExtension(extension: string): ResourceType {
+    switch (extension) {
+        case 'png':
+        case 'jpg':
+        case 'jpeg':
+        case 'gif':
+            return 'image';
+        case 'xlsx':
+        case 'xls':
+        case 'csv':
+            return 'spreadsheet';
+        default:
+            return 'file';
+    }
+}
+
 export interface ResourceInfo {
-    type: ResourceType,
-    name?: string,
-    thumbnailSrc: string,
+    resource: AbstractResource,
     tags: string[],
+    type: ResourceType,
 }
 
 export function FilesAndImagesPage() {
@@ -39,25 +55,25 @@ export function FilesAndImagesPage() {
             }
         });
 
-        // Generate random resources, as dummy data (for now)
-        // TODO: Replace this with actual data from the main process.
-        const resources = Array(50).fill(0).map((_, i) => {
-            return {
-                type: [ 'file', 'image', 'spreadsheet' ][ Math.floor(Math.random() * 3) ] as ResourceType,
-                tags: [ 'tag1', 'tag2', 'tag3', 'tag1', 'balls', 'something' ],
-                thumbnailSrc: `https://placehold.co/600x400?text=${i}`,
-            }
-        });
-
-        setResources(resources);
-        setFilteredResources(resources);
+        window['fs'].getResources()
+            .then((resources: AbstractResource[]) => {
+                const mappedResources = resources.map(resource => {
+                    return {
+                        resource: resource,
+                        type: getResourceTypeFromFileExtension(resource.name.split('.').pop()!),
+                        tags: []
+                    } as ResourceInfo;
+                });
+                setResources(mappedResources);
+                setFilteredResources(mappedResources);
+            })
     }, []);
 
     useEffect(() => {
         setFilteredResources(resources.filter(resource => {
             return (searchQuery.length === 0 ||
                     (resource.tags.some(tag => tag.includes(searchQuery))) ||
-                    (resource.name && resource.name.toLowerCase().includes(searchQuery))) &&
+                    (resource.resource.name && resource.resource.name.toLowerCase().includes(searchQuery))) &&
                 (filterType === 'none' || resource.type === filterType);
         }));
     }, [ searchQuery, filterType, resources ]);
@@ -106,8 +122,8 @@ function Resource(props: { resource: ResourceInfo }) {
             </div>
             <span {...CreateSequence('fadeIn', 500, 35)}
                   className="bg-no-repeat bg-cover bg-center w-full h-80 rounded-md"
-                  style={{ backgroundImage: `url(${props.resource.thumbnailSrc})`, }}/>
-            <span className="text-lg mt-2 mb-1 ml-1 mr-auto">{props.resource.name || 'Resource'}</span>
+                  style={{ backgroundImage: `url(${props.resource.resource.data})`, }}/>
+            <span className="text-lg mt-2 mb-1 ml-1 mr-auto">{props.resource.resource.name || 'Resource'}</span>
             <div className="flex flex-row justify-start items-start flex-wrap text-xs w-full">
                 {
                     props.resource.tags.map((tag, i) => (

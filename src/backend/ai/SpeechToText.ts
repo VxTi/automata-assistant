@@ -6,10 +6,6 @@
 import { AIContext, AIModel }                        from "./AIContext";
 import { SpeechToTextRequest, SpeechToTextResponse } from "stt";
 
-// Constants
-export const SpeechToTextFileLimit       = 25 * 1024 * 1024;
-export const AudioSegmentationIntervalMs = 500;
-
 /**
  * Speech to text model.
  * This model is used to transcribe speech from the given audio file.
@@ -33,20 +29,29 @@ export class SpeechToText extends AIModel {
         const formData = new FormData();
         if ( typeof config[ 'file' ] === 'string' ) {
 
+            console.log("Converting base64 to blob", config.file);
+
             // Convert base64 string to blob
-            const arrayBuffer = Uint8Array.from(atob(config[ 'file' ]), c => c.charCodeAt(0)).buffer;
-            const blob        = new Blob([ arrayBuffer ], { type: 'audio/mpeg' });
-            formData.append('file', blob, config[ 'fileName' ]);
+            const blob = new File([ Buffer.from(config[ 'file' ], 'base64') ], 'audio.wav', { type: 'audio/wav' });
+            formData.append('file', blob, config[ 'fileName' ] ?? 'audio.wav');
         }
         else {
             formData.append('file', config[ 'file' ], config[ 'fileName' ]);
         }
+        formData.append('model', config[ 'model' ] ?? 'whisper-1');
         formData.append('language', config[ 'language' ] ?? 'en');
         formData.append('temperature', String(config[ 'temperature' ] ?? .5));
-        formData.append('model', config[ 'model' ] ?? 'whisper-1');
 
-        return await super.create(formData)
-                          .then(response => response.json())
-                          .then(json => json.text);
+        console.log(formData);
+
+        try {
+            const response = await super.create(formData);
+            const json     = await response.json();
+            console.log(json)
+            return json.text as SpeechToTextResponse;
+        } catch (error) {
+            console.error(error);
+            return '';
+        }
     }
 }

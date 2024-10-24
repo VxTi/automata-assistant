@@ -49,13 +49,13 @@ export class Service<T> {
     }
 
     /**
-     * Invokes the service with the given descriptor.
+     * Invokes the service with the given descriptor and arguments.
+     * This will attempt to find the service with the given descriptor in the
+     * registered services map, and invoke it with the given arguments.
      * @param descriptor The descriptor of the service.
      * @param params The parameters to pass to the service.
      */
     public static invoke(descriptor: string, params: any): void {
-        console.log('Invoking service:', descriptor, 'with params', params);
-        console.log(Service.services.get(descriptor));
         Service.services.get(descriptor)?.invoke(params);
     }
 }

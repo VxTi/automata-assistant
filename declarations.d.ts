@@ -1,7 +1,14 @@
-declare global {
-    declare module '*.glsl' {
-        const value: string;
-        export default value;
+
+declare module 'abstractions' {
+
+    /**
+     * The resource type.
+     * This type is used to represent a resource in the application.
+     */
+    export type AbstractResource = {
+        name: string;
+        data: string;
+        creationDate: number;
     }
 }
 
@@ -610,7 +617,7 @@ declare module 'stt' {
         language?: string;
         temperature?: number;
         file: Blob | string;
-        fileName: string;
+        fileName?: string;
     }
 
     type SpeechToTextResponse = string;
@@ -618,8 +625,9 @@ declare module 'stt' {
 
 declare module 'stable-diffusion' {
 
+    export type ImageStyle = 'vivid' | 'natural';
     export type StableDiffusionModelType = 'dall-e-3' | 'dall-e-2';
-    export type ImageDimensions = '1024x2024' | '1024x1792' | '1792x1024';
+    export type ImageDimensions = '256x256' | '512x512' | '1024x1024' | '1024x1792' | '1792x1024';
 
     /**
      * Configuration object for the stable diffusion model.
@@ -666,11 +674,28 @@ declare module 'stable-diffusion' {
          * This can be either 'vivid' or 'natural'.
          * This parameter is only available for DALL-E 3.
          */
-        style?: 'vivid' | 'natural';
+        style?: ImageStyle;
+    }
+
+    /**
+     * The response object for the stable diffusion model.
+     */
+    export interface StableDiffusionResponse {
+        /**
+         * The time at which the image was generated since EPOCH (1970).
+         */
+        created: number;
+
+        data: {
+            /**
+             * The URL of the image.
+             */
+            url: string;
+        }[]
     }
 }
 
-declare module 'aiCtx' {
+declare module 'ai-context' {
 
     /**
      * Configuration object for the AI Context.
