@@ -72,9 +72,11 @@ export class AIModel {
 
     /**
      * Create a new instance of the model.
-     * @param config The configuration of the model.
+     * @param body The configuration of the model.
+     * @param requestMethod The request method to use. Defaults to POST.
+     * @param queryParams The query parameters to use, if any.
      */
-    public async create(config: any): Promise<any> {
-        return this.aiContext.request({ route: this.route, body: config });
+    public async create(body: any, requestMethod: 'POST' | 'GET' = 'POST', queryParams?: string): Promise<any> {
+        return this.aiContext.request({ route: this.route + (queryParams ? `?${queryParams}` : ''), method: requestMethod, body: body });
     }
 }

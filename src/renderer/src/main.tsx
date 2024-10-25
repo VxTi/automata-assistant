@@ -2,15 +2,15 @@ import { createRoot }                 from 'react-dom/client'
 import { ApplicationContextProvider } from "./contexts/ApplicationContext";
 import { AutomationsContextProvider } from "./pages/automations/Automations";
 import { WindowContentWrapper }       from "./components/WindowContentWrapper";
-import { Settings }                   from "@renderer/util/Settings";
-import { ChatContextProvider }        from "@renderer/contexts/ChatContext";
+import { Settings }            from "@renderer/util/Settings";
+import { ChatContextProvider } from "@renderer/contexts/ChatSessionContext";
 import './styles/styles.css'
 import './util/Audio'
-import { IntroductionPage }           from "@renderer/pages/IntroductionPage";
-import { Service }                    from "@renderer/util/external_services/Services";
-import { InternetQueryService }       from "@renderer/util/external_services/InternetQueryService";
-import { EmailService }               from "@renderer/util/external_services/EmailService";
-import { ImageGenerationService }     from "@renderer/util/external_services/ImageGenerationService";
+import { IntroductionPage }       from "@renderer/pages/IntroductionPage";
+import { Service }                from "@renderer/util/services/Services";
+import { InternetQueryService }   from "@renderer/util/services/InternetQueryService";
+import { EmailService }           from "@renderer/util/services/EmailService";
+import { ImageGenerationService } from "@renderer/util/services/ImageGenerationService";
 
 createRoot(document.getElementById('root')!).render(<ApplicationWrapper/>);
 

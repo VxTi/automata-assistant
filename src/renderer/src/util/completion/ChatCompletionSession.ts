@@ -13,11 +13,7 @@ import {
 }                                                                                            from "@renderer/util/Audio";
 import { Dispatch, SetStateAction }                                                          from "react";
 
-type ToolQueueEntry = {
-    name: string,
-    arguments: Object,
-    buffer?: string
-};
+type ToolQueueEntry = { name: string, arguments: Object, buffer?: string };
 
 type MessageListener = (message: Message) => void;
 type MessageChunkListener = (response: StreamedChatResponse) => void;

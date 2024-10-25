@@ -6,9 +6,9 @@
 import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { CreateSequence }                                                  from "../../util/AnimationSequence";
 import { Icons, InteractiveIcon }                                          from "../../components/Icons";
-import renderMathInElement                                                 from "katex/contrib/auto-render";
-import { ChatSessionContext, mdParser }                                    from "../../contexts/ChatContext";
-import { Message }                                                         from "llm";
+import renderMathInElement              from "katex/contrib/auto-render";
+import { ChatSessionContext, mdParser } from "../../contexts/ChatSessionContext";
+import { Message }                      from "llm";
 import '../../styles/markdown.css'
 import 'katex/dist/katex.min.css'
 import { AnnotatedIcon }                                                   from "@renderer/components/AnnotatedIcon";

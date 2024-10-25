@@ -3,21 +3,24 @@
  * @author Luca Warmenhoven
  * @date Created on Monday, October 14 - 09:25
  */
-import { ChatCompletion }                  from "./ChatCompletion";
-import { TextToSpeech, Voices }            from "./TextToSpeech";
-import { SpeechToText }                    from "./SpeechToText";
-import { AIContext }                       from "./AIContext";
-import { RegisteredTools }                 from "./RegisteredTools";
-import { appDirectory }                    from "../main";
-import { ipcMain }                         from "electron";
-import { join, resolve }                   from "path";
-import * as dotenv                         from 'dotenv';
-import * as fs                             from "node:fs";
-import { ChatResponse, CompletionRequest } from "llm";
-import { TTSRequest, VoiceType }           from "tts";
-import { SpeechToTextRequest }             from "stt";
-import { StableDiffusionConfig }           from "stable-diffusion";
-import { StableDiffusion }                 from "./StableDiffusion";
+import { ChatCompletion }                                  from "./ChatCompletion";
+import { TextToSpeech, Voices }                            from "./TextToSpeech";
+import { SpeechToText }                                    from "./SpeechToText";
+import { AIContext }                                       from "./AIContext";
+import { RegisteredTools }                                 from "./RegisteredTools";
+import { appDirectory }                                    from "../main";
+import { ipcMain }                                         from "electron";
+import { join, resolve }                                   from "path";
+import * as dotenv                                         from 'dotenv';
+import * as fs                                             from "node:fs";
+import { ChatResponse, CompletionRequest }                 from "llm";
+import { TTSRequest, VoiceType }                           from "tts";
+import { SpeechToTextRequest }                             from "stt";
+import { StableDiffusionConfig }                           from "stable-diffusion";
+import { StableDiffusion }                                 from "./StableDiffusion";
+import { FilePurpose, FileUploadList, FileUploadResponse } from "ai-file-uploads";
+import { FileUploads }                                     from "./FileUploads";
+import path                                                from "node:path";
 
 dotenv.config({ path: resolve('.env') });
 
@@ -25,10 +28,15 @@ dotenv.config({ path: resolve('.env') });
 const ctx = new AIContext(
     { baseURL: 'https://api.openai.com/v1/', apiKey: process.env.OPENAI_API_KEY! });
 
-const completion = new ChatCompletion(ctx);
-const tts        = new TextToSpeech(ctx);
-const stt        = new SpeechToText(ctx);
-const stableDiff = new StableDiffusion(ctx);
+const completion  = new ChatCompletion(ctx);
+const tts         = new TextToSpeech(ctx);
+const stt         = new SpeechToText(ctx);
+const stableDiff  = new StableDiffusion(ctx);
+const fileUploads = new FileUploads(ctx);
+
+// The default fetch interval for API calls, in milliseconds.
+const DefaultFetchInterval = 100;
+const Wait                 = () => new Promise(resolve => setTimeout(resolve, DefaultFetchInterval));
 
 /**
  * Converts a buffer to a base64 string.
@@ -39,8 +47,8 @@ function bufferToBase64(buffer: Buffer) {
 
     // Create a binary string using a loop
     let binaryString = '';
-    for (let i = 0; i < arrayBuffer.length; i++) {
-        binaryString += String.fromCharCode(arrayBuffer[i]);
+    for ( let i = 0; i < arrayBuffer.length; i++ ) {
+        binaryString += String.fromCharCode(arrayBuffer[ i ]);
     }
 
     // Convert the binary string to base64
@@ -59,7 +67,7 @@ ipcMain.handle('ai:completion', async (_: Electron.IpcMainInvokeEvent, request: 
  * Handles the stable diffusion request and responds to the client
  */
 ipcMain.handle('ai:stable-diffusion', async (_: Electron.IpcMainInvokeEvent, request: StableDiffusionConfig) => {
-     return stableDiff.create(request);
+    return stableDiff.create(request);
 });
 
 /**
@@ -67,7 +75,7 @@ ipcMain.handle('ai:stable-diffusion', async (_: Electron.IpcMainInvokeEvent, req
  * with the blob converted to base64.
  */
 ipcMain.handle('ai:text-to-speech', async (_: any, request: TTSRequest | string) => {
-    const blob: Blob = await tts.create(request);
+    const blob: Blob     = await tts.create(request);
     const buffer: Buffer = Buffer.from(await blob.arrayBuffer());
     return {
         data: bufferToBase64(buffer)
@@ -81,10 +89,43 @@ ipcMain.handle('ai:speech-to-text', async (_: any, request: SpeechToTextRequest)
     return await stt.create(request);
 });
 
+/**
+ * Handles the file upload request and responds to the client.
+ * TODO: Add URL path support for remote files.
+ */
+ipcMain.handle('ai:upload-files', async (_: any, files: {
+    path: string,
+    purpose: FilePurpose
+}[]): Promise<FileUploadResponse[]> => {
+
+    const responses = new Array<FileUploadResponse>(files.length);
+
+    for ( let i = 0; i < files.length; i++ ) {
+        const fileBuffer: Buffer = fs.readFileSync(files[ i ].path);
+        const file: File         = new File([ fileBuffer ], path.basename(files[ i ].path));
+
+        responses[ i ] = await fileUploads.upload({ file: file, purpose: files[ i ].purpose });
+
+        // If there's more files to upload, we'll wait a bit to prevent rate limiting.
+        if ( i + 1 < files.length )
+            await Wait();
+    }
+    return responses;
+});
+
+/**
+ * Handles the file list request and responds to the client with a list of files.
+ */
+ipcMain.handle('ai:list-files', async (_: any, purpose?: FilePurpose): Promise<FileUploadList> => {
+    return await fileUploads.get(purpose);
+})
+
+/**
+ * Handles the voice assistant examples request and responds to the client
+ * with a map of voice types and their base64 encoded audio.
+ */
 ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Map<VoiceType, string> }> => {
     const voiceCachePath = join(appDirectory, 'voice-assistant-cache');
-
-    console.log(voiceCachePath)
 
     // If the directory doesn't exist, we'll create it.
     if ( !fs.existsSync(voiceCachePath) ) {
@@ -102,22 +143,23 @@ ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Ma
 
         // Generate files
         for ( let i = 0; i < Voices.length; i++ ) {
-            const voice: string  = Voices[ i ];
-            const blob: Blob =  await tts.create(
+            const voice: string = Voices[ i ];
+            const blob: Blob    = await tts.create(
                 {
                     input: 'Hello! My name is ' + voice,
                     voice: (voice.toLowerCase()) as VoiceType,
                     model: 'tts-1', speed: 1.0
                 });
-            const buffer = Buffer.from(await blob.arrayBuffer());
-            audioBuffers[i] = buffer;
+
+            const buffer: Buffer        = Buffer.from(await blob.arrayBuffer());
+            audioBuffers[ i ]   = buffer;
 
             const filePath = join(voiceCachePath, `${voice}.wav`); // Adjust the extension as necessary
             fs.writeFileSync(filePath, buffer);
 
             // If there's more voices to generate, we'll wait a bit to prevent rate limiting.
             if ( i + 1 < Voices.length )
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await Wait();
         }
 
         // Return base64 encoded audio
@@ -131,7 +173,7 @@ ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Ma
     return {
         data: new Map(fs.readdirSync(voiceCachePath).map(file => {
             const filePath = join(voiceCachePath, file);
-            const voice = file.split('.')[0] as VoiceType;
+            const voice    = file.split('.')[ 0 ] as VoiceType;
             return [ voice, bufferToBase64(fs.readFileSync(filePath)) ];
         })),
     }

@@ -5,7 +5,8 @@ import { CompletionRequest, ConversationTopic }           from "llm";
 import { TTSRequest, VoiceType }                          from "tts";
 import { SpeechToTextRequest }                            from "stt";
 import { StableDiffusionConfig, StableDiffusionResponse } from "stable-diffusion";
-import { AbstractResource }                               from "abstractions";
+import { AbstractResource }                                from "abstractions";
+import { FilePurpose, FileUploadList, FileUploadResponse } from "ai-file-uploads";
 
 
 // Expose the APIs to the renderer process
@@ -156,5 +157,13 @@ contextBridge.exposeInMainWorld('ai', {
         },
         speechToTextFileLimit: 25 * 1024 * 1024,
         audioSegmentationIntervalMs: 500,
+    },
+    files: {
+        list: async (): Promise<FileUploadList> => {
+            return await electronAPI.ipcRenderer.invoke('ai:list-files');
+        },
+        upload: async (...files: { path: string, purpose: FilePurpose }[]): Promise<FileUploadResponse[]> => {
+            return await electronAPI.ipcRenderer.invoke('ai:upload-files', files);
+        }
     }
 });

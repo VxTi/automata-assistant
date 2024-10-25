@@ -1,4 +1,3 @@
-
 declare module 'abstractions' {
 
     /**
@@ -14,9 +13,17 @@ declare module 'abstractions' {
     }
 }
 
-
+/**
+ * LLM Module
+ * This module contains the types and interfaces for the LLM API (OpenAI)
+ */
 declare module 'llm' {
 
+    /**
+     * Model type for the LLM API.
+     * These are the currently available models, as of writing this,
+     * any new models will be added to this list.
+     */
     export type ModelType =
         | 'o1-preview'
         | 'chatgpt-4o-latest'
@@ -625,6 +632,77 @@ declare module 'stt' {
     type SpeechToTextResponse = string;
 }
 
+declare module 'ai-file-uploads' {
+
+    /**
+     * The purpose of the file upload.
+     * This is used to determine where the file should be uploaded to,
+     * and can be used to retrieve the file later.
+     */
+    export type FilePurpose = 'assistants' | 'vision' | 'batch' | 'fine-tune';
+
+    /**
+     * The file upload request.
+     */
+    export interface FileUploadRequest {
+
+        /**
+         * The files to upload.
+         */
+        file: File;
+
+        /**
+         * The purpose of the file upload.
+         */
+        purpose: FilePurpose;
+    }
+
+    /**
+     * The file upload response.
+     * This is the response object returned by the file upload service.
+     */
+    export interface FileUploadResponse {
+        /**
+         * The ID of the file.
+         */
+        id: string;
+
+        /**
+         * The object type.
+         */
+        object: 'file';
+
+        /**
+         * The size of the file in bytes.
+         */
+        bytes: number;
+
+        /**
+         * The date at which the file was created, in seconds since EPOCH.
+         */
+        created_at: number;
+
+        /**
+         * The filename of the file.
+         */
+        filename: string;
+
+        /**
+         * The purpose of the file, e.g. 'assistants'.
+         */
+        purpose: FilePurpose;
+    }
+
+    /**
+     * The file upload list response.
+     * This is the response object returned by the file upload service.
+     */
+    export interface FileUploadList {
+        data: FileUploadResponse[];
+        object: 'list';
+    }
+}
+
 declare module 'stable-diffusion' {
 
     export type ImageStyle = 'vivid' | 'natural';
@@ -679,6 +757,9 @@ declare module 'stable-diffusion' {
         style?: ImageStyle;
     }
 
+    /**
+     * The error response object for the stable diffusion model.
+     */
     export interface StableDiffusionErrorResponse {
         /**
          * Object containing information about why the fetch failed

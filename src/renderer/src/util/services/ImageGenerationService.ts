@@ -3,8 +3,8 @@
  * @author Luca Warmenhoven
  * @date Created on Thursday, October 24 - 14:14
  */
-import { Service }                             from "@renderer/util/external_services/Services";
-import { ChatCompletionSession }                                from "@renderer/util/completion/ChatCompletionSession";
+import { Service }               from "@renderer/util/services/Services";
+import { ChatCompletionSession } from "@renderer/util/completion/ChatCompletionSession";
 import { ImageDimensions, ImageStyle, StableDiffusionResponse } from "stable-diffusion";
 import { AbstractResource }                                     from "abstractions";
 import { Settings }                            from "@renderer/util/Settings";

@@ -8,11 +8,12 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Icons, InteractiveIcon }                               from "../../components/Icons";
 import { playAudio }                                            from "../../util/Audio";
-import { ChatSessionContext }                                   from "../../contexts/ChatContext";
+import { ChatSessionContext }                                   from "../../contexts/ChatSessionContext";
 
 import '../../styles/code-highlighting.css';
-import { encodeBlobToBase64 } from "../../../../shared/Encoding";
+import { encodeBlobToBase64 }                                   from "../../../../shared/Encoding";
 import { SpeechToTextRequest }                                  from "stt";
+import { FilePurpose }                                          from "ai-file-uploads";
 
 
 /**
@@ -48,7 +49,16 @@ export function ChatInputField() {
      * which happens both after recording and after typing.
      */
     const handleSendRequest = useCallback((prompt: string) => {
+
+        if ( selectedFiles.length > 0 )
+            window[ 'ai' ][ 'files' ].upload(...selectedFiles.map(file => ({
+                path: file,
+                purpose: 'assistants' as FilePurpose
+            })));
+
         session.complete({ role: 'user', content: prompt });
+        setSelectedFiles([]);
+        setSelectedDirectory(null);
     }, [ session ]);
 
     /**
@@ -81,7 +91,7 @@ export function ChatInputField() {
      */
     const handleMicrophoneAccess = useCallback(async () => {
 
-        if (mediaRecorder.current === null) {
+        if ( mediaRecorder.current === null ) {
             const mediaStream = await window.navigator.mediaDevices
                                             .getUserMedia({ audio: true }).catch(_ => null);
 
@@ -94,7 +104,7 @@ export function ChatInputField() {
         }
 
         // Not available at all.
-        if ( mediaRecorder.current === undefined)
+        if ( mediaRecorder.current === undefined )
             return;
 
 
@@ -114,7 +124,7 @@ export function ChatInputField() {
 
         // When the recording is stopped, send the request.
         mediaRecorder.current.onstop = async () => {
-            const audioBlob = new Blob(chunks, { type: 'audio/wav' });
+            const audioBlob       = new Blob(chunks, { type: 'audio/wav' });
             mediaRecorder.current = null;
 
             const base64 = await encodeBlobToBase64(audioBlob);
@@ -124,9 +134,9 @@ export function ChatInputField() {
             setTimeout(() => playAudio(audioBlob), 500);
 
             const transcription = await window[ 'ai' ][ 'audio' ]
-             .speechToText({ file: base64 } as SpeechToTextRequest);
+                .speechToText({ file: base64 } as SpeechToTextRequest);
 
-             console.log(transcription)
+            console.log(transcription)
             //handleSendRequest(transcription);
         }
 
@@ -136,7 +146,7 @@ export function ChatInputField() {
     }, [ recording ]);
 
     return (
-        <div className="flex flex-col justify-center items-center mb-4 mt-1 max-w-screen-md w-full">
+        <div className="flex flex-col justify-center items-center mb-4 mt-1 max-w-screen-sm w-full">
             <div className="flex justify-start self-stretch items-center flex-wrap max-w-screen-sm my-1 mx-4">
                 {selectedDirectory && (
                     <AttachedFile filePath={selectedDirectory} onDelete={() => setSelectedDirectory(null)}
@@ -149,9 +159,9 @@ export function ChatInputField() {
             </div>
 
             <div
-                className="flex flex-col justify-end items-center rounded-3xl max-w-screen-md mx-4 overflow-hidden border-solid border-[1px] content-container selectable transition-colors duration-200">
+                className="flex flex-col justify-end items-center self-stretch rounded-3xl max-w-screen-sm mx-4 overflow-hidden border-solid border-[1px] content-container selectable transition-colors duration-200">
                 <div
-                    className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden duration-500 ${optionsShown ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    className={`flex flex-row justify-center items-center transition-all w-full overflow-hidden self-stretch duration-500 ${optionsShown ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <ChatAlternativeOption
                         path="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
                         text="Add file" onClick={() => {
@@ -175,20 +185,20 @@ export function ChatInputField() {
                     }}/>
                 </div>
                 <div
-                    className="flex justify-center items-end text-white dark:text-black mx-2">
+                    className="flex justify-center items-end text-white dark:text-black mx-2 self-stretch">
                     <InteractiveIcon icon={<Icons.ThreeDots/>}
                                      onClick={() => setOptionsShown( !optionsShown)}
                                      className="self-center"/>
                     <textarea
-                        onKeyDown={async event => {
+                        onKeyDown={event => {
                             if ( event.key === 'Enter' && !event.shiftKey ) {
                                 event.preventDefault();
-                                await handleSend();
+                                handleSend();
                             }
                         }}
                         placeholder="Ask me anything..."
                         rows={1} cols={50} ref={inputContentRef}
-                        className="resize-none mx-2 w-full max-h-52 my-auto grow focus:outline-none bg-transparent text-black dark:text-white p-2"/>
+                        className="resize-none w-full max-h-52 my-auto grow focus:outline-none bg-transparent text-black dark:text-white p-2"/>
 
                     <InteractiveIcon icon={recording ? <Icons.Stop/> : <Icons.Microphone/>}
                                      onClick={handleMicrophoneAccess}

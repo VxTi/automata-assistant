@@ -10,9 +10,9 @@ import { ApplicationContext }                               from "../../contexts
 import { Icons }                                            from "../../components/Icons";
 import { ScrollableContainer }                              from "../../components/ScrollableContainer";
 import { ChatMessage, LiveChatMessage }                     from "../../pages/assistant/ChatMessage";
-import { ChatInputField }                                   from "./ChatInputField";
-import { ChatSessionContext }                               from "../../contexts/ChatContext";
-import { Service }                                          from "@renderer/util/external_services/Services";
+import { ChatInputField }     from "./ChatInputField";
+import { ChatSessionContext } from "../../contexts/ChatSessionContext";
+import { Service }            from "@renderer/util/services/Services";
 import '../../styles/utilities.css';
 
 /**

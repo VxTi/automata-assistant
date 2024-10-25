@@ -15,8 +15,8 @@ import { SearchBar }                                                     from ".
 import { ConversationTopic, Message }                                    from "llm";
 import {
     FilterSelection
-}                                                                        from "../components/interactive/FilterSelection";
-import { ChatSessionContext }                                            from "@renderer/contexts/ChatContext";
+}                             from "../components/interactive/FilterSelection";
+import { ChatSessionContext } from "@renderer/contexts/ChatSessionContext";
 
 export function ConversationHistoryPage() {
 
