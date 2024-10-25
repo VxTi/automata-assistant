@@ -25,7 +25,7 @@ export function Sidebar() {
     return (
         <div
             className={
-                `flex flex-col shrink-0 sm:m-4 sm:mr-0 sm:rounded-2xl content-container w-96 transition-all duration-500 justify-start items-stretch grow z-50 overflow-hidden sm:bg-opacity-100 absolute sm:relative left-0 top-0 h-full sm:h-auto ${!sidebarExpanded ? 'max-w-0' : 'max-w-[300px]'} sm:max-w-[300px]`}>
+                `flex flex-col shrink-0 sm:m-4 shadow-lg sm:shadow-none sm:mr-0 sm:rounded-2xl content-container w-96 transition-all duration-500 justify-start items-stretch grow z-50 overflow-hidden sm:bg-opacity-100 absolute sm:relative left-0 top-0 h-full sm:h-auto ${!sidebarExpanded ? 'max-w-0' : 'max-w-[300px]'} sm:max-w-[300px]`}>
 
             <AnnotatedIcon icon={<Icons.Cross/>}
                            annotation='Close menu'

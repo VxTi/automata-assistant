@@ -22,7 +22,7 @@ export function AnnotatedIcon(props: {
         <div
             {...props.props}
             onClick={(event) => props.onClick(event)}
-            className={`group content-container hoverable transition-colors m-1 duration-300 rounded-full flex items-center justify-start ${props.side === 'right' ? 'flex-row-reverse' : 'flex-row'} ${props.className ?? ''}`}>
+            className={`group content-container hoverable icon transition-colors m-1 duration-300 rounded-full flex items-center justify-start ${props.side === 'right' ? 'flex-row-reverse' : 'flex-row'} ${props.className ?? ''}`}>
         <span
             className="sm:group-hover:max-w-[150px] select-none text-xs text-nowrap sm:group-hover:px-1 group-hover:py-0.5 sm:group-hover:opacity-100 opacity-0 rounded-xl max-w-[0px] transition-all duration-300 ease-in-out overflow-hidden sm:group-hover:mx-0.5">
             {props.annotation}

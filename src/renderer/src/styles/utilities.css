@@ -68,6 +68,10 @@ body {
     display: flex;
 }
 
+/* Non-dark theme */
+body[data-theme="light"] .content-container.hoverable.icon:not(:hover) {
+    background-color: transparent;
+}
 
 .content-container {
     background-color: rgb(239, 237, 241);

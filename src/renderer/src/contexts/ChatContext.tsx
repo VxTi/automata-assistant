@@ -32,12 +32,7 @@ mdParser.use(
         }),
 );
 
-const mainChatSession = new ChatCompletionSession(
-    {
-        messages: [],
-        model: 'gpt-4o-mini',
-        stream: true
-    });
+const mainChatSession = new ChatCompletionSession();
 
 /**
  * Context for chat sessions

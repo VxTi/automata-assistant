@@ -11,6 +11,7 @@ import { VoiceType }                                                            
 import {
     playAudio
 }                                                                                            from "@renderer/util/Audio";
+import { Dispatch, SetStateAction }                                                          from "react";
 
 type ToolQueueEntry = {
     name: string,
@@ -62,6 +63,8 @@ export class ChatCompletionSession {
     private _spokenResponses: boolean = false;
     private _currentAudio: HTMLAudioElement | undefined;
 
+    private _reactUpdateDispatch: Dispatch<SetStateAction<void>> | undefined;
+
     /** The streamed response buffer. */
     private _streamedResponseBuffer: string = '';
 
@@ -91,23 +94,14 @@ export class ChatCompletionSession {
 
     /**
      * Constructs a new instance of the ChatCompletionSession class.
-     * @param baseRequest The base request to use for the completion session.
-     * This can contain the messages that are already in the chat session,
-     * tool calls, and other information that is needed for the completion session.
-     * @param conversation Information about the conversation. This is optional, and usually not present
-     * in new conversations. This data will be generated once new messages are appended to the chat.
      */
-    constructor(baseRequest: CompletionRequest, conversation?: {
-        conversationTitle: string,
-        conversationUUID: string
-    }) {
+    constructor() {
         this._messages    = [];
-        this._baseRequest = baseRequest;
-
-        this._conversationTopic = conversation?.conversationTitle ?? undefined;
-        this._conversationUUID  = conversation?.conversationUUID;
-
-        console.log("Registering event listeners")
+        this._baseRequest = {
+            messages: [],
+            model: 'gpt-4o-mini',
+            stream: true
+        };
 
         window.electron.ipcRenderer.on('ai:completion-chunk', this._handleChunk.bind(this));
         window.electron.ipcRenderer.on('ai:completion-chunk-end', this._handleChunkEnd.bind(this));
@@ -145,28 +139,39 @@ export class ChatCompletionSession {
     }
 
     /**
+     * Sets the update listener for the chat session.
+     * This will be called when the chat session is updated.
+     * This allows this non-React class to update the React state,
+     * causing a re-render of the chat session.
+     *
+     * @param dispatch The dispatch function to call when the chat session is updated.
+     */
+    public setUpdateListener(dispatch?: Dispatch<SetStateAction<any>>) {
+        this._reactUpdateDispatch = dispatch;
+    }
+
+    /**
      * Handles the end of the completion chunk.
+     * This will be called when the completion chunk has ended (receives a [DONE] message).
+     * If any tool calls were received, these will be parsed and sent to the tool call listener.
      */
     private _handleChunkEnd(_: any) {
         this._isStreaming = false;
         this.onchunkend?.call(null);
 
         // If there is a streamed response buffer, we'll append it to the chat session.
+        // This won't be present if there were tool calls.
         if ( this._streamedResponseBuffer ) {
             this.appendMessage({ content: this._streamedResponseBuffer, role: 'assistant' } as Message);
+            this._streamedResponseBuffer = '';
         }
 
-        if ( this._streamedToolCallQueue.size > 0 ) {
-
-            for ( let tool_call of this._streamedToolCallQueue.values() ) {
-                tool_call.arguments = JSON.parse(tool_call.buffer!);
-                delete tool_call.buffer;
-                this.ontoolcall?.call(null, tool_call);
-            }
-
-            this._streamedToolCallQueue.clear();
+        // If there are tool calls, we'll parse the tool calls and send them to the tool call listener
+        for ( let tool_call of this._streamedToolCallQueue.values() ) {
+            tool_call.arguments = JSON.parse(tool_call.buffer!);
+            delete tool_call.buffer;
+            this.ontoolcall?.call(null, tool_call);
         }
-        this._streamedResponseBuffer = '';
     }
 
     /**
@@ -196,6 +201,7 @@ export class ChatCompletionSession {
                     model: 'gpt-3.5-turbo'
                 })
             .then((response: ChatResponse | null) => {
+                console.log(response);
                 // If response is null, then obviously an IO error occurred,
                 // since the request was not streamed.
                 if ( !response ) {
@@ -204,6 +210,8 @@ export class ChatCompletionSession {
                 }
 
                 this._conversationTopic = response.choices[ 0 ].message.content as string;
+                this._reactUpdateDispatch?.();
+                console.log('Generated topic: ' + this._conversationTopic);
             });
     }
 
@@ -218,7 +226,7 @@ export class ChatCompletionSession {
      * Getter for the conversation topic
      */
     public get topic(): string {
-        return this._conversationTopic ?? 'New conversation';
+        return this._conversationTopic || 'New conversation';
     }
 
     /**
@@ -226,6 +234,7 @@ export class ChatCompletionSession {
      */
     public set verbose(spoken: boolean) {
         this._spokenResponses = spoken;
+        this._reactUpdateDispatch?.();
     }
 
     /**
@@ -275,9 +284,7 @@ export class ChatCompletionSession {
      */
     public async appendMessage(message: Message) {
 
-        console.trace(message);
         this._messages.push(message);
-        this._baseRequest.messages.push(message);
         this.onmessage?.call(null, message);
 
         if ( this.verbose && message.role === 'assistant' ) {
@@ -290,14 +297,13 @@ export class ChatCompletionSession {
                         model: 'tts-1', speed: 1.0,
                     })
                 .then(response => {
-                    const blob         = window[ 'ai' ].audio.ttsBase64ToBlob(response.data);
-                    this._currentAudio = playAudio(blob);
+                    this._currentAudio = playAudio(window[ 'ai' ].audio.ttsBase64ToBlob(response.data));
                 })
         }
 
         // If there aren't any previous user sent messages,
         // we'll have to generate a topic and conversation UUID.
-        if ( !this._conversationTopic && (this._messages.length < 1 || !this._messages.some(msg => msg.role === 'user')) ) {
+        if ( !this._conversationTopic && (this._messages.length <= 1 || !this._messages.some(msg => msg.role === 'user')) ) {
             await this._generateTopic(message.content as string);
         }
 
@@ -314,6 +320,7 @@ export class ChatCompletionSession {
                     date: Date.now()
                 });
         }
+        this._reactUpdateDispatch?.();
     }
 
     /**
@@ -379,23 +386,30 @@ export class ChatCompletionSession {
         this._messages.length   = 0;
         this._conversationTopic = undefined;
         this._conversationUUID  = undefined;
+        this._streamedResponseBuffer = '';
+        this._streamedToolCallQueue.clear();
+        this._reactUpdateDispatch?.();
     }
 
     /**
      * Updates the conversation topic.
+     * This will update the conversation topic, the conversation UUID and the messages.
      * @param topic The new conversation topic.
      */
     public update(topic: ConversationTopic): void {
         this._conversationTopic = topic.topic;
         this._conversationUUID  = topic.uuid;
         this._messages          = topic.messages;
+        this._reactUpdateDispatch?.();
     }
 
     /**
      * Requests a completion from the chat assistant.
-     * This method will send a completion request to the chat assistant,
-     * and append the message to the chat session.
-     * If an `onmessage` listener is registered, it will be called with the message.
+     * This is the main method of this class, and will do the following things:
+     * - Append the last message to the chat session.
+     * - Update the summary of the user's message if this is enabled
+     * - Send the completion request to the chat assistant.
+     *
      * @param message The message to send to the chat assistant.
      */
     public complete(message: Message): ChatCompletionSession {
@@ -437,8 +451,6 @@ export class ChatCompletionSession {
 
         completionRequest.messages.push(message);
 
-        console.log(completionRequest);
-
         window[ 'ai' ]
             .completion(completionRequest)
             .then((response: ChatResponse | null) => {
@@ -463,6 +475,8 @@ export class ChatCompletionSession {
                 // call the `onmessage` listener, if exists.
                 this.appendMessage({ content: response.choices[ 0 ].message.content, role: 'assistant' });
             });
+
+        this._reactUpdateDispatch?.();
 
         return this;
     }

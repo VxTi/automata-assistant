@@ -69,6 +69,7 @@ export function AssistantPage() {
     useAnimationSequence({ containerRef: chatContainerRef }, [ requiredUpdate ]);
 
     useEffect(() => {
+        session.setUpdateListener(() => forceUpdate((prev) => prev + 1));
         setHeaderConfig(() => {
             return {
                 leftHeaderContent: session.messages.length > 0 ? (
@@ -76,7 +77,6 @@ export function AssistantPage() {
                         icon={<Icons.PencilSquare/>}
                         annotation="New topic" side='right' onClick={() => {
                         session.reset();
-                        forceUpdate((prev) => prev + 1);
                     }}/>) : undefined,
                 pageTitle: session.topic,
                 rightHeaderContent:
@@ -90,12 +90,13 @@ export function AssistantPage() {
 
                             if ( !session.verbose)
                                 session.silence();
-
-                            forceUpdate((prev) => prev + 1);
                         }}/>
             }
         });
-    }, [ requiredUpdate, session ]);
+        return () => {
+            session.setUpdateListener();
+        }
+    }, [ session, requiredUpdate ]);
 
     return (
         <div className="flex flex-col relative justify-start items-center h-full w-full max-w-screen-md">
