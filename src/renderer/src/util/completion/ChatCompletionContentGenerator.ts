@@ -5,3 +5,7 @@
  */
 
 // TODO: Implement the ChatCompletionContentGenerator class
+
+class ChatCompletionContentGenerator {
+
+}

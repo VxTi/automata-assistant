@@ -4,9 +4,10 @@
  * @date Created on Thursday, October 24 - 14:14
  */
 import { Service }                             from "@renderer/util/external_services/Services";
-import { ChatCompletionSession }               from "@renderer/util/completion/ChatCompletionSession";
-import { ImageStyle, StableDiffusionResponse } from "stable-diffusion";
-import { AbstractResource }                    from "abstractions";
+import { ChatCompletionSession }                                from "@renderer/util/completion/ChatCompletionSession";
+import { ImageDimensions, ImageStyle, StableDiffusionResponse } from "stable-diffusion";
+import { AbstractResource }                                     from "abstractions";
+import { Settings }                            from "@renderer/util/Settings";
 
 type ImageGenerationServiceParams = {
     prompt: string,
@@ -34,11 +35,24 @@ export class ImageGenerationService extends Service<ImageGenerationServiceParams
                     style: params.imageStyle,
                     response_format: 'url',
                     model: 'dall-e-2',
-                    size: "256x256",
+                    size: Settings.get(Settings.IMAGE_GENERATION_QUALITY) as ImageDimensions,
                     n: 1
                 }
             )
             .then(async (response: StableDiffusionResponse) => {
+                console.log(response)
+
+                if ( 'error' in response )
+                {
+                    params.session.appendMessage(
+                        {
+                            role: 'assistant',
+                            content: `<span style="border-radius: 5px; background-color: #c50000; color: #3d1818; padding: 10px">${response.error.message}</span>`
+                        }
+                    )
+                    return;
+                }
+
                 window[ 'fs' ]
                     .fetchRemoteResource(response.data[ 0 ].url)
                     .then((resource: AbstractResource) => {
@@ -52,7 +66,7 @@ export class ImageGenerationService extends Service<ImageGenerationServiceParams
                 params.session.appendMessage(
                     {
                         role: 'assistant',
-                        content: `<img src="${response.data[ 0 ].url}" alt="${params.prompt}" class="w-64 h-64" />`
+                        content: `<img src="${response.data[ 0 ].url}" alt="${params.prompt}" class="w-full" />`
                     });
             });
     }

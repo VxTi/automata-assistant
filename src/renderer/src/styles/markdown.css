@@ -102,6 +102,10 @@ body[data-theme="dark"] .markdown h6 {
 }
 
 .markdown code.hljs {
+    color: #000;
+}
+
+body[data-theme="dark"] .markdown code.hljs {
     color: #fff;
 }
 
@@ -111,10 +115,10 @@ body[data-theme="dark"] .markdown h6 {
 }
 
 body[data-theme="dark"] .markdown code:not(.hljs) {
-    background-color: #333;
+    background-color: #444;
 }
 
 body[data-theme="dark"] .markdown pre code {
-    background-color: #222;
+    background-color: #000;
 }
 

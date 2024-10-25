@@ -86,7 +86,7 @@ export function ChatMessage(props: { entry: Message }) {
 
     return (
         <div
-            className="relative group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 mx-2 hover:brightness-90 dark:hover:brightness-125 transition-all duration-300"
+            className="relative group shadow-sm flex-row justify-between items-start content-container rounded-md py-2 px-4 my-1 mx-2 hover:brightness-95 dark:hover:brightness-110 transition-all duration-300"
             {...CreateSequence('fadeIn', 300, 10)}>
             <div className="flex flex-col justify-center items-start text-wrap overflow-hidden w-full">
                 <div className="flex flex-row justify-between items-center w-full">
@@ -96,7 +96,7 @@ export function ChatMessage(props: { entry: Message }) {
                                      onClick={saveToClipboardCb}
                                      className='opacity-0 group-hover:opacity-100 transition-all'/>
                 </div>
-                <div className="not-prose text-sm mt-2 mb-1 w-full">
+                <div className="not-prose text-sm pt-2 pb-2 w-full">
                     <span className="markdown" ref={contentRef}/>
                 </div>
                 <div

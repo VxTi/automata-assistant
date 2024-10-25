@@ -36,6 +36,8 @@
 
 
 .header-grid {
+    position: sticky;
+    top: 0;
     display: grid;
     align-items: center;
     margin-top: 16px;
@@ -68,8 +70,7 @@ body {
     display: flex;
 }
 
-/* Non-dark theme */
-body[data-theme="light"] .content-container.hoverable.icon:not(:hover) {
+.content-container.hoverable.icon:not(:hover) {
     background-color: transparent;
 }
 

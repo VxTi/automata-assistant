@@ -629,7 +629,7 @@ declare module 'stable-diffusion' {
 
     export type ImageStyle = 'vivid' | 'natural';
     export type StableDiffusionModelType = 'dall-e-3' | 'dall-e-2';
-    export type ImageDimensions = '256x256' | '512x512' | '1024x1024' | '1024x1792' | '1792x1024';
+    export type ImageDimensions = '256x256' | '512x512' | '1024x1024'// | '1024x1792' | '1792x1024';
 
     /**
      * Configuration object for the stable diffusion model.
@@ -679,10 +679,36 @@ declare module 'stable-diffusion' {
         style?: ImageStyle;
     }
 
+    export interface StableDiffusionErrorResponse {
+        /**
+         * Object containing information about why the fetch failed
+         */
+        error: {
+            /**
+             * The error code returned by the fetch
+             */
+            code: string,
+
+            /**
+             * The error message
+             */
+            message: string,
+            /**
+             * No idea
+             */
+            param: any
+
+            /**
+             * The type of error
+             */
+            type: string
+        }
+    }
+
     /**
-     * The response object for the stable diffusion model.
+     * A valid response object.
      */
-    export interface StableDiffusionResponse {
+    export interface StableDiffusionValidResponse {
         /**
          * The time at which the image was generated since EPOCH (1970).
          */
@@ -695,6 +721,12 @@ declare module 'stable-diffusion' {
             url: string;
         }[]
     }
+
+    /**
+     * The response object for the stable diffusion model.
+     * This can contain both error and validated responses.
+     */
+    export type StableDiffusionResponse = StableDiffusionValidResponse | StableDiffusionErrorResponse;
 }
 
 declare module 'ai-context' {

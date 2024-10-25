@@ -91,13 +91,14 @@ ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Ma
         fs.mkdirSync(voiceCachePath);
     }
 
-    let audioBuffers: Buffer[] = [];
 
     // If cache files are missing, we'll just renew all of them.
     if ( fs.readdirSync(voiceCachePath).length !== Voices.length ) {
         for ( const file of fs.readdirSync(voiceCachePath) ) {
             fs.unlinkSync(join(voiceCachePath, file));
         }
+
+        let audioBuffers: Buffer[] = Array<Buffer>(Voices.length);
 
         // Generate files
         for ( let i = 0; i < Voices.length; i++ ) {
@@ -109,8 +110,7 @@ ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Ma
                     model: 'tts-1', speed: 1.0
                 });
             const buffer = Buffer.from(await blob.arrayBuffer());
-
-            audioBuffers.push(buffer);
+            audioBuffers[i] = buffer;
 
             const filePath = join(voiceCachePath, `${voice}.wav`); // Adjust the extension as necessary
             fs.writeFileSync(filePath, buffer);
@@ -119,19 +119,20 @@ ipcMain.handle('ai:voice-assistant-examples', async (_: any): Promise<{ data: Ma
             if ( i + 1 < Voices.length )
                 await new Promise(resolve => setTimeout(resolve, 100));
         }
-    }
-    else {
-        audioBuffers = fs.readdirSync(voiceCachePath).map(file => {
-            const filePath = join(voiceCachePath, file);
-            return fs.readFileSync(filePath);
-        });
+
+        // Return base64 encoded audio
+        return {
+            data: new Map(audioBuffers.map((buffer, i) => {
+                return [ Voices[ i ] as VoiceType, bufferToBase64(buffer) ];
+            })),
+        };
     }
 
-
-    // Return base64 encoded audio
     return {
-        data: new Map(audioBuffers.map((buffer, i) => {
-            return [ Voices[ i ] as VoiceType, bufferToBase64(buffer) ];
+        data: new Map(fs.readdirSync(voiceCachePath).map(file => {
+            const filePath = join(voiceCachePath, file);
+            const voice = file.split('.')[0] as VoiceType;
+            return [ voice, bufferToBase64(fs.readFileSync(filePath)) ];
         })),
-    };
+    }
 });

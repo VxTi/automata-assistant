@@ -19,7 +19,7 @@ export function PageHeader(props: { config: PageHeaderConfig }) {
 
     return (
         <div
-            className={`header-grid text-black dark:text-white items-center w-full max-w-screen-md text-lg mt-4 mb-3 px-4 ${props.config.className! ?? ''}`}>
+            className={`header-grid backdrop-blur-md items-center w-full max-w-screen-md text-lg mt-4 pb-3 px-4 ${props.config.className ?? ''}`}>
             <div className="flex flex-row items-center justify-start">
                 <div
                     className={`h-full sm:hidden ${sidebarExpanded ? 'hidden' : ''}`}>

@@ -34,8 +34,8 @@ function createWindow(): void {
         {
             width: 1200,
             height: 800,
-            minWidth: 760,
-            minHeight: 550,
+            minWidth: 600,
+            minHeight: 400,
             transparent: process.platform === 'darwin',
             show: false,
             autoHideMenuBar: true,

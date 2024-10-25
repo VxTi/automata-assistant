@@ -45,7 +45,7 @@ export function AutomationsListPage() {
 
     return (
         <div className="mx-auto max-w-screen-md w-full flex flex-col justify-start">
-            <div className="grid grid-cols-3 gap-4 m-4" ref={containerRef}>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 m-4" ref={containerRef}>
                 {automations.map((automation, i) => (
                     <AutomationCard key={i} index={i} {...automation}/>))}
             </div>

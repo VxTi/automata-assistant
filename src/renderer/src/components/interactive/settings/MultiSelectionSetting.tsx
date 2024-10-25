@@ -10,7 +10,7 @@ export function MultiSelectionSetting(props: {
     description: string,
     onChange: (value: string, index: number) => void,
     options: string[],
-    currentValue: number,
+    currentIndex: number,
     extraDescriptive?: JSX.Element,
     extraOption?: JSX.Element,
     props?: any
@@ -26,7 +26,7 @@ export function MultiSelectionSetting(props: {
             </div>
             <div className="flex flex-row justify-start items-center">
                 {props.extraOption}
-            <DropdownSelection options={props.options} currentValue={props.currentValue} onChange={props.onChange}/>
+            <DropdownSelection options={props.options} currentValue={props.currentIndex} onChange={props.onChange}/>
             </div>
         </div>
     )

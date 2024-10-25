@@ -42,7 +42,9 @@ const UserCalibrationMessage = () => {
         role: 'system',
         content: `Here follows a summary of the person you are talking to. This summary is based on the previous messages and interactions of the user you had. These messages aren't saved in the current chat, though you've summarized these before. If the user has given you response preferences, then these will be present in the summary so that you can respond to the user in a way that they prefer. The summary is as follows: ${Settings.get(Settings.USER_SUMMARY)}`
     } as Message
-}
+};
+
+const GenericConversationTitle = 'New conversation';
 
 /**
  * This class is used to manage a chat completion session.
@@ -53,9 +55,6 @@ export class ChatCompletionSession {
 
     /** The messages in the chat session. */
     private _messages: Message[];
-
-    /** The base request to use for the completion session. */
-    private _baseRequest: CompletionRequest;
 
     private _conversationTopic: string | undefined;
     private _conversationUUID: string | undefined;
@@ -97,12 +96,6 @@ export class ChatCompletionSession {
      */
     constructor() {
         this._messages    = [];
-        this._baseRequest = {
-            messages: [],
-            model: 'gpt-4o-mini',
-            stream: true
-        };
-
         window.electron.ipcRenderer.on('ai:completion-chunk', this._handleChunk.bind(this));
         window.electron.ipcRenderer.on('ai:completion-chunk-end', this._handleChunkEnd.bind(this));
         window.electron.ipcRenderer.on('ai:completion-error', this._handleError.bind(this));
@@ -183,6 +176,10 @@ export class ChatCompletionSession {
         (this.onerror || console.error)(error);
     }
 
+    private _shouldGenerateTopic(): boolean {
+        return !this._conversationTopic || this._conversationTopic === GenericConversationTitle;
+    }
+
     /**
      * Generates a topic for the conversation.
      * This will attempt to summarize the initial question in as little words as possible,
@@ -190,6 +187,7 @@ export class ChatCompletionSession {
      * @param initialQuestion The initial question to generate the topic from.
      */
     private async _generateTopic(initialQuestion: string): Promise<any> {
+        console.log('Generating topic for conversation...');
         // Generate topic title
         return await window[ 'ai' ]
             .completion(
@@ -201,7 +199,6 @@ export class ChatCompletionSession {
                     model: 'gpt-3.5-turbo'
                 })
             .then((response: ChatResponse | null) => {
-                console.log(response);
                 // If response is null, then obviously an IO error occurred,
                 // since the request was not streamed.
                 if ( !response ) {
@@ -226,7 +223,7 @@ export class ChatCompletionSession {
      * Getter for the conversation topic
      */
     public get topic(): string {
-        return this._conversationTopic || 'New conversation';
+        return this._conversationTopic || GenericConversationTitle;
     }
 
     /**
@@ -262,14 +259,14 @@ export class ChatCompletionSession {
     }
 
     /**
-     * Getter for the conversation topic.
+     * Getter for whether the chat assistant is streaming.
      */
     public get streaming(): boolean {
         return this._isStreaming;
     }
 
     /**
-     * Getter for the conversation topic.
+     * Silences the chat assistant, if it is speaking.
      */
     public silence() {
         if ( this._currentAudio ) {
@@ -278,50 +275,6 @@ export class ChatCompletionSession {
         }
     }
 
-    /**
-     * Appends a message to the chat session.
-     * @param message
-     */
-    public async appendMessage(message: Message) {
-
-        this._messages.push(message);
-        this.onmessage?.call(null, message);
-
-        if ( this.verbose && message.role === 'assistant' ) {
-            window[ 'ai' ]
-                .audio
-                .textToSpeech(
-                    {
-                        input: message.content as string,
-                        voice: Settings.TTS_VOICES[ Settings.get(Settings.ASSISTANT_VOICE_TYPE) ].toLowerCase() as VoiceType,
-                        model: 'tts-1', speed: 1.0,
-                    })
-                .then(response => {
-                    this._currentAudio = playAudio(window[ 'ai' ].audio.ttsBase64ToBlob(response.data));
-                })
-        }
-
-        // If there aren't any previous user sent messages,
-        // we'll have to generate a topic and conversation UUID.
-        if ( !this._conversationTopic && (this._messages.length <= 1 || !this._messages.some(msg => msg.role === 'user')) ) {
-            await this._generateTopic(message.content as string);
-        }
-
-        /*
-         * If the conversation is longer than 1 message, and the user has enabled
-         * automatic conversation saving, we'll save the conversation.
-         */
-        if ( this._messages.length > 1 && Settings.get(Settings.SAVE_CONVERSATIONS) ) {
-            window[ 'conversations' ].save(
-                {
-                    topic: this.topic,
-                    uuid: this.uuid,
-                    messages: this._messages,
-                    date: Date.now()
-                });
-        }
-        this._reactUpdateDispatch?.();
-    }
 
     /**
      * Registers a listener for the error of the chat assistant.
@@ -404,6 +357,51 @@ export class ChatCompletionSession {
     }
 
     /**
+     * Appends a message to the chat session.
+     * @param message
+     */
+    public async appendMessage(message: Message) {
+
+        this._messages.push(message);
+        this.onmessage?.call(null, message);
+
+        if ( this.verbose && message.role === 'assistant' ) {
+            window[ 'ai' ]
+                .audio
+                .textToSpeech(
+                    {
+                        input: message.content as string,
+                        voice: Settings.TTS_VOICES[ Settings.get(Settings.ASSISTANT_VOICE_TYPE) ].toLowerCase() as VoiceType,
+                        model: 'tts-1', speed: 1.0,
+                    })
+                .then(response => {
+                    this._currentAudio = playAudio(window[ 'ai' ].audio.ttsBase64ToBlob(response.data));
+                })
+        }
+
+        // If there aren't any previous user sent messages,
+        // we'll have to generate a topic and conversation UUID.
+        if ( this._shouldGenerateTopic()) {
+            await this._generateTopic(message.content as string);
+        }
+
+        /*
+         * If the conversation is longer than 1 message, and the user has enabled
+         * automatic conversation saving, we'll save the conversation.
+         */
+        if ( this._messages.length > 1 && Settings.get(Settings.SAVE_CONVERSATIONS) ) {
+            window[ 'conversations' ].save(
+                {
+                    topic: this.topic,
+                    uuid: this.uuid,
+                    messages: this._messages,
+                    date: Date.now()
+                });
+        }
+        this._reactUpdateDispatch?.();
+    }
+
+    /**
      * Requests a completion from the chat assistant.
      * This is the main method of this class, and will do the following things:
      * - Append the last message to the chat session.
@@ -416,8 +414,11 @@ export class ChatCompletionSession {
         // Append the last message to the chat session.
         this.appendMessage(message);
 
-        const completionRequest    = this._baseRequest;
-        completionRequest.messages = [];
+        const completionRequest    = {
+            messages: [],
+            model: 'gpt-4o-mini',
+            stream: true
+        } as CompletionRequest;
 
         /**
          * Personalized messages.
@@ -449,6 +450,7 @@ export class ChatCompletionSession {
                 })
         }
 
+        completionRequest.messages.push(...this._messages);
         completionRequest.messages.push(message);
 
         window[ 'ai' ]

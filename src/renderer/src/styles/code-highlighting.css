@@ -80,20 +80,23 @@
     font-weight:700
 }
 
-/** Code block styling */
 pre:has(.hljs) {
     overflow-x: scroll;
-    margin: 10px 0 !important;
+    margin: 10px 0 0 -5px !important;
     width: 100%;
-    background-color: #222222;
     padding: 5px;
     border-radius: 5px;
+    overflow-y: hidden;
+    background-color: #fff;
+    color: #000;
+}
+
+/** Code block styling */
+body[data-theme="dark"] pre:has(.hljs) {
+    background-color: #000;
+    color: #fff;
 }
 .hljs {
     font-family: 'JetBrains Mono', monospace;
     margin: 0 5px;
-}
-
-hljs.language-bash {
-
 }

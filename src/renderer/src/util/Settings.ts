@@ -3,7 +3,7 @@
  * @author Luca Warmenhoven
  * @date Created on Tuesday, October 22 - 11:21
  */
-import { StableDiffusionModelType } from "stable-diffusion";
+import { ImageDimensions, StableDiffusionModelType } from "stable-diffusion";
 
 interface Setting<T> {
 
@@ -40,6 +40,7 @@ export const Settings = {
     LANGUAGES:  [ 'English', 'Dutch', 'German', 'French', 'Spanish', 'Italian', 'Russian', 'Chinese', 'Japanese', 'Korean' ],
     ISO_LANGUAGES: [ 'en', 'nl', 'de', 'fr', 'es', 'it', 'ru', 'zh', 'ja', 'ko' ],
     TTS_VOICES: [ 'Nova', 'Alloy', 'Echo', 'Fable', 'Onyx', 'Shimmer' ],
+    DIFF_IMAGE_SIZES: [ '256x256', '512x512', '1024x1024' ] as ImageDimensions[],
 
     /**
      * The theme setting. This is currently limited to 'dark' and 'light',
@@ -84,6 +85,16 @@ export const Settings = {
         key: 'conversation.save_resources',
         defaultValue: true
     } as Setting<boolean>,
+
+    /**
+     * Setting for the quality of images.
+     * A reduced quality can reduce the cost of using the API,
+     * so be careful when setting the setting too high...
+     */
+    IMAGE_GENERATION_QUALITY: {
+        key: 'conversation.images.quality',
+        defaultValue: "256x256"
+    } as Setting<ImageDimensions>,
 
     /**
      * Setting for personalized messages.
