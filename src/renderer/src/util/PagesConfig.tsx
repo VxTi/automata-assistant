@@ -60,8 +60,4 @@ const PagesConfig: Page[] = [
     }
 ];
 
-const ConfigMap = new Map(PagesConfig.map((entry => {
-    return [entry.title.toLowerCase().replaceAll(' ', ''), entry];
-})));
-
-export { ConfigMap, PagesConfig };
+export { PagesConfig };

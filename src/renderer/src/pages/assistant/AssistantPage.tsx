@@ -9,7 +9,6 @@ import { AnnotatedIcon }                                    from "../../componen
 import { ApplicationContext }                               from "../../contexts/ApplicationContext";
 import { Icons }                                            from "../../components/Icons";
 import { ScrollableContainer }                              from "../../components/ScrollableContainer";
-import { ChatMessage, LiveChatMessage }                     from "../../pages/assistant/ChatMessage";
 import { ChatInputField }                                   from "./ChatInputField";
 import { ChatSessionContext }                               from "../../contexts/ChatSessionContext";
 import { Service }                                          from "@renderer/util/services/Services";
@@ -25,7 +24,6 @@ export function AssistantPage() {
     const { session } = useContext(ChatSessionContext);
 
     const chatContainerRef    = useRef<HTMLDivElement>(null);
-    const lastMessageRef      = useRef<HTMLDivElement>(null);
     const { setHeaderConfig } = useContext(ApplicationContext);
 
     const [ requiredUpdate, forceUpdate ] = useState<number>(0);
@@ -42,29 +40,10 @@ export function AssistantPage() {
     // when the chat messages change.
     useEffect(() => {
 
-        session
-            .onChunk(() => {
-                if ( !lastMessageRef.current ) {
-                    forceUpdate((prev) => prev + 1);
-                    return;
-                }
-
-                lastMessageRef.current.innerHTML = session.streamedResponseBuffer;
-                lastMessageRef.current.scrollIntoView({ behavior: 'smooth' });
-            })
-            .onChunkEnd(() => forceUpdate((prev) => prev + 1))
-            .onMessage(() => {
-                forceUpdate((prev) => prev + 1);
-
-                if ( lastMessageRef.current ) {
-                    lastMessageRef.current.innerHTML = session.streamedResponseBuffer;
-                    lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                }
-            })
-            .onToolCall(tool => Service.invoke(tool.name, { ...tool.arguments, session }))
+        session.onToolCall(tool => Service.invoke(tool.name, { ...tool.arguments, session }))
 
         chatContainerRef.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
-    }, [ chatContainerRef, lastMessageRef, requiredUpdate, session ]);
+    }, [ chatContainerRef, session ]);
 
     useAnimationSequence({ containerRef: chatContainerRef }, [ requiredUpdate ]);
 
@@ -72,7 +51,7 @@ export function AssistantPage() {
         session.setUpdateListener(() => forceUpdate((prev) => prev + 1));
         setHeaderConfig(() => {
             return {
-                leftHeaderContent: session.messages.length > 0 ? (
+                leftHeaderContent: session.fragments.length > 0 ? (
                     <AnnotatedIcon
                         icon={<Icons.PencilSquare/>}
                         annotation="New topic" side='right' onClick={() => {
@@ -100,7 +79,7 @@ export function AssistantPage() {
 
     return (
         <div className="flex flex-col relative justify-start items-center h-full w-full max-w-screen-md">
-            {session.messages.length === 0 && !session.streaming ?
+            {session.fragments.length === 0 && !session.streaming ?
              (
                  <div className="flex flex-row justify-center content-end gap-2 my-auto grow flex-wrap">
                      <ExampleQuestion q="Write me a poem"/>
@@ -111,9 +90,7 @@ export function AssistantPage() {
              ) :
              (
                  <ScrollableContainer elementRef={chatContainerRef} size='lg'>
-                     {session.messages.map((entry, index) =>
-                                               <ChatMessage key={index} entry={entry}/>)}
-                     <LiveChatMessage contentRef={lastMessageRef}/>
+                     {session.contentGenerator.content}
                  </ScrollableContainer>
              )}
             <ChatInputField/>

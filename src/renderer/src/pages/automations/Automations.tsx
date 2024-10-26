@@ -12,7 +12,10 @@ import { createContext, ReactNode, useState } from "react";
 export const AutomationsContext = createContext<{
     automations: Automation[],
     setAutomations: (automations: Automation[]) => void
-}>({ automations: [], setAutomations: () => {} });
+}>({
+       automations: [], setAutomations: () => {
+    }
+   });
 
 /**
  * The automations' context provider.
@@ -37,8 +40,8 @@ export interface Automation {
     id: string,
     name: string,
     description: string,
-    icon: JSX.Element,
-    targetPage: JSX.Element,
+    icon: ReactNode,
+    targetPage: ReactNode,
     enabled?: boolean,
     settings?: any,
 }

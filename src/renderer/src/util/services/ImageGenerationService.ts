@@ -3,11 +3,11 @@
  * @author Luca Warmenhoven
  * @date Created on Thursday, October 24 - 14:14
  */
-import { Service }               from "@renderer/util/services/Services";
-import { ChatCompletionSession } from "@renderer/util/completion/ChatCompletionSession";
+import { Service }                                              from "@renderer/util/services/Services";
+import { ChatCompletionSession }                                from "@renderer/util/completion/ChatCompletionSession";
 import { ImageDimensions, ImageStyle, StableDiffusionResponse } from "stable-diffusion";
 import { AbstractResource }                                     from "abstractions";
-import { Settings }                            from "@renderer/util/Settings";
+import { Settings }                                             from "@renderer/util/Settings";
 
 type ImageGenerationServiceParams = {
     prompt: string,
@@ -28,6 +28,13 @@ export class ImageGenerationService extends Service<ImageGenerationServiceParams
      * @param params The parameters to pass to the service.
      */
     public invoke(params: ImageGenerationServiceParams) {
+        const imageSize = Settings.get(Settings.IMAGE_GENERATION_QUALITY) as ImageDimensions;
+        params.session.appendFragment(
+            {
+                type: 'text', content: 'Generating image...'
+            }, 'assistant'
+        );
+
         window[ 'ai' ]
             .stableDiffusion(
                 {
@@ -35,20 +42,20 @@ export class ImageGenerationService extends Service<ImageGenerationServiceParams
                     style: params.imageStyle,
                     response_format: 'url',
                     model: 'dall-e-2',
-                    size: Settings.get(Settings.IMAGE_GENERATION_QUALITY) as ImageDimensions,
+                    size: imageSize,
                     n: 1
                 }
             )
             .then(async (response: StableDiffusionResponse) => {
                 console.log(response)
 
-                if ( 'error' in response )
-                {
-                    params.session.appendMessage(
+                if ( 'error' in response ) {
+
+                    params.session.appendFragment(
                         {
-                            role: 'assistant',
-                            content: `<span style="border-radius: 5px; background-color: #c50000; color: #3d1818; padding: 10px">${response.error.message}</span>`
-                        }
+                            type: 'text', content: 'An error occurred while generating the image: ' + response.error
+                        },
+                        'assistant',
                     )
                     return;
                 }
@@ -56,18 +63,21 @@ export class ImageGenerationService extends Service<ImageGenerationServiceParams
                 window[ 'fs' ]
                     .fetchRemoteResource(response.data[ 0 ].url)
                     .then((resource: AbstractResource) => {
-                        const uint8Array = new TextEncoder().encode(resource.data);
+                        const uint8Array   = new TextEncoder().encode(resource.data);
                         const binaryString = new TextDecoder('latin1').decode(uint8Array);
-                        resource.data = btoa(binaryString);
-                        resource.name = params.prompt;
-                        window['fs'].saveResource(resource);
+                        resource.data      = btoa(binaryString);
+                        resource.name      = params.prompt;
+                        window[ 'fs' ].saveResource(resource);
                     })
 
-                params.session.appendMessage(
+                params.session.appendFragment(
                     {
-                        role: 'assistant',
-                        content: `<img src="${response.data[ 0 ].url}" alt="${params.prompt}" class="w-full" />`
-                    });
+                        type: 'image',
+                        url: response.data[ 0 ].url,
+                        alt: params.prompt,
+                        dimensions: imageSize
+                    },
+                    'assistant');
             });
     }
 }

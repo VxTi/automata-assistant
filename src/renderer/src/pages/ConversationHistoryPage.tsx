@@ -4,19 +4,19 @@
  * @date Created on Wednesday, October 16 - 12:08
  */
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { FadeIn, useAnimationSequence }                                  from "../util/AnimationSequence";
-import { AnnotatedIcon }                                                 from "../components/AnnotatedIcon";
-import { AssistantPage }                                                 from "./assistant/AssistantPage";
-import { ApplicationContext }                                            from "../contexts/ApplicationContext";
-import { Icons }                                                         from "../components/Icons";
-import { ScrollableContainer }                                           from "../components/ScrollableContainer";
-import { debounce }                                                      from "../util/Debounce";
-import { SearchBar }                                                     from "../components/SearchBar";
-import { ConversationTopic, Message }                                    from "llm";
-import {
-    FilterSelection
-}                             from "../components/interactive/FilterSelection";
-import { ChatSessionContext } from "@renderer/contexts/ChatSessionContext";
+
+import { FadeIn, useAnimationSequence } from "../util/AnimationSequence";
+import { AnnotatedIcon }                from "../components/AnnotatedIcon";
+import { AssistantPage }                from "./assistant/AssistantPage";
+import { ApplicationContext }           from "../contexts/ApplicationContext";
+import { Icons }                        from "../components/Icons";
+import { ScrollableContainer }          from "../components/ScrollableContainer";
+import { debounce }                     from "../util/Debounce";
+import { SearchBar }                    from "../components/SearchBar";
+import { ConversationTopic }            from "llm";
+import { FilterSelection }              from "../components/interactive/FilterSelection";
+import { ChatSessionContext }           from "@renderer/contexts/ChatSessionContext";
+import { ComposedMessageFragment }      from "@renderer/util/completion/ChatCompletionMessageFragments";
 
 export function ConversationHistoryPage() {
 
@@ -96,13 +96,12 @@ export function ConversationHistoryPage() {
                 conversationTopics
                     .filter(topic =>
                                 topic.topic.toLowerCase().includes(value) ||
-                                topic.messages.some((message: Message) =>
-                                                        typeof message.content !== 'object' &&
-                                                        (Array.isArray(message.content) ?
-                                                         message.content.join(", ") : message.content!)
-                                                            .toLowerCase()
-                                                            .includes(value))
-                    ));
+                                topic.messageFragments.some(
+                                    (message: ComposedMessageFragment) =>
+                                        message.fragments.some(fragment =>
+                                                                   fragment.type === 'text' &&
+                                                                   fragment.content.toLowerCase().includes(value)
+                                        ))));
         }, 300);
 
         window.addEventListener('keydown', handleKeydown);
@@ -149,7 +148,7 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
     const { setContent }          = useContext(ApplicationContext);
     const { topic: entry }        = props;
     const [ deleted, setDeleted ] = useState(false);
-    const { session } = useContext(ChatSessionContext);
+    const { session }             = useContext(ChatSessionContext);
 
     // Removes a conversation topic from the conversation directory,
     // and forces an update to refresh the conversation history.
@@ -169,9 +168,8 @@ function Topic(props: { topic: ConversationTopic, index: number }) {
             tabIndex={props.index + 1}
             className={`conversation-topic flex content-container hoverable transition-all duration-200 focus:border-blue-500 outline-none text-sm flex-row rounded mx-auto w-[80%] overflow-hidden justify-between items-center ${deleted ? 'max-h-0 overflow-hidden text-transparent p-0 m-0 border-0' : 'max-h-32 my-0.5 p-2 border-[1px]'}`}
             onClick={() => {
-                // TODO: Remake with new implementation
                 session.update(entry);
-                setContent(<AssistantPage />);
+                setContent(<AssistantPage/>);
             }}
             {...FadeIn(1000, 20)}>
             <span className="font-sans">{entry.topic}</span>

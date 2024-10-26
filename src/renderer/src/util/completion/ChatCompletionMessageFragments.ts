@@ -58,6 +58,7 @@ export interface FileFragment extends FragmentBase {
     /** The size of the file. */
     size: number;
 
+    /** The dimensions of the file. */
     type: 'file';
 }
 

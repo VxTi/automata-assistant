@@ -19,6 +19,7 @@ declare module 'abstractions' {
  */
 declare module 'llm' {
 
+    import { ComposedMessageFragment } from "./src/renderer/src/util/completion/ChatCompletionMessageFragments";
     /**
      * Model type for the LLM API.
      * These are the currently available models, as of writing this,
@@ -593,7 +594,7 @@ declare module 'llm' {
         /**
          * The messages of the conversation.
          */
-        messages: Message[]
+        messageFragments: ComposedMessageFragment[];
     }
 }
 

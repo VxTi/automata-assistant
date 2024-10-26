@@ -3,20 +3,28 @@
  * @author Luca Warmenhoven
  * @date Created on Wednesday, October 23 - 00:35
  */
-import { ChatResponse, CompletionRequest, ConversationTopic, Message, StreamedChatResponse } from "llm";
+import { ChatResponse, CompletionRequest, ConversationTopic, Message, MessageRole, StreamedChatResponse } from "llm";
 
-import { Settings }                 from "@renderer/util/Settings";
-import { VoiceType }                from "tts";
-import { playAudio }                from "@renderer/util/Audio";
-import { Dispatch, SetStateAction } from "react";
+import {
+    ComposedMessageFragment,
+    FileListFragment,
+    MessageFragment,
+    TextFragment
+} from "./ChatCompletionMessageFragments";
+
+import { ChatCompletionContentGenerator } from "./ChatCompletionContentGenerator";
+import { Settings }                       from "../../util/Settings";
+import { playAudio }                      from "../../util/Audio";
+import { VoiceType }                      from "tts";
+import { Dispatch, SetStateAction }       from "react";
 
 type ToolQueueEntry = { name: string, arguments: Object, buffer?: string };
 
-type MessageListener = (message: Message) => void;
-type MessageChunkListener = (response: StreamedChatResponse) => void;
-type MessageChunkEndListener = () => void;
-type ErrorListener = (error: Error) => void;
-type ToolCallListener = (tool: ToolQueueEntry) => void;
+type EventFragmentListener = (fragment: MessageFragment, role: MessageRole) => void;
+type EventChunkListener = (response: StreamedChatResponse) => void;
+type EventChunkEndListener = () => void;
+type EventErrorListener = (error: Error) => void;
+type EventToolCallListener = (tool: ToolQueueEntry) => void;
 
 /**
  * The initial user calibration prompt.
@@ -25,6 +33,13 @@ type ToolCallListener = (tool: ToolQueueEntry) => void;
  * @param initialSummary The initial summary of the user.
  */
 const InitialUserCalibrationPrompt = (userMessage: string, initialSummary = "") => `Here below are two messages given, first, your previous summary of the user, and the message of the user itself. Your task is to calibrate the summary of the user with as much accuracy and verbosity as possible. This is for you to get a better image of the user, so the more verbose, the better. If there is not enough information for you to summarize, just return the original summary. If you think the summary is already perfect, you can also return the original summary. The summary should be at least 5 words long. If the user asks you whether you are able to remember, you can now say yes. The user's message is as follows: "${userMessage}", and your initial summary: ${initialSummary}`;
+
+/**
+ * The topic generation prompt.
+ * This is used to generate a topic for the conversation.
+ * @param initialQuestion The initial question to generate the topic from.
+ */
+const TopicGenerationPrompt = (initialQuestion: string) => `Here below is a question that you can summarize in as little words as possible. This is for you to generate a topic for the conversation. The question is as follows: "${initialQuestion}".`;
 
 /**
  * The user calibration message.
@@ -37,6 +52,7 @@ const UserCalibrationMessage = () => {
     } as Message
 };
 
+// The generic conversation title, for when the conversation title is not set.
 const GenericConversationTitle = 'New conversation';
 
 /**
@@ -46,49 +62,31 @@ const GenericConversationTitle = 'New conversation';
  */
 export class ChatCompletionSession {
 
-    /** The messages in the chat session. */
-    private _messages: Message[];
-
+    /** Private fields related to the chat session. */
+    private readonly _contentGenerator: ChatCompletionContentGenerator;
     private _conversationTopic: string | undefined;
     private _conversationUUID: string | undefined;
     private _isStreaming: boolean     = false;
     private _spokenResponses: boolean = false;
     private _currentAudio: HTMLAudioElement | undefined;
+    private _messages: Message[]      = [];
+
+    /**
+     * The generated fragments for the completion.
+     * This can be parsed into React nodes to render the completion
+     * using the `content` getter.
+     */
+    private _composedFragments: ComposedMessageFragment[] = [];
 
     private _reactUpdateDispatch: Dispatch<SetStateAction<void>> | undefined;
 
-    /** The streamed response buffer. */
-    private _streamedResponseBuffer: string = '';
-
     private _streamedToolCallQueue: Map<number, ToolQueueEntry> = new Map();
-
-    /** -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- **
-     | The event listeners.                                          |
-     | These event listeners are used to handle the response of      |
-     | the chat assistant, and can be updated by the users using     |
-     | `onresponse`, `onchunk`, `onchunkend` and `onerror`.          |
-     ** -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- **/
-
-    /** The event listener for the response of the chat assistant. */
-    public onmessage: MessageListener | undefined;
-
-    /** The event listener for the chunk of the chat assistant. */
-    public onchunk: MessageChunkListener | undefined;
-
-    /** The event listener for the end of the chunk of the chat assistant. */
-    public onchunkend: MessageChunkEndListener | undefined;
-
-    /** The event listener for the error of the chat assistant. */
-    public onerror: ErrorListener | undefined;
-
-    /** The event listener for the tool call of the chat assistant. */
-    public ontoolcall: ToolCallListener | undefined;
 
     /**
      * Constructs a new instance of the ChatCompletionSession class.
      */
     constructor() {
-        this._messages = [];
+        this._contentGenerator = new ChatCompletionContentGenerator(this);
         window.electron.ipcRenderer.on('ai:completion-chunk', this._handleChunk.bind(this));
         window.electron.ipcRenderer.on('ai:completion-chunk-end', this._handleChunkEnd.bind(this));
         window.electron.ipcRenderer.on('ai:completion-error', this._handleError.bind(this));
@@ -120,8 +118,9 @@ export class ChatCompletionSession {
         if ( !chunk.choices[ 0 ].delta.content )
             return;
 
+        this._isStreaming = true;
         this.onchunk?.call(null, chunk);
-        this._streamedResponseBuffer += chunk.choices[ 0 ].delta.content;
+        this.appendFragment({ type: 'text', content: chunk.choices[ 0 ].delta.content }, 'assistant');
     }
 
     /**
@@ -145,19 +144,14 @@ export class ChatCompletionSession {
         this._isStreaming = false;
         this.onchunkend?.call(null);
 
-        // If there is a streamed response buffer, we'll append it to the chat session.
-        // This won't be present if there were tool calls.
-        if ( this._streamedResponseBuffer ) {
-            this.appendMessage({ content: this._streamedResponseBuffer, role: 'assistant' } as Message);
-            this._streamedResponseBuffer = '';
-        }
-
         // If there are tool calls, we'll parse the tool calls and send them to the tool call listener
         for ( let tool_call of this._streamedToolCallQueue.values() ) {
             tool_call.arguments = JSON.parse(tool_call.buffer!);
             delete tool_call.buffer;
             this.ontoolcall?.call(null, tool_call);
         }
+
+        this._saveConversation();
     }
 
     /**
@@ -169,8 +163,21 @@ export class ChatCompletionSession {
         (this.onerror || console.error)(error);
     }
 
+    /**
+     * Whether a topic should be generated.
+     * This is the case when the conversation topic is not set, or is the generic conversation title (also unset,
+     * just wrongly saved).
+     */
     private _shouldGenerateTopic(): boolean {
         return !this._conversationTopic || this._conversationTopic === GenericConversationTitle;
+    }
+
+    /**
+     * Returns the content generator for the chat session.
+     * This can be used to generate React nodes for the completion.
+     */
+    public get contentGenerator(): ChatCompletionContentGenerator {
+        return this._contentGenerator;
     }
 
     /**
@@ -180,15 +187,11 @@ export class ChatCompletionSession {
      * @param initialQuestion The initial question to generate the topic from.
      */
     private async _generateTopic(initialQuestion: string): Promise<any> {
-        console.log('Generating topic for conversation...');
-        // Generate topic title
+
         return await window[ 'ai' ]
             .completion(
                 {
-                    messages: [ {
-                        content: 'Summarize the following question in as little words as possible, at most 5 words: ' + initialQuestion,
-                        role: 'user'
-                    } ],
+                    messages: [ { content: TopicGenerationPrompt(initialQuestion), role: 'user' } ],
                     model: 'gpt-3.5-turbo'
                 })
             .then((response: ChatResponse | null) => {
@@ -200,62 +203,27 @@ export class ChatCompletionSession {
                 }
 
                 this._conversationTopic = response.choices[ 0 ].message.content as string;
+                this._saveConversation();
                 this._reactUpdateDispatch?.();
-                console.log('Generated topic: ' + this._conversationTopic);
             });
     }
 
     /**
-     * The messages in the chat session.
+     * Saves the conversation.
+     * This will save the conversation if the conversation is longer than 1 message,
+     * and the user has enabled automatic conversation saving.
      */
-    public get messages(): Message[] {
-        return this._messages;
-    }
-
-    /**
-     * Getter for the conversation topic
-     */
-    public get topic(): string {
-        return this._conversationTopic || GenericConversationTitle;
-    }
-
-    /**
-     * Setter for whether the responses should be spoken.
-     */
-    public set verbose(spoken: boolean) {
-        this._spokenResponses = spoken;
-        this._reactUpdateDispatch?.();
-    }
-
-    /**
-     * Getter for whether the responses should be spoken.
-     */
-    public get verbose(): boolean {
-        return this._spokenResponses;
-    }
-
-    /**
-     * Getter for the conversation UUID.
-     */
-    public get uuid(): string {
-        if ( !this._conversationUUID )
-            this._conversationUUID = Math.random().toString(36).substring(2, 15);
-
-        return this._conversationUUID;
-    }
-
-    /**
-     * Getter for the streamed response buffer.
-     */
-    public get streamedResponseBuffer(): string {
-        return this._streamedResponseBuffer;
-    }
-
-    /**
-     * Getter for whether the chat assistant is streaming.
-     */
-    public get streaming(): boolean {
-        return this._isStreaming;
+    private _saveConversation(): void {
+        if ( this._composedFragments.length > 1 && Settings.get(Settings.SAVE_CONVERSATIONS) ) {
+            console.log('Saving conversation...');
+            window[ 'conversations' ].save(
+                {
+                    topic: this.topic,
+                    uuid: this.uuid,
+                    messageFragments: this._composedFragments,
+                    date: Date.now()
+                });
+        }
     }
 
     /**
@@ -275,19 +243,8 @@ export class ChatCompletionSession {
      * error.
      * @param listener The listener to register.
      */
-    public onError(listener: ErrorListener): ChatCompletionSession {
+    public onError(listener: EventErrorListener): ChatCompletionSession {
         this.onerror = listener;
-        return this;
-    }
-
-    /**
-     * Registers a listener for the response of the chat assistant,
-     * and returns the current instance of the ChatCompletionSession.
-     * This allows for chaining of the methods.
-     * @param listener The listener to register.
-     */
-    public onMessage(listener: MessageListener): ChatCompletionSession {
-        this.onmessage = listener;
         return this;
     }
 
@@ -297,7 +254,7 @@ export class ChatCompletionSession {
      * This allows for chaining of the methods.
      * @param listener The listener to register.
      */
-    public onChunk(listener: MessageChunkListener): ChatCompletionSession {
+    public onChunk(listener: EventChunkListener): ChatCompletionSession {
         this.onchunk = listener;
         return this;
     }
@@ -308,7 +265,7 @@ export class ChatCompletionSession {
      * This allows for chaining of the methods.
      * @param listener The listener to register.
      */
-    public onChunkEnd(listener: MessageChunkEndListener): ChatCompletionSession {
+    public onChunkEnd(listener: EventChunkEndListener): ChatCompletionSession {
         this.onchunkend = listener;
         return this;
     }
@@ -319,8 +276,19 @@ export class ChatCompletionSession {
      * This allows for chaining of the methods.
      * @param listener The listener to register.
      */
-    public onToolCall(listener: ToolCallListener): ChatCompletionSession {
+    public onToolCall(listener: EventToolCallListener): ChatCompletionSession {
         this.ontoolcall = listener;
+        return this;
+    }
+
+    /**
+     * Registers a listener for the fragment of the chat assistant,
+     * and returns the current instance of the ChatCompletionSession.
+     * This allows for chaining of the methods.
+     * @param listener The listener to register.
+     */
+    public onFragment(listener: EventFragmentListener): ChatCompletionSession {
+        this.onfragment = listener;
         return this;
     }
 
@@ -329,10 +297,9 @@ export class ChatCompletionSession {
      * This will clear all messages, and reset the conversation topic and UUID.
      */
     public reset(): void {
-        this._messages.length        = 0;
+        this._composedFragments      = [];
         this._conversationTopic      = undefined;
         this._conversationUUID       = undefined;
-        this._streamedResponseBuffer = '';
         this._streamedToolCallQueue.clear();
         this._reactUpdateDispatch?.();
     }
@@ -345,18 +312,38 @@ export class ChatCompletionSession {
     public update(topic: ConversationTopic): void {
         this._conversationTopic = topic.topic;
         this._conversationUUID  = topic.uuid;
-        this._messages          = topic.messages;
+        this._composedFragments = topic.messageFragments;
+
+        // Fuckin 'ell,
+        // Since message fragments can be composed of quite a lot of subtypes,
+        // and since we're only interested into the textual parts of them,
+        // we'll have to transform the composed fragments into ones that only contain
+        // text fragments, and then append all those text fragments onto each other,
+        // after which we'll transform them into messages from the appropriate origin.
+        this._messages = topic.messageFragments
+                              .map((composedFragment: ComposedMessageFragment) =>
+                                       composedFragment
+                                           .fragments
+                                           .filter((fragment: MessageFragment) => fragment.type === 'text')
+                                           .reduce((acc: Message, fragment: TextFragment) => ({
+                                               content: acc.content + fragment.content,
+                                               role: acc.role
+                                           }), { content: '', role: composedFragment.role } as Message))
+                              .filter((message: Message) => message.content !== '');
+
         this._reactUpdateDispatch?.();
     }
 
     /**
      * Appends a message to the chat session.
-     * @param message
+     * This is the same as calling `appendFragment` with a text fragment,
+     * except this method will also append the message to the messages list.
+     * @param message The message to append to the chat session.
      */
     public async appendMessage(message: Message) {
 
         this._messages.push(message);
-        this.onmessage?.call(null, message);
+        this.appendFragment({ type: 'text', content: message.content as string }, message.role);
 
         if ( this.verbose && message.role === 'assistant' ) {
             window[ 'ai' ]
@@ -367,31 +354,8 @@ export class ChatCompletionSession {
                         voice: Settings.TTS_VOICES[ Settings.get(Settings.ASSISTANT_VOICE_TYPE) ].toLowerCase() as VoiceType,
                         model: 'tts-1', speed: 1.0,
                     })
-                .then(response => {
-                    this._currentAudio = playAudio(window[ 'ai' ].audio.ttsBase64ToBlob(response.data));
-                })
+                .then(({ data }) => this._currentAudio = playAudio(window[ 'ai' ].audio.ttsBase64ToBlob(data)));
         }
-
-        // If there aren't any previous user sent messages,
-        // we'll have to generate a topic and conversation UUID.
-        if ( this._shouldGenerateTopic() ) {
-            await this._generateTopic(message.content as string);
-        }
-
-        /*
-         * If the conversation is longer than 1 message, and the user has enabled
-         * automatic conversation saving, we'll save the conversation.
-         */
-        if ( this._messages.length > 1 && Settings.get(Settings.SAVE_CONVERSATIONS) ) {
-            window[ 'conversations' ].save(
-                {
-                    topic: this.topic,
-                    uuid: this.uuid,
-                    messages: this._messages,
-                    date: Date.now()
-                });
-        }
-        this._reactUpdateDispatch?.();
     }
 
     /**
@@ -446,33 +410,158 @@ export class ChatCompletionSession {
         completionRequest.messages.push(...this._messages);
         completionRequest.messages.push(message);
 
-        window[ 'ai' ]
-            .completion(completionRequest)
-            .then((response: ChatResponse | null) => {
-                // If response is null, it means the request was streamed,
-                // or an IO error occurred.
-                if ( !response )
-                    return;
-
-                // If the non-streamed request returns tool calls, we'll
-                // invoke the listener for every tool call.
-                if ( response.choices[ 0 ].message.tool_calls ) {
-                    for ( let tool_call of response.choices[ 0 ].message.tool_calls )
-                        this.ontoolcall?.(
-                            {
-                                name: tool_call.function.name!,
-                                arguments: JSON.parse(tool_call.function.arguments)
-                            });
-                    return;
-                }
-
-                // Otherwise we'll just append the ordinary message and
-                // call the `onmessage` listener, if exists.
-                this.appendMessage({ content: response.choices[ 0 ].message.content, role: 'assistant' });
-            });
-
+        // Since we're always streaming, we won't have to deal with
+        // the response of this request, since it'll always be `null`.
+        window[ 'ai' ].completion(completionRequest);
         this._reactUpdateDispatch?.();
 
         return this;
+    }
+
+
+    /**
+     * Appends fragments to the fragment node list.
+     * If the last fragment is of the same origin, the fragment will be appended to the last fragment,
+     * otherwise a new fragment node will be created.
+     */
+    public appendFragment(fragment: MessageFragment, roleOrigin: MessageRole) {
+
+        // Various conditions for whether the topic should be generated or not.
+        // This depends on both settings and the properties of the given fragment.
+        if ( fragment.type === 'text' && this._shouldGenerateTopic() ) {
+            this._generateTopic(fragment.content as string);
+        }
+
+        if ( fragment.type === 'text' && !this._isStreaming && roleOrigin === 'assistant' && this.verbose ) {
+            window[ 'ai' ]
+                .audio
+                .textToSpeech(
+                    {
+                        input: fragment.content as string,
+                        voice: Settings.TTS_VOICES[ Settings.get(Settings.ASSISTANT_VOICE_TYPE) ].toLowerCase() as VoiceType,
+                        model: 'tts-1', speed: 1.0,
+                    })
+                .then(({ data }) => this._currentAudio = playAudio(window[ 'ai' ].audio.ttsBase64ToBlob(data)));
+        }
+
+        do {
+            const lastIdx = this._composedFragments.length - 1;
+
+            // If there are no previous fragments, or the last fragment is not of the same origin, create a new fragment
+            // node
+            if ( this._composedFragments.length === 0 || this._composedFragments[ lastIdx ].role !== roleOrigin ) {
+
+                // If the fragment is a file, we'll create a new file list fragment
+                if ( fragment.type === 'file' ) {
+                    this._composedFragments.push(
+                        { fragments: [ { type: 'file-list', files: [ fragment ] } ], role: roleOrigin });
+
+                    break;
+                }
+                this._composedFragments.push({ fragments: [ fragment ], role: roleOrigin });
+                break;
+            }
+
+            const lastFragment = this._composedFragments[ lastIdx ].fragments[ this._composedFragments[ lastIdx ].fragments.length - 1 ];
+
+            // If the last fragment is a file list, and the new fragment is a file,
+            // append the file to the file list and break the loop
+            if ( lastFragment.type === 'file-list' && fragment.type === 'file' ) {
+                (lastFragment as FileListFragment).files.push(fragment);
+                break;
+            }
+
+            // If the last fragment is a text fragment, and the new fragment is a text fragment,
+            // append the content to the last fragment and break the loop
+            if ( lastFragment.type === 'text' && fragment.type === 'text' ) {
+                (lastFragment as TextFragment).content += fragment.content;
+                break;
+            }
+
+            // Append the fragment to the last fragment node
+            this._composedFragments[ lastIdx ].fragments.push(fragment);
+
+        } while ( false );
+
+        this.onfragment?.(fragment, roleOrigin);
+        this._reactUpdateDispatch?.();
+
+        if ( !this._isStreaming )
+            this._saveConversation();
+    }
+
+
+    /** -- -- -- -- -- -- -- -- -- -- -- -- -- **
+     |                                          |
+     |             Event Listeners              |
+     |                                          |
+     ** -- -- -- -- -- -- -- -- -- -- -- -- -- **/
+
+    /** The event listener for the message of the chat assistant. */
+    public onfragment: EventFragmentListener | undefined;
+
+    /** The event listener for the chunk of the chat assistant. */
+    public onchunk: EventChunkListener | undefined;
+
+    /** The event listener for the end of the chunk of the chat assistant. */
+    public onchunkend: EventChunkEndListener | undefined;
+
+    /** The event listener for the error of the chat assistant. */
+    public onerror: EventErrorListener | undefined;
+
+    /** The event listener for the tool call of the chat assistant. */
+    public ontoolcall: EventToolCallListener | undefined;
+
+
+    /** -- -- -- -- -- -- -- -- -- -- -- -- -- **
+     |                                          |
+     |       Getters and setters methods        |
+     |                                          |
+     ** -- -- -- -- -- -- -- -- -- -- -- -- -- **/
+
+    /**
+     * Setter for whether the responses should be spoken.
+     */
+    public set verbose(spoken: boolean) {
+        this._spokenResponses = spoken;
+        this._reactUpdateDispatch?.();
+    }
+
+    /**
+     * Getter for the conversation topic
+     */
+    public get topic(): string {
+        return this._conversationTopic || GenericConversationTitle;
+    }
+
+    /**
+     * Getter for whether the responses should be spoken.
+     */
+    public get verbose(): boolean {
+        return this._spokenResponses;
+    }
+
+    /**
+     * Getter for the conversation UUID.
+     */
+    public get uuid(): string {
+        if ( !this._conversationUUID )
+            this._conversationUUID = Math.random().toString(36).substring(2, 15);
+
+        return this._conversationUUID;
+    }
+
+    /**
+     * Getter for whether the chat assistant is streaming.
+     */
+    public get streaming(): boolean {
+        return this._isStreaming;
+    }
+
+    /**
+     * Getter for the fragments of the completion.
+     */
+    public get fragments(): ComposedMessageFragment[] {
+        return this._composedFragments;
     }
 }

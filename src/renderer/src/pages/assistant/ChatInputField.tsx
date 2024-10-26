@@ -36,6 +36,8 @@ export function ChatInputField() {
 
         inputContentRef.current.select();
 
+        window['fragments'] = session.fragments;
+
         // Smoothly change the height of the input field.
         inputContentRef.current.addEventListener('input', () => {
             inputContentRef.current!.style.height = 'auto';
@@ -57,6 +59,14 @@ export function ChatInputField() {
             })));
 
         session.complete({ role: 'user', content: prompt });
+        selectedFiles.forEach(file => {
+            const fileName = file.substring(file.lastIndexOf(window[ 'fs' ].separator) + 1);
+            session.appendFragment(
+                { type: 'file', name: fileName, size: 0, url: file },
+                'user'
+            )
+        });
+
         setSelectedFiles([]);
         setSelectedDirectory(null);
     }, [ session ]);
