@@ -89,7 +89,7 @@ export interface ExecutableFragment extends FragmentBase {
  * The message fragment.
  * Message fragments are used to represent messages in the completion.
  */
-export type MessageFragment = TextFragment | ImageFragment | FileFragment;
+export type MessageFragment = TextFragment | ImageFragment | FileFragment | FileListFragment | ExecutableFragment;
 
 /**
  * The composed message fragment.

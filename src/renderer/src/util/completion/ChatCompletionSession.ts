@@ -4,14 +4,11 @@
  * @date Created on Wednesday, October 23 - 00:35
  */
 import { ChatResponse, CompletionRequest, ConversationTopic, Message, StreamedChatResponse } from "llm";
-import {
-    Settings
-}                                                                                            from "@renderer/util/Settings";
-import { VoiceType }                                                                         from "tts";
-import {
-    playAudio
-}                                                                                            from "@renderer/util/Audio";
-import { Dispatch, SetStateAction }                                                          from "react";
+
+import { Settings }                 from "@renderer/util/Settings";
+import { VoiceType }                from "tts";
+import { playAudio }                from "@renderer/util/Audio";
+import { Dispatch, SetStateAction } from "react";
 
 type ToolQueueEntry = { name: string, arguments: Object, buffer?: string };
 
@@ -91,7 +88,7 @@ export class ChatCompletionSession {
      * Constructs a new instance of the ChatCompletionSession class.
      */
     constructor() {
-        this._messages    = [];
+        this._messages = [];
         window.electron.ipcRenderer.on('ai:completion-chunk', this._handleChunk.bind(this));
         window.electron.ipcRenderer.on('ai:completion-chunk-end', this._handleChunkEnd.bind(this));
         window.electron.ipcRenderer.on('ai:completion-error', this._handleError.bind(this));
@@ -332,9 +329,9 @@ export class ChatCompletionSession {
      * This will clear all messages, and reset the conversation topic and UUID.
      */
     public reset(): void {
-        this._messages.length   = 0;
-        this._conversationTopic = undefined;
-        this._conversationUUID  = undefined;
+        this._messages.length        = 0;
+        this._conversationTopic      = undefined;
+        this._conversationUUID       = undefined;
         this._streamedResponseBuffer = '';
         this._streamedToolCallQueue.clear();
         this._reactUpdateDispatch?.();
@@ -377,7 +374,7 @@ export class ChatCompletionSession {
 
         // If there aren't any previous user sent messages,
         // we'll have to generate a topic and conversation UUID.
-        if ( this._shouldGenerateTopic()) {
+        if ( this._shouldGenerateTopic() ) {
             await this._generateTopic(message.content as string);
         }
 
@@ -410,7 +407,7 @@ export class ChatCompletionSession {
         // Append the last message to the chat session.
         this.appendMessage(message);
 
-        const completionRequest    = {
+        const completionRequest = {
             messages: [],
             model: 'gpt-4o-mini',
             stream: true
